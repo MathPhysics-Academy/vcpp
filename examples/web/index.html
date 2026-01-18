@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>VCpp WebGPU Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      color: #eee;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    #canvas {
+      width: 800px;
+      height: 600px;
+      border: 2px solid #4a4a6a;
+      border-radius: 8px;
+    }
+
+    #status {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #2a2a4e;
+      border-radius: 4px;
+    }
+
+    .error {
+      color: #ff6b6b;
+    }
+
+    footer {
+      margin-top: 2rem;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    footer a {
+      color: #6a8caf;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>VCpp WebGPU Demo</h1>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <div id="status">Initializing WebGPU...</div>
+  <footer>&copy; 2026 Colin Ford. VCpp - All rights reserved.</footer>
+
+  <script type="module">
+    // Check WebGPU support
+    if (!navigator.gpu) {
+      document.getElementById('status').innerHTML =
+        '<span class="error">WebGPU is not supported in this browser. Try Chrome 113+ or Edge 113+.</span>';
+      throw new Error('WebGPU not supported');
+    }
+
+    // Initialize WebGPU before loading WASM
+    async function initWebGPU() {
+      console.log('[JS] Starting WebGPU init...');
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) {
+        throw new Error('No WebGPU adapter found');
+      }
+      const device = await adapter.requestDevice();
+      console.log('[JS] WebGPU device acquired');
+
+      document.getElementById('status').textContent = 'Loading WASM module...';
+
+      // Configure Module for Emscripten with pre-initialized device
+      window.Module = {
+        preinitializedWebGPUDevice: device,
+        onRuntimeInitialized: function () {
+          console.log('[JS] WASM runtime initialized!');
+          document.getElementById('status').textContent = 'Running...';
+        }
+      };
+
+      // Load the WASM module
+      const script = document.createElement('script');
+      script.src = 'vcpp_web_test.js?t=RED_ELLIPSOID_FIX_' + new Date().getTime();
+      script.onload = () => console.log('[JS] vcpp_web_test.js loaded');
+      script.onerror = () => {
+        console.error('[JS] Failed to load vcpp_web_test.js');
+        document.getElementById('status').innerHTML =
+          '<span class="error">Failed to load WASM module</span>';
+      };
+      document.body.appendChild(script);
+    }
+
+    initWebGPU().catch(err => {
+      document.getElementById('status').innerHTML =
+        `<span class="error">Error: ${err.message}</span>`;
+    });
+  </script>
+</body>
+
+</html>
