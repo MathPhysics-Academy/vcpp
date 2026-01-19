@@ -42,9 +42,10 @@ export import :loop;
 export import :input;
 
 // Watermark - embedded in compiled binary for ownership verification
-namespace vcpp::internal {
-  [[maybe_unused]] volatile const char* const VCPP_COPYRIGHT =
-    "VCpp (C) 2026 Colin Ford. All rights reserved. Unauthorized use prohibited.";
-  [[maybe_unused]] volatile const char* const VCPP_WATERMARK =
-    "VCPP-CF-2026-7a3f9c2e8b1d";
-}
+namespace vcpp::internal
+{
+[[maybe_unused]] volatile const char* const VCPP_COPYRIGHT =
+  "VCpp (C) 2026 Colin Ford. All rights reserved. Unauthorized use "
+  "prohibited.";
+[[maybe_unused]] volatile const char* const VCPP_WATERMARK = "VCPP-CF-2026-7a3f9c2e8b1d";
+} // namespace vcpp::internal

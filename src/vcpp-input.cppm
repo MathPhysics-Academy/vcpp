@@ -14,7 +14,8 @@ export module vcpp:input;
 import :vec;
 import :scene;
 
-export namespace vcpp {
+export namespace vcpp
+{
 
 // ============================================================================
 // Mouse State
@@ -27,7 +28,7 @@ struct mouse_state
   bool left_down{false};
   bool right_down{false};
   bool middle_down{false};
-  double scroll_delta{0};      // accumulated scroll since last frame
+  double scroll_delta{0}; // accumulated scroll since last frame
 };
 
 // ============================================================================
@@ -51,9 +52,9 @@ inline input_state g_input{};
 
 struct input_config
 {
-  double orbit_sensitivity{0.005};   // radians per pixel
-  double pan_sensitivity{0.01};      // world units per pixel
-  double zoom_sensitivity{0.1};      // zoom factor per scroll unit
+  double orbit_sensitivity{0.005};    // radians per pixel
+  double pan_sensitivity{0.01};       // world units per pixel
+  double zoom_sensitivity{0.1};       // zoom factor per scroll unit
   double zoom_drag_sensitivity{0.01}; // zoom factor per pixel (middle-drag)
 };
 
@@ -79,8 +80,7 @@ inline void process_camera_input(canvas& c)
   {
     if (dx != 0 || dy != 0)
     {
-      cam.orbit(-dx * g_input_config.orbit_sensitivity,
-                -dy * g_input_config.orbit_sensitivity);
+      cam.orbit(-dx * g_input_config.orbit_sensitivity, -dy * g_input_config.orbit_sensitivity);
       c.mark_dirty();
     }
   }

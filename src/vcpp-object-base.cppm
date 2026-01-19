@@ -19,7 +19,8 @@ import :color;
 import :props;
 import :traits;
 
-export namespace vcpp {
+export namespace vcpp
+{
 
 using namespace lam::symbols;
 
@@ -32,22 +33,22 @@ using namespace lam::symbols;
 struct object_base
 {
   // Spatial properties
-  vec3   m_pos{0, 0, 0};
-  vec3   m_axis{1, 0, 0};
-  vec3   m_up{0, 1, 0};
-  vec3   m_size{1, 1, 1};     // bounding size (interpretation varies by object)
+  vec3 m_pos{0, 0, 0};
+  vec3 m_axis{1, 0, 0};
+  vec3 m_up{0, 1, 0};
+  vec3 m_size{1, 1, 1}; // bounding size (interpretation varies by object)
 
   // Appearance
-  vec3   m_color{1, 1, 1};    // white default
+  vec3 m_color{1, 1, 1}; // white default
   double m_opacity{1.0};
   double m_shininess{0.6};
-  bool   m_emissive{false};
-  bool   m_visible{true};
+  bool m_emissive{false};
+  bool m_visible{true};
 
   // Behavior
-  bool   m_make_trail{false};
-  double m_retain{-1.0};      // trail retain time (-1 = infinite)
-  vec3   m_trail_color{1, 1, 1};
+  bool m_make_trail{false};
+  double m_retain{-1.0}; // trail retain time (-1 = infinite)
+  vec3 m_trail_color{1, 1, 1};
 
   // ========== Property Accessors (getter/setter pairs) ==========
   // These enable: ball.pos() and ball.pos(new_value)
@@ -77,19 +78,18 @@ struct object_base
 // These are applied to ALL object types by make<T>().
 // ============================================================================
 
-inline constexpr auto common_params = std::tuple{
-  param_spec<&object_base::m_pos,         decltype(pos),         vec3{0,0,0}>{},
-  param_spec<&object_base::m_axis,        decltype(axis),        vec3{1,0,0}>{},
-  param_spec<&object_base::m_up,          decltype(up),          vec3{0,1,0}>{},
-  param_spec<&object_base::m_color,       decltype(color),       vec3{1,1,1}>{},
-  param_spec<&object_base::m_opacity,     decltype(opacity),     1.0>{},
-  param_spec<&object_base::m_shininess,   decltype(shininess),   0.6>{},
-  param_spec<&object_base::m_emissive,    decltype(emissive),    false>{},
-  param_spec<&object_base::m_visible,     decltype(visible),     true>{},
-  param_spec<&object_base::m_make_trail,  decltype(make_trail),  false>{},
-  param_spec<&object_base::m_retain,      decltype(retain),      -1.0>{},
-  param_spec<&object_base::m_trail_color, decltype(trail_color), vec3{1,1,1}>{}
-};
+inline constexpr auto common_params =
+  std::tuple{param_spec<&object_base::m_pos, decltype(pos), vec3{0, 0, 0}>{},
+             param_spec<&object_base::m_axis, decltype(axis), vec3{1, 0, 0}>{},
+             param_spec<&object_base::m_up, decltype(up), vec3{0, 1, 0}>{},
+             param_spec<&object_base::m_color, decltype(color), vec3{1, 1, 1}>{},
+             param_spec<&object_base::m_opacity, decltype(opacity), 1.0>{},
+             param_spec<&object_base::m_shininess, decltype(shininess), 0.6>{},
+             param_spec<&object_base::m_emissive, decltype(emissive), false>{},
+             param_spec<&object_base::m_visible, decltype(visible), true>{},
+             param_spec<&object_base::m_make_trail, decltype(make_trail), false>{},
+             param_spec<&object_base::m_retain, decltype(retain), -1.0>{},
+             param_spec<&object_base::m_trail_color, decltype(trail_color), vec3{1, 1, 1}>{}};
 
 // ============================================================================
 // make<ObjectType> - Generic object factory

@@ -4,7 +4,4 @@
 
 import basic_test;
 
-int main()
-{
-  return run_test();
-}
+int main() { return run_test(); }

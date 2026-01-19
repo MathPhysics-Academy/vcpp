@@ -4,6 +4,4 @@
 
 import web_test;
 
-int main() {
-  return run_web_test();
-}
+int main() { return run_web_test(); }

@@ -17,7 +17,8 @@ import :vec;
 import :color;
 import :objects;
 
-export namespace vcpp {
+export namespace vcpp
+{
 
 // ============================================================================
 // Camera
@@ -25,24 +26,18 @@ export namespace vcpp {
 
 struct camera
 {
-  vec3   m_pos{0, 0, 10};     // camera position
-  vec3   m_center{0, 0, 0};   // look-at point
-  vec3   m_up{0, 1, 0};       // up direction
-  double m_fov{60.0};         // field of view (degrees)
-  double m_near{0.1};         // near clipping plane
-  double m_far{1000.0};       // far clipping plane
+  vec3 m_pos{0, 0, 10};   // camera position
+  vec3 m_center{0, 0, 0}; // look-at point
+  vec3 m_up{0, 1, 0};     // up direction
+  double m_fov{60.0};     // field of view (degrees)
+  double m_near{0.1};     // near clipping plane
+  double m_far{1000.0};   // far clipping plane
 
   // Computed: forward direction
-  constexpr vec3 forward() const noexcept
-  {
-    return hat(m_center - m_pos);
-  }
+  constexpr vec3 forward() const noexcept { return hat(m_center - m_pos); }
 
   // Computed: right direction
-  constexpr vec3 right() const noexcept
-  {
-    return hat(cross(forward(), m_up));
-  }
+  constexpr vec3 right() const noexcept { return hat(cross(forward(), m_up)); }
 
   // Orbit camera around center point
   void orbit(double horizontal_angle, double vertical_angle) noexcept
@@ -65,7 +60,8 @@ struct camera
     vec3 offset = m_pos - m_center;
     double dist = mag(offset);
     double new_dist = dist * factor;
-    if (new_dist < 0.1) new_dist = 0.1;  // minimum distance
+    if (new_dist < 0.1)
+      new_dist = 0.1; // minimum distance
     m_pos = m_center + hat(offset) * new_dist;
   }
 
@@ -83,16 +79,13 @@ struct camera
 
 struct light
 {
-  vec3   m_pos{0, 10, 10};
-  vec3   m_color{1, 1, 1};
+  vec3 m_pos{0, 10, 10};
+  vec3 m_color{1, 1, 1};
   double m_intensity{1.0};
-  bool   m_directional{false};  // true = directional, false = point light
+  bool m_directional{false}; // true = directional, false = point light
 
   // For directional lights, m_pos is treated as direction
-  constexpr vec3 direction() const noexcept
-  {
-    return m_directional ? hat(m_pos) : vec3{0, 0, 0};
-  }
+  constexpr vec3 direction() const noexcept { return m_directional ? hat(m_pos) : vec3{0, 0, 0}; }
 };
 
 // ============================================================================
@@ -119,8 +112,8 @@ enum class object_type
 struct scene_entry
 {
   object_type type;
-  std::size_t index;    // index into type-specific storage
-  bool        dirty{true};
+  std::size_t index; // index into type-specific storage
+  bool dirty{true};
 };
 
 // ============================================================================
@@ -134,11 +127,11 @@ class canvas
 {
 public:
   // ========== Canvas Properties ==========
-  int    m_width{800};
-  int    m_height{600};
-  vec3   m_background{0, 0, 0};
-  bool   m_visible{true};
-  bool   m_resizable{true};
+  int m_width{800};
+  int m_height{600};
+  vec3 m_background{0, 0, 0};
+  bool m_visible{true};
+  bool m_resizable{true};
   std::string m_title{"VCpp"};
   std::string m_caption{};
 
@@ -147,20 +140,20 @@ public:
 
   // ========== Lighting ==========
   std::vector<light> m_lights{
-    light{{0, 10, 10}, {1, 1, 1}, 1.0, false}  // default light
+    light{{0, 10, 10}, {1, 1, 1}, 1.0, false} // default light
   };
   vec3 m_ambient{0.2, 0.2, 0.2};
 
   // ========== Object Storage (type-specific for cache efficiency) ==========
   std::vector<sphere_object> m_spheres;
   std::vector<ellipsoid_object> m_ellipsoids;
-  std::vector<box_object>      m_boxes;
+  std::vector<box_object> m_boxes;
   std::vector<cylinder_object> m_cylinders;
-  std::vector<cone_object>     m_cones;
-  std::vector<arrow_object>    m_arrows;
-  std::vector<ring_object>     m_rings;
-  std::vector<helix_object>    m_helixes;
-  std::vector<pyramid_object>  m_pyramids;
+  std::vector<cone_object> m_cones;
+  std::vector<arrow_object> m_arrows;
+  std::vector<ring_object> m_rings;
+  std::vector<helix_object> m_helixes;
+  std::vector<pyramid_object> m_pyramids;
 
   // ========== Scene Graph ==========
   std::vector<scene_entry> m_entries;
@@ -303,14 +296,8 @@ inline canvas scene{};
 
 inline canvas* current_canvas = &scene;
 
-inline void select(canvas& c) noexcept
-{
-  current_canvas = &c;
-}
+inline void select(canvas& c) noexcept { current_canvas = &c; }
 
-inline canvas& selected() noexcept
-{
-  return *current_canvas;
-}
+inline canvas& selected() noexcept { return *current_canvas; }
 
 } // namespace vcpp

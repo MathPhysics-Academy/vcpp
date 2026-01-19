@@ -15,7 +15,8 @@ export module vcpp:traits;
 
 import lam.symbols;
 
-export namespace vcpp {
+export namespace vcpp
+{
 
 using namespace lam::symbols;
 
@@ -26,17 +27,15 @@ using namespace lam::symbols;
 // it returns the symbol itself. We detect this to provide defaults.
 // ============================================================================
 
-namespace detail {
+namespace detail
+{
 
 template<typename Symbol, typename Substitution>
 struct is_bound_impl
 {
   // Call the symbol with the substitution and check return type
   using result_type = decltype(std::declval<Symbol>()(std::declval<Substitution>()));
-  static constexpr bool value = !std::is_same_v<
-    std::remove_cvref_t<result_type>,
-    std::remove_cvref_t<Symbol>
-  >;
+  static constexpr bool value = !std::is_same_v<std::remove_cvref_t<result_type>, std::remove_cvref_t<Symbol>>;
 };
 
 } // namespace detail
@@ -83,8 +82,7 @@ constexpr void apply_param(Object& obj, const Substitution& params, ParamSpec)
 // ============================================================================
 
 template<typename Object, typename Substitution, typename... ParamSpecs>
-constexpr void apply_params(Object& obj, const Substitution& params,
-                            std::tuple<ParamSpecs...>)
+constexpr void apply_params(Object& obj, const Substitution& params, std::tuple<ParamSpecs...>)
 {
   (apply_param(obj, params, ParamSpecs{}), ...);
 }

@@ -15,7 +15,8 @@ export module vcpp:loop;
 
 import :scene;
 
-export namespace vcpp {
+export namespace vcpp
+{
 
 // ============================================================================
 // Frame Timer - Precise timing for animation
@@ -30,8 +31,8 @@ public:
 
 private:
   time_point m_last_frame{clock::now()};
-  double m_target_dt{1.0 / 60.0};   // target frame time (seconds)
-  double m_actual_dt{0.0};          // actual elapsed time
+  double m_target_dt{1.0 / 60.0}; // target frame time (seconds)
+  double m_actual_dt{0.0};        // actual elapsed time
   std::size_t m_frame_count{0};
 
 public:
@@ -42,10 +43,7 @@ public:
       m_target_dt = 1.0 / fps;
   }
 
-  double target_fps() const noexcept
-  {
-    return 1.0 / m_target_dt;
-  }
+  double target_fps() const noexcept { return 1.0 / m_target_dt; }
 
   // Wait until enough time has passed, return actual dt
   double wait() noexcept
@@ -59,11 +57,9 @@ public:
       double sleep_time = m_target_dt - m_actual_dt;
 
       // Sleep for most of the remaining time (leave some for spin-wait)
-      if (sleep_time > 0.002)  // only sleep if > 2ms remaining
+      if (sleep_time > 0.002) // only sleep if > 2ms remaining
       {
-        std::this_thread::sleep_for(
-          std::chrono::duration<double>(sleep_time * 0.9)
-        );
+        std::this_thread::sleep_for(std::chrono::duration<double>(sleep_time * 0.9));
       }
 
       // Spin-wait for precise timing
@@ -135,19 +131,18 @@ inline void (*poll_events_fn)() = nullptr;
 inline void (*render_frame_fn)(canvas&) = nullptr;
 
 // Default implementations (no-op until backend is connected)
-inline bool window_should_close() noexcept
-{
-  return window_should_close_fn ? window_should_close_fn() : false;
-}
+inline bool window_should_close() noexcept { return window_should_close_fn ? window_should_close_fn() : false; }
 
 inline void poll_events() noexcept
 {
-  if (poll_events_fn) poll_events_fn();
+  if (poll_events_fn)
+    poll_events_fn();
 }
 
 inline void render_frame(canvas& c)
 {
-  if (render_frame_fn) render_frame_fn(c);
+  if (render_frame_fn)
+    render_frame_fn(c);
 }
 
 // ============================================================================
@@ -225,23 +220,15 @@ inline double run_once(double fps, canvas& c = scene)
 class animation
 {
 public:
-  animation(double fps = 60.0, canvas& c = scene)
-    : m_canvas{c}
-    , m_running{true}
+  animation(double fps = 60.0, canvas& c = scene) : m_canvas{c}, m_running{true}
   {
     m_timer.set_rate(fps);
     m_timer.reset();
   }
 
-  bool running() const noexcept
-  {
-    return m_running && !window_should_close();
-  }
+  bool running() const noexcept { return m_running && !window_should_close(); }
 
-  void stop() noexcept
-  {
-    m_running = false;
-  }
+  void stop() noexcept { m_running = false; }
 
   // Call each frame, returns dt
   double tick()
