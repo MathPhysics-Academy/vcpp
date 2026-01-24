@@ -190,6 +190,16 @@ struct renderer_state
   WGPUBuffer helix_ib{nullptr};
   std::size_t helix_ib_cap{0};
 
+  // Per-curve mesh data (curves have dynamic geometry, can't use standard instancing)
+  struct curve_mesh_data
+  {
+    WGPUBuffer vertex_buffer{nullptr};
+    WGPUBuffer index_buffer{nullptr};
+    uint32_t index_count{0};
+    std::size_t buffer_capacity{0};
+  };
+  std::vector<curve_mesh_data> curve_meshes;
+
   WGPUTexture depth_texture{nullptr};
   WGPUTextureView depth_view{nullptr};
 
@@ -571,6 +581,117 @@ inline std::vector<uint32_t> generate_cone_indices(int slices = 16)
       indices.push_back(base_center + 1 + i);
   }
   return indices;
+}
+
+// Tube mesh for curve objects: generates a tube along arbitrary 3D points
+// Uses Frenet frames (or fallback for straight segments) to orient cross-sections
+inline std::pair<std::vector<vertex>, std::vector<uint32_t>>
+generate_tube_mesh(const std::vector<vec3>& points, float radius, int tube_slices = 8)
+{
+  std::vector<vertex> verts;
+  std::vector<uint32_t> indices;
+
+  if (points.size() < 2)
+    return {verts, indices};
+
+  int n = static_cast<int>(points.size());
+
+  // For each point, compute a local coordinate frame (tangent, normal, binormal)
+  std::vector<vec3> tangents(n);
+  std::vector<vec3> normals(n);
+  std::vector<vec3> binormals(n);
+
+  // Compute tangents
+  for (int i = 0; i < n; ++i)
+  {
+    if (i == 0)
+      tangents[i] = hat(points[1] - points[0]);
+    else if (i == n - 1)
+      tangents[i] = hat(points[n - 1] - points[n - 2]);
+    else
+      tangents[i] = hat(points[i + 1] - points[i - 1]);
+
+    // Handle zero-length tangent
+    if (mag2(tangents[i]) < 1e-12)
+      tangents[i] = vec3{1, 0, 0};
+  }
+
+  // Compute initial normal using an up vector
+  vec3 up_guide{0, 1, 0};
+  if (std::abs(dot(tangents[0], up_guide)) > 0.99)
+    up_guide = vec3{0, 0, 1};
+
+  normals[0] = hat(cross(tangents[0], up_guide));
+  binormals[0] = cross(tangents[0], normals[0]);
+
+  // Propagate frame along curve (parallel transport approximation)
+  for (int i = 1; i < n; ++i)
+  {
+    // Project previous normal onto plane perpendicular to current tangent
+    vec3 proj = normals[i - 1] - tangents[i] * dot(normals[i - 1], tangents[i]);
+    if (mag2(proj) < 1e-12)
+    {
+      // Fallback: use up_guide
+      proj = cross(tangents[i], up_guide);
+      if (mag2(proj) < 1e-12)
+        proj = cross(tangents[i], vec3{0, 0, 1});
+    }
+    normals[i] = hat(proj);
+    binormals[i] = cross(tangents[i], normals[i]);
+  }
+
+  // Generate ring of vertices at each point
+  for (int i = 0; i < n; ++i)
+  {
+    float t_param = static_cast<float>(i) / (n - 1);
+
+    for (int j = 0; j <= tube_slices; ++j)
+    {
+      double phi = 2.0 * 3.14159265 * j / tube_slices;
+      double cos_phi = std::cos(phi);
+      double sin_phi = std::sin(phi);
+
+      // Offset in normal-binormal plane
+      vec3 offset = normals[i] * cos_phi + binormals[i] * sin_phi;
+      vec3 pos = points[i] + offset * static_cast<double>(radius);
+
+      vertex v{};
+      v.pos[0] = static_cast<float>(pos.x());
+      v.pos[1] = static_cast<float>(pos.y());
+      v.pos[2] = static_cast<float>(pos.z());
+      v.normal[0] = static_cast<float>(offset.x());
+      v.normal[1] = static_cast<float>(offset.y());
+      v.normal[2] = static_cast<float>(offset.z());
+      v.uv[0] = t_param;
+      v.uv[1] = static_cast<float>(j) / tube_slices;
+      verts.push_back(v);
+    }
+  }
+
+  // Generate indices connecting rings
+  for (int i = 0; i < n - 1; ++i)
+  {
+    for (int j = 0; j < tube_slices; ++j)
+    {
+      int current_ring = i * (tube_slices + 1);
+      int next_ring = (i + 1) * (tube_slices + 1);
+
+      uint32_t v0 = current_ring + j;
+      uint32_t v1 = next_ring + j;
+      uint32_t v2 = current_ring + j + 1;
+      uint32_t v3 = next_ring + j + 1;
+
+      indices.push_back(v0);
+      indices.push_back(v1);
+      indices.push_back(v2);
+
+      indices.push_back(v1);
+      indices.push_back(v3);
+      indices.push_back(v2);
+    }
+  }
+
+  return {verts, indices};
 }
 
 } // namespace meshes
@@ -1156,6 +1277,85 @@ inline void render_frame()
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.helix_ib, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[4].index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[4].index_count, static_cast<uint32_t>(helix_instances.size()), 0, 0, 0);
+  }
+
+  // Draw Curves (per-curve dynamic mesh generation)
+  // Resize curve_meshes vector if needed
+  while (g_renderer.curve_meshes.size() < c.m_curves.size())
+    g_renderer.curve_meshes.push_back({});
+
+  for (std::size_t curve_idx = 0; curve_idx < c.m_curves.size(); ++curve_idx)
+  {
+    const auto& crv = c.m_curves[curve_idx];
+    if (!crv.m_visible || crv.m_points.size() < 2)
+      continue;
+
+    auto& mesh = g_renderer.curve_meshes[curve_idx];
+
+    // Regenerate mesh if geometry is dirty
+    if (crv.m_geometry_dirty)
+    {
+      auto [verts, indices] =
+        meshes::generate_tube_mesh(crv.m_points, static_cast<float>(crv.m_radius), 8);
+
+      if (!indices.empty())
+      {
+        std::size_t vb_size = verts.size() * sizeof(vertex);
+        std::size_t ib_size = indices.size() * sizeof(uint32_t);
+        std::size_t total_size = vb_size + ib_size;
+
+        // Recreate buffers if capacity insufficient
+        if (total_size > mesh.buffer_capacity)
+        {
+          if (mesh.vertex_buffer)
+            wgpuBufferRelease(mesh.vertex_buffer);
+          if (mesh.index_buffer)
+            wgpuBufferRelease(mesh.index_buffer);
+
+          mesh.buffer_capacity = total_size * 2;
+          mesh.vertex_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size * 2);
+          mesh.index_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size * 2);
+        }
+
+        wgpuQueueWriteBuffer(g_renderer.queue, mesh.vertex_buffer, 0, verts.data(), vb_size);
+        wgpuQueueWriteBuffer(g_renderer.queue, mesh.index_buffer, 0, indices.data(), ib_size);
+        mesh.index_count = static_cast<uint32_t>(indices.size());
+      }
+
+      crv.m_geometry_dirty = false;
+    }
+
+    if (mesh.index_count == 0 || !mesh.vertex_buffer || !mesh.index_buffer)
+      continue;
+
+    // Create instance data for this curve (identity transform + curve color)
+    instance_data inst{};
+    inst.model = matrix::identity();
+    inst.color = to_gpu4(crv.m_color, static_cast<float>(crv.m_opacity));
+    inst.material = {static_cast<float>(crv.m_shininess), 0, 0, 0};
+
+    // Use a temporary instance buffer (reuse sphere_ib since we only need 1 instance)
+    // Actually, let's write directly to ensure no conflicts
+    static WGPUBuffer curve_single_ib = nullptr;
+    static std::size_t curve_single_ib_cap = 0;
+    std::size_t inst_size = sizeof(instance_data);
+
+    if (inst_size > curve_single_ib_cap)
+    {
+      if (curve_single_ib)
+        wgpuBufferRelease(curve_single_ib);
+      curve_single_ib_cap = inst_size * 2;
+      curve_single_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), curve_single_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, curve_single_ib, 0, &inst, inst_size);
+
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, curve_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, mesh.index_count, 1, 0, 0, 0);
   }
 
   wgpuRenderPassEncoderEnd(pass);

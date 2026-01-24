@@ -102,7 +102,8 @@ enum class object_type
   arrow,
   ring,
   helix,
-  pyramid
+  pyramid,
+  curve
 };
 
 // ============================================================================
@@ -154,6 +155,7 @@ public:
   std::vector<ring_object> m_rings;
   std::vector<helix_object> m_helixes;
   std::vector<pyramid_object> m_pyramids;
+  std::vector<curve_object> m_curves;
 
   // ========== Scene Graph ==========
   std::vector<scene_entry> m_entries;
@@ -244,6 +246,15 @@ public:
     return m_entries.size() - 1;
   }
 
+  std::size_t add(curve_object obj)
+  {
+    std::size_t idx = m_curves.size();
+    m_curves.push_back(std::move(obj));
+    m_entries.push_back({object_type::curve, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
   // ========== Accessors ==========
 
   camera& cam() noexcept { return m_camera; }
@@ -280,6 +291,7 @@ public:
     m_rings.clear();
     m_helixes.clear();
     m_pyramids.clear();
+    m_curves.clear();
     m_entries.clear();
     m_scene_dirty = true;
   }

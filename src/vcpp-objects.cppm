@@ -317,4 +317,50 @@ constexpr pyramid_object pyramid(Binders... binders)
   return make<pyramid_object>(binders...);
 }
 
+// ============================================================================
+// CURVE (VPython-compatible curve object)
+// ============================================================================
+
+struct curve_object : object_base
+{
+  std::vector<vec3> m_points;    // Point positions
+  double m_radius{0.05};         // Tube radius
+  mutable bool m_geometry_dirty{true};
+
+  // VPython-compatible API
+  void append(const vec3& p)
+  {
+    m_points.push_back(p);
+    m_geometry_dirty = true;
+  }
+
+  void clear_points()
+  {
+    m_points.clear();
+    m_geometry_dirty = true;
+  }
+
+  std::size_t npoints() const { return m_points.size(); }
+
+  // Accessors
+  double get_radius() const noexcept { return m_radius; }
+  void set_radius(double r) noexcept
+  {
+    m_radius = r;
+    m_geometry_dirty = true;
+  }
+};
+
+template<>
+struct object_params<curve_object>
+{
+  static constexpr auto value = std::tuple{param_spec<&curve_object::m_radius, decltype(radius), 0.05>{}};
+};
+
+template<typename... Binders>
+curve_object curve(Binders... binders)
+{
+  return make<curve_object>(binders...);
+}
+
 } // namespace vcpp

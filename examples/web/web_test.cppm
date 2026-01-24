@@ -26,7 +26,7 @@ namespace
   std::vector<drop_state> drops;
   bool is_raining_scene = false;
   
-  enum class SceneID { Default, Solar, Random, Rain, Torque, Graph };
+  enum class SceneID { Default, Solar, Random, Rain, Torque, Graph, Curve };
   SceneID current_scene = SceneID::Default;
 
   // Graph demo state
@@ -37,6 +37,13 @@ namespace
     std::size_t ball_idx{0};
     bool active{false};
   } g_demo;
+
+  // Curve demo state
+  struct curve_demo_state {
+    std::size_t dynamic_curve_idx{0};
+    double time{0.0};
+    bool active{false};
+  } c_demo;
 
   // Physics constants
   constexpr double sim_dt = 0.01;
@@ -79,6 +86,7 @@ namespace
     is_raining_scene = false;
     t_sim.active = false;
     g_demo.active = false;
+    c_demo.active = false;
     scene.background(vec3{0, 0, 0});
     
     // Default: 2 Spheres, 1 Cube, 1 Ellipsoid
@@ -102,6 +110,7 @@ namespace
     is_raining_scene = false;
     t_sim.active = false;
     g_demo.active = false;
+    c_demo.active = false;
     scene.background(vec3{0.05, 0.05, 0.1}); // Starry dark blue
     
     // Sun
@@ -125,6 +134,7 @@ namespace
     is_raining_scene = false;
     t_sim.active = true;
     g_demo.active = false;
+    c_demo.active = false;
     scene.background(vec3{1, 1, 1}); // White background
     
     // ... rest of torque scene ...
@@ -213,6 +223,7 @@ namespace
       is_raining_scene = false;
       t_sim.active = false;
       g_demo.active = false;
+      c_demo.active = false;
       scene.background(vec3{0.1, 0.1, 0.1});
 
       std::random_device rd;
@@ -241,6 +252,7 @@ namespace
     is_raining_scene = true;
     t_sim.active = false;
     g_demo.active = false;
+    c_demo.active = false;
     
     scene.background(vec3{0.8, 0.8, 0.9}); // Light blue sky
     
@@ -295,6 +307,7 @@ namespace
     scene.clear();
     is_raining_scene = false;
     t_sim.active = false;
+    c_demo.active = false;
 
     // Clear any existing graphs
     graph_bridge::clear_all();
@@ -341,6 +354,64 @@ namespace
     std::cout << "  Red ball bounces with energy loss" << std::endl;
     std::cout << "  Graph shows: KE (red), PE (blue), Total (green)" << std::endl;
   }
+
+  // ==========================================================================
+  // SCENE 7: Curve Object Demo
+  // ==========================================================================
+  void load_scene_curve() {
+    current_scene = SceneID::Curve;
+    using namespace vcpp;
+    scene.clear();
+    graph_bridge::clear_all();
+    is_raining_scene = false;
+    t_sim.active = false;
+    g_demo.active = false;
+    c_demo.active = true;
+    c_demo.time = 0.0;
+
+    scene.background(vec3{0.05, 0.05, 0.1});
+
+    // Static spiral curve (like a spring/helix but using curve)
+    auto spiral = curve(color=colors::cyan, radius=0.08);
+    int spiral_points = 100;
+    double spiral_radius = 2.0;
+    double spiral_height = 4.0;
+    double spiral_coils = 5.0;
+
+    for (int i = 0; i < spiral_points; ++i) {
+      double t = static_cast<double>(i) / (spiral_points - 1);
+      double angle = t * spiral_coils * 2.0 * 3.14159265;
+      double x = spiral_radius * std::cos(angle);
+      double y = t * spiral_height - spiral_height / 2.0;
+      double z = spiral_radius * std::sin(angle);
+      spiral.append(vec3{x, y, z});
+    }
+    scene.add(spiral);
+
+    // Dynamic curve that grows over time (starts empty)
+    auto growing = curve(color=colors::yellow, radius=0.05);
+    scene.add(growing);
+    c_demo.dynamic_curve_idx = scene.m_curves.size() - 1;
+
+    // A second static curve: figure-8 / lemniscate
+    auto figure8 = curve(color=colors::magenta, radius=0.06);
+    int f8_points = 80;
+    double f8_scale = 1.5;
+    for (int i = 0; i < f8_points; ++i) {
+      double t = static_cast<double>(i) / (f8_points - 1) * 2.0 * 3.14159265;
+      double denom = 1.0 + std::sin(t) * std::sin(t);
+      double x = f8_scale * std::cos(t) / denom + 4.0; // offset to the right
+      double y = 0.0;
+      double z = f8_scale * std::sin(t) * std::cos(t) / denom;
+      figure8.append(vec3{x, y, z});
+    }
+    scene.add(figure8);
+
+    std::cout << "Loaded Curve Demo Scene (Press 7)" << std::endl;
+    std::cout << "  Cyan: Static spiral curve" << std::endl;
+    std::cout << "  Yellow: Dynamic growing curve" << std::endl;
+    std::cout << "  Magenta: Figure-8 (lemniscate)" << std::endl;
+  }
 }
 
 void update() {
@@ -354,6 +425,7 @@ void update() {
   if (g_input.consume_key("Digit4")) { std::cout << "Key 4 -> Rain" << std::endl; load_scene_rain(); }
   if (g_input.consume_key("Digit5")) { std::cout << "Key 5 -> Torque" << std::endl; load_scene_torque(); }
   if (g_input.consume_key("Digit6")) { std::cout << "Key 6 -> Graph Demo" << std::endl; load_scene_graph(); }
+  if (g_input.consume_key("Digit7")) { std::cout << "Key 7 -> Curve Demo" << std::endl; load_scene_curve(); }
 
   if (g_input.consume_key("KeyR")) {
     std::cout << "Resetting Scene..." << std::endl;
@@ -364,6 +436,7 @@ void update() {
       case SceneID::Rain: load_scene_rain(); break;
       case SceneID::Torque: load_scene_torque(); break;
       case SceneID::Graph: load_scene_graph(); break;
+      case SceneID::Curve: load_scene_curve(); break;
     }
   }
   
@@ -556,6 +629,34 @@ void update() {
     frame_counter++;
 
     g_demo.time += sim_dt;
+    scene.mark_dirty();
+  }
+  else if (c_demo.active) {
+    // Animate the growing curve
+    c_demo.time += sim_dt;
+
+    if (c_demo.dynamic_curve_idx < scene.m_curves.size()) {
+      auto& crv = scene.m_curves[c_demo.dynamic_curve_idx];
+
+      // Add a new point every few frames (spiral pattern growing outward)
+      static int frame_count = 0;
+      if (frame_count % 5 == 0) {
+        double t = c_demo.time;
+        double wave_radius = 0.5 + t * 0.3;
+        double x = -4.0 + wave_radius * std::cos(t * 3.0);
+        double y = wave_radius * std::sin(t * 5.0);
+        double z = wave_radius * std::sin(t * 3.0);
+
+        crv.append(vec3{x, y, z});
+
+        // Limit points to prevent unbounded growth
+        if (crv.m_points.size() > 500) {
+          crv.m_points.erase(crv.m_points.begin());
+          crv.m_geometry_dirty = true;
+        }
+      }
+      frame_count++;
+    }
     scene.mark_dirty();
   }
 }

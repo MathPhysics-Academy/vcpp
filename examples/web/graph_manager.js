@@ -118,7 +118,6 @@ class VcppGraphManager {
       const newWidth = Math.round(containerWidth);
       const newHeight = Math.round(containerWidth * aspectRatio);
 
-      console.log(`[GraphResize] id=${id} containerWidth=${containerWidth} -> ${newWidth}x${newHeight}`);
 
       // Always resize (don't skip)
       graph.width = newWidth;
@@ -147,14 +146,12 @@ class VcppGraphManager {
       // Resize wrapper using individual properties
       const wrapper = document.getElementById(`graph-wrapper-${id}`);
       if (wrapper) {
-        const oldHeight = wrapper.style.height;
         // Clear any conflicting styles first
         wrapper.style.minHeight = '';
         wrapper.style.maxHeight = '';
         // Set dimensions explicitly
         wrapper.style.width = newWidth + 'px';
         wrapper.style.height = newHeight + 'px';
-        console.log(`[GraphResize] wrapper height: ${oldHeight} -> ${wrapper.style.height}, computed: ${getComputedStyle(wrapper).height}`);
       }
 
       graph.draw();
