@@ -18,6 +18,7 @@ import :vec;
 import :color;
 import :props;
 import :traits;
+import :render_resources;
 
 export namespace vcpp
 {
@@ -50,6 +51,9 @@ struct object_base
   double m_retain{-1.0}; // trail retain time (-1 = infinite)
   vec3 m_trail_color{1, 1, 1};
 
+  // Texture
+  render::texture_handle m_texture{}; // null = no texture
+
   // ========== Property Accessors (getter/setter pairs) ==========
   // These enable: ball.pos() and ball.pos(new_value)
 
@@ -70,6 +74,9 @@ struct object_base
 
   constexpr bool get_visible() const noexcept { return m_visible; }
   constexpr void set_visible(bool v) noexcept { m_visible = v; }
+
+  constexpr render::texture_handle get_texture() const noexcept { return m_texture; }
+  constexpr void set_texture(render::texture_handle t) noexcept { m_texture = t; }
 };
 
 // ============================================================================
@@ -89,7 +96,8 @@ inline constexpr auto common_params =
              param_spec<&object_base::m_visible, decltype(visible), true>{},
              param_spec<&object_base::m_make_trail, decltype(make_trail), false>{},
              param_spec<&object_base::m_retain, decltype(retain), -1.0>{},
-             param_spec<&object_base::m_trail_color, decltype(trail_color), vec3{1, 1, 1}>{}};
+             param_spec<&object_base::m_trail_color, decltype(trail_color), vec3{1, 1, 1}>{},
+             param_spec<&object_base::m_texture, decltype(texture), render::texture_handle{}>{}};
 
 // ============================================================================
 // make<ObjectType> - Generic object factory

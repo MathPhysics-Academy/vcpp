@@ -28,6 +28,12 @@ export import :color;
 export import :props;
 export import :traits;
 
+// Render abstraction layer
+export import :render_types;
+export import :render_resources;
+export import :mesh;
+export import :render_interface;
+
 // Object system
 export import :object_base;
 export import :objects;

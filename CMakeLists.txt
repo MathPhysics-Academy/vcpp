@@ -39,6 +39,10 @@ target_sources(vcpp PUBLIC
     src/vcpp-color.cppm
     src/vcpp-props.cppm
     src/vcpp-traits.cppm
+    src/vcpp-render-types.cppm
+    src/vcpp-render-resources.cppm
+    src/vcpp-mesh.cppm
+    src/vcpp-render-interface.cppm
     src/vcpp-object-base.cppm
     src/vcpp-objects.cppm
     src/vcpp-scene.cppm
