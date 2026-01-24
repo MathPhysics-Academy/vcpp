@@ -44,6 +44,9 @@ target_sources(vcpp PUBLIC
     src/vcpp-scene.cppm
     src/vcpp-loop.cppm
     src/vcpp-input.cppm
+    src/vcpp-graph-base.cppm
+    src/vcpp-graph-objects.cppm
+    src/vcpp-graph-bridge.cppm
 )
 target_compile_features(vcpp PUBLIC cxx_std_23)
 target_link_libraries(vcpp PUBLIC lam::symbols lam::linearalgebra)

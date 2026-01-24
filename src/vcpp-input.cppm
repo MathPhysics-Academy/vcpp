@@ -41,6 +41,21 @@ struct input_state
   bool shift_held{false};
   bool ctrl_held{false};
   bool alt_held{false};
+  
+  // Keyboard events (keys pressed this frame)
+  std::vector<std::string> key_down_events;
+
+  // Helper to check if a key was pressed and consume the event
+  bool consume_key(const std::string& key)
+  {
+    auto it = std::find(key_down_events.begin(), key_down_events.end(), key);
+    if (it != key_down_events.end())
+    {
+      key_down_events.erase(it);
+      return true;
+    }
+    return false;
+  }
 };
 
 // Global input state (populated by backend)
@@ -75,7 +90,8 @@ inline void process_camera_input(canvas& c)
   double dx = m.x - m.last_x;
   double dy = m.y - m.last_y;
 
-  // Left-drag: orbit
+  // Left-drag: Orbit (Standard)
+  // Condition: Left Down AND NOT Shift AND NOT Ctrl
   if (m.left_down && !g_input.ctrl_held && !g_input.shift_held)
   {
     if (dx != 0 || dy != 0)
@@ -85,35 +101,53 @@ inline void process_camera_input(canvas& c)
     }
   }
 
-  // Right-drag or Ctrl+Left-drag: pan
-  if (m.right_down || (m.left_down && g_input.ctrl_held))
+  // Panning: Shift + Left-drag (Trackpad Friendly) OR Ctrl + Left-drag
+  // User explicitly disliked Right-Click for controls.
+  bool is_panning = (m.left_down && g_input.shift_held) || (m.left_down && g_input.ctrl_held);
+  
+  if (is_panning)
   {
     if (dx != 0 || dy != 0)
     {
       vec3 r = cam.right();
       vec3 u = cam.m_up;
       double scale = g_input_config.pan_sensitivity;
+      // Invert Y for intuitive "drag scene" feel? Or "move camera"?
+      // Usually dragging scene: Mouse moves UP, Scene moves UP -> Camera moves DOWN.
+      // Current: u * (dy * scale). If dy>0 (mouse down), camera moves UP?
+      // Let's test standard CAD: Shift+Drag Up -> Pan Up.
+      // This means camera moves DOWN.
+      // If `cam.pan` moves camera position:
+      // dy negative (mouse up) -> term is negative -> camera moves down -> scene up.
+      // This matches "drag scene".
       cam.pan(r * (-dx * scale) + u * (dy * scale));
       c.mark_dirty();
     }
   }
-
-  // Middle-drag: zoom via drag
-  if (m.middle_down)
-  {
-    if (dy != 0)
+  
+  // Middle-drag: Pan or Zoom? Usually pan in Blender.
+  // Let's make Middle-drag PAN as well to be safe for mouse users.
+  if (m.middle_down) {
+    if (dx != 0 || dy != 0)
     {
-      double factor = 1.0 + dy * g_input_config.zoom_drag_sensitivity;
-      cam.zoom(factor);
-      c.mark_dirty();
+       vec3 r = cam.right();
+       vec3 u = cam.m_up;
+       double scale = g_input_config.pan_sensitivity;
+       cam.pan(r * (-dx * scale) + u * (dy * scale));
+       c.mark_dirty();
     }
   }
 
   // Scroll wheel: zoom
+  // Trackpads generate scroll events.
   if (m.scroll_delta != 0)
   {
-    double factor = 1.0 - m.scroll_delta * g_input_config.zoom_sensitivity;
-    if (factor > 0.01) // prevent negative/zero zoom
+    // Reduce sensitivity for trackpads (which generate high delta)
+    double sensitivity = g_input_config.zoom_sensitivity;
+    // Cap delta per frame to avoid jumping?
+    // Or just use factor.
+    double factor = 1.0 - m.scroll_delta * sensitivity;
+    if (factor > 0.01 && factor < 100.0) 
     {
       cam.zoom(factor);
       c.mark_dirty();

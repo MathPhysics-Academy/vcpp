@@ -99,6 +99,9 @@ target_sources(vcpp_web_test
       ${VCPP_SRC_DIR}/vcpp-scene.cppm
       ${VCPP_SRC_DIR}/vcpp-loop.cppm
       ${VCPP_SRC_DIR}/vcpp-input.cppm
+      ${VCPP_SRC_DIR}/vcpp-graph-base.cppm
+      ${VCPP_SRC_DIR}/vcpp-graph-objects.cppm
+      ${VCPP_SRC_DIR}/vcpp-graph-bridge.cppm
       ${VCPP_SRC_DIR}/vcpp_wgpu_web.cppm
       web_test.cppm
   PRIVATE
@@ -107,8 +110,12 @@ target_sources(vcpp_web_test
 
 target_link_libraries(vcpp_web_test PRIVATE lam::symbols lam::linearalgebra)
 
-# Copy HTML and LICENSE files to build directory
+# Copy HTML, JS, and LICENSE files to build directory
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/index.html
                ${CMAKE_CURRENT_BINARY_DIR}/index.html COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/graph_instance.js
+               ${CMAKE_CURRENT_BINARY_DIR}/graph_instance.js COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/graph_manager.js
+               ${CMAKE_CURRENT_BINARY_DIR}/graph_manager.js COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../LICENSE
                ${CMAKE_CURRENT_BINARY_DIR}/LICENSE COPYONLY)

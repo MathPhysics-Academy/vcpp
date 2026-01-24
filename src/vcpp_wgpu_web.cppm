@@ -181,6 +181,15 @@ struct renderer_state
   WGPUBuffer box_ib{nullptr};
   std::size_t box_ib_cap{0};
 
+  WGPUBuffer cylinder_ib{nullptr};
+  std::size_t cylinder_ib_cap{0};
+
+  WGPUBuffer cone_ib{nullptr};
+  std::size_t cone_ib_cap{0};
+  
+  WGPUBuffer helix_ib{nullptr};
+  std::size_t helix_ib_cap{0};
+
   WGPUTexture depth_texture{nullptr};
   WGPUTextureView depth_view{nullptr};
 
@@ -190,7 +199,7 @@ struct renderer_state
     WGPUBuffer index_buffer{nullptr};
     uint32_t index_count{0};
   };
-  mesh_data meshes[2]; // 0=sphere, 1=box
+  mesh_data meshes[5]; // 0=sphere, 1=box, 2=cylinder, 3=cone, 4=helix
 
   int width{800};
   int height{600};
@@ -300,15 +309,266 @@ inline std::vector<vertex> generate_box()
 inline std::vector<uint32_t> generate_box_indices()
 {
   std::vector<uint32_t> indices;
-  for (uint32_t face = 0; face < 6; ++face)
+  for (int i = 0; i < 6; ++i)
   {
-    uint32_t base = face * 4;
+    uint32_t base = i * 4;
     indices.push_back(base);
     indices.push_back(base + 1);
     indices.push_back(base + 2);
     indices.push_back(base);
     indices.push_back(base + 2);
     indices.push_back(base + 3);
+  }
+  return indices;
+}
+
+// Cylinder: Aligned along +X object axis (0 to 1)
+// pos is base center. axis points to top.
+inline std::vector<vertex> generate_cylinder(int slices = 16)
+{
+  std::vector<vertex> verts;
+  // Body
+  for (int i = 0; i <= slices; ++i) {
+    float theta = 2.0f * 3.14159265f * i / slices;
+    float y = std::cos(theta);
+    float z = std::sin(theta);
+    float u = static_cast<float>(i) / slices;
+    
+    // Base vertex (x=0)
+    vertex v0{};
+    v0.pos[0] = 0.0f; v0.pos[1] = y * 0.5f; v0.pos[2] = z * 0.5f;
+    v0.normal[0] = 0.0f; v0.normal[1] = y; v0.normal[2] = z;
+    v0.uv[0] = u; v0.uv[1] = 0.0f;
+    verts.push_back(v0);
+    
+    // Top vertex (x=1)
+    vertex v1{};
+    v1.pos[0] = 1.0f; v1.pos[1] = y * 0.5f; v1.pos[2] = z * 0.5f;
+    v1.normal[0] = 0.0f; v1.normal[1] = y; v1.normal[2] = z;
+    v1.uv[0] = u; v1.uv[1] = 1.0f;
+    verts.push_back(v1);
+  }
+  
+  // Caps (Simplified: center point fan)
+  // Base Cap (x=0, normal -1,0,0)
+  int base_center_idx = verts.size();
+  verts.push_back(vertex{{0,0,0}, {-1,0,0}, {0.5,0.5}});
+  for(int i=0; i<=slices; ++i) {
+      float theta = 2.0f * 3.14159265f * i / slices;
+      verts.push_back(vertex{{0, std::cos(theta)*0.5f, std::sin(theta)*0.5f}, {-1,0,0}, {0.5f+std::cos(theta)*0.5f, 0.5f+std::sin(theta)*0.5f}});
+  }
+  
+  // Top Cap (x=1, normal 1,0,0)
+  int top_center_idx = verts.size();
+  verts.push_back(vertex{{1,0,0}, {1,0,0}, {0.5,0.5}});
+  for(int i=0; i<=slices; ++i) {
+      float theta = 2.0f * 3.14159265f * i / slices;
+      verts.push_back(vertex{{1, std::cos(theta)*0.5f, std::sin(theta)*0.5f}, {1,0,0}, {0.5f+std::cos(theta)*0.5f, 0.5f+std::sin(theta)*0.5f}});
+  }
+  return verts;
+}
+
+inline std::vector<uint32_t> generate_cylinder_indices(int slices = 16)
+{
+  std::vector<uint32_t> indices;
+  // Body
+  for (int i = 0; i < slices; ++i) {
+    uint32_t base = i * 2;
+    indices.push_back(base);
+    indices.push_back(base + 1);
+    indices.push_back(base + 2);
+    indices.push_back(base + 1);
+    indices.push_back(base + 3);
+    indices.push_back(base + 2);
+  }
+  
+  // Base Cap (Fan reversed)
+  int body_count = 2 * (slices + 1);
+  int base_center = body_count;
+  for(int i=0; i<slices; ++i) {
+      indices.push_back(base_center); 
+      indices.push_back(base_center + 1 + i + 1); 
+      indices.push_back(base_center + 1 + i); 
+  }
+  
+  // Top Cap (Fan)
+  int top_center = base_center + 1 + (slices + 1);
+  for(int i=0; i<slices; ++i) {
+      indices.push_back(top_center);
+      indices.push_back(top_center + 1 + i);
+      indices.push_back(top_center + 1 + i + 1);
+  }
+  return indices;
+}
+
+// Helix: Coiled tube along X axis
+// Length 1.0, Radius 1.0, 8 Coils, Tube Radius 0.1
+inline std::vector<vertex> generate_helix(int coils = 8, int tube_slices = 8, int steps_per_coil = 16)
+{
+    std::vector<vertex> verts;
+    float length = 1.0f;
+    float helix_radius = 1.0f; // Major radius
+    float tube_radius = 0.1f;  // Minor radius
+    
+    int total_steps = coils * steps_per_coil;
+    
+    for (int i = 0; i <= total_steps; ++i) {
+        float t = static_cast<float>(i) / total_steps; // 0 to 1
+        float angle = t * coils * 2.0f * 3.14159265f;
+        float x_center = t * length; // Helix axis along X
+        
+        // Helix Path Point
+        float y_center = helix_radius * std::cos(angle);
+        float z_center = helix_radius * std::sin(angle);
+        
+        // Tangent Vector (dX, dY, dZ)
+        // x(t) = L*t -> dx = L
+        // y(t) = R*cos(A*t) -> dy = -R*A*sin(A*t) where A = coils*2pi
+        // z(t) = R*sin(A*t) -> dz = R*A*cos(A*t)
+        float A = coils * 2.0f * 3.14159265f;
+        
+        // This tangent is for the frenet frame to orient the tube ring
+        // Tangent T
+        float tx = length; 
+        float ty = -helix_radius * A * std::sin(angle);
+        float tz = helix_radius * A * std::cos(angle);
+        // Normalize T
+        float t_len = std::sqrt(tx*tx + ty*ty + tz*tz);
+        tx /= t_len; ty /= t_len; tz /= t_len;
+        
+        // Normal N (approximate as radial from cylinder axis for simplicity, or strict Frenet)
+        // Simple radial: N points to center of helix axis (0, y, z) -> (0, cos, sin)
+        // This is physically intuitive for a spring.
+        // N direction = (0, cos(a), sin(a)).
+        // Wait, normal of helix path points INWARD to axis.
+        // N = (0, y_center, z_center) normalized -> (0, cos, sin).
+        float nx = 0;
+        float ny = std::cos(angle); 
+        float nz = std::sin(angle);
+        
+        // Binormal B = T x N
+        float bx = ty*nz - tz*ny;
+        float by = tz*nx - tx*nz;
+        float bz = tx*ny - ty*nx;
+        
+        // Generate Ring of vertices for tube
+        for (int j = 0; j <= tube_slices; ++j) {
+            float phi = 2.0f * 3.14159265f * j / tube_slices;
+            float cos_phi = std::cos(phi);
+            float sin_phi = std::sin(phi);
+            
+            // Tube offset in N-B plane
+            // P = Center + r*(cos*N + sin*B)
+            float off_x = tube_radius * (cos_phi * nx + sin_phi * bx);
+            float off_y = tube_radius * (cos_phi * ny + sin_phi * by);
+            float off_z = tube_radius * (cos_phi * nz + sin_phi * bz);
+            
+            float px = x_center + off_x;
+            float py = y_center + off_y;
+            float pz = z_center + off_z;
+            
+            // Normal of surface
+            // Just the offset direction normalized
+            float n_len = std::sqrt(off_x*off_x + off_y*off_y + off_z*off_z);
+            float snx = off_x / n_len;
+            float sny = off_y / n_len;
+            float snz = off_z / n_len;
+            
+            vertex v{};
+            v.pos[0] = px; v.pos[1] = py; v.pos[2] = pz;
+            v.normal[0] = snx; v.normal[1] = sny; v.normal[2] = snz;
+            v.uv[0] = t; v.uv[1] = static_cast<float>(j) / tube_slices;
+            verts.push_back(v);
+        }
+    }
+    return verts;
+}
+
+inline std::vector<uint32_t> generate_helix_indices(int coils = 8, int tube_slices = 8, int steps_per_coil = 16)
+{
+    std::vector<uint32_t> indices;
+    int total_steps = coils * steps_per_coil;
+    
+    for (int i = 0; i < total_steps; ++i) {
+        for (int j = 0; j < tube_slices; ++j) {
+            int current_ring = i * (tube_slices + 1);
+            int next_ring = (i + 1) * (tube_slices + 1);        
+            int v0 = current_ring + j;
+            int v1 = next_ring + j;
+            int v2 = current_ring + j + 1;
+            int v3 = next_ring + j + 1;
+            
+            indices.push_back(v0);
+            indices.push_back(v1);
+            indices.push_back(v2);
+            
+            indices.push_back(v1);
+            indices.push_back(v3);
+            indices.push_back(v2);
+        }
+    }
+    return indices;
+}
+
+// Cone: Aligned along +X (0 to 1)
+// Base at x=0, Tip at x=1
+inline std::vector<vertex> generate_cone(int slices = 16)
+{
+  std::vector<vertex> verts;
+  // Body (Tip is singular but we duplicate for UV/Normal consistency? Or just shared tip?)
+  // Let's use simple triangle fan for body to tip.
+  // Base vertices
+  for (int i = 0; i <= slices; ++i) {
+    float theta = 2.0f * 3.14159265f * i / slices;
+    float y = std::cos(theta);
+    float z = std::sin(theta);
+    
+    // Normal calculation:
+    // Slope is -0.5 height / 1.0 length.
+    // Normal vector is perpendicular to surface.
+    // Tangent along surface: (1, -y, -z) roughly? No.
+    // Normal: (0.5, y, z) normalized.
+    vec3 n{0.5, y, z}; 
+    n = hat(n);
+    
+    // Base rim vertex
+    verts.push_back(vertex{{0.0f, y*0.5f, z*0.5f}, {(float)n.x(), (float)n.y(), (float)n.z()}, {(float)i/slices, 0.0f}});
+  }
+  
+  // Tip vertex
+  verts.push_back(vertex{{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}}); // Generic normal?
+  
+  int tip_idx = verts.size() - 1;
+  
+  // Base Cap
+  int base_center = verts.size();
+  verts.push_back(vertex{{0,0,0}, {-1,0,0}, {0.5,0.5}});
+  for(int i=0; i<=slices; ++i) {
+      float theta = 2.0f * 3.14159265f * i / slices;
+      verts.push_back(vertex{{0, std::cos(theta)*0.5f, std::sin(theta)*0.5f}, {-1,0,0}, {0.5f+std::cos(theta)*0.5f, 0.5f+std::sin(theta)*0.5f}});
+  }
+  return verts;
+}
+
+inline std::vector<uint32_t> generate_cone_indices(int slices = 16)
+{
+  std::vector<uint32_t> indices;
+  int tip_idx = slices + 1;
+  
+  // Body (Triangles to tip)
+  for (int i = 0; i < slices; ++i) {
+      indices.push_back(i);
+      indices.push_back(tip_idx);
+      indices.push_back(i + 1);
+  }
+  
+  // Base Cap
+  // Base center is at tip_idx + 1
+  int base_center = tip_idx + 1;
+  for (int i = 0; i < slices; ++i) {
+      indices.push_back(base_center);
+      indices.push_back(base_center + 1 + i + 1);
+      indices.push_back(base_center + 1 + i);
   }
   return indices;
 }
@@ -410,6 +670,54 @@ inline void render_frame()
 {
   if (!g_renderer.initialized || !g_renderer.current_canvas)
     return;
+  // wgpuDevicePoll(g_renderer.device, false, nullptr); // Not needed in browser loop
+  
+  // Check for canvas resize
+  double cw, ch;
+  emscripten_get_element_css_size("#canvas", &cw, &ch);
+  
+  // Handle High DPI (Retina)
+  double dpr = emscripten_get_device_pixel_ratio();
+  int new_width = static_cast<int>(cw * dpr);
+  int new_height = static_cast<int>(ch * dpr);
+  
+  if (new_width != g_renderer.width || new_height != g_renderer.height)
+  {
+      if (new_width > 0 && new_height > 0)
+      {
+          g_renderer.width = new_width;
+          g_renderer.height = new_height;
+          
+          // Reconfigure Surface
+          WGPUSurfaceConfiguration config{};
+          config.device = g_renderer.device;
+          config.format = WGPUTextureFormat_BGRA8Unorm;
+          config.usage = WGPUTextureUsage_RenderAttachment;
+          config.width = g_renderer.width;
+          config.height = g_renderer.height;
+          config.presentMode = WGPUPresentMode_Fifo;
+          config.alphaMode = WGPUCompositeAlphaMode_Opaque;
+          wgpuSurfaceConfigure(g_renderer.surface, &config);
+          
+          // Recreate Depth Texture
+          if (g_renderer.depth_view) wgpuTextureViewRelease(g_renderer.depth_view);
+          if (g_renderer.depth_texture) wgpuTextureRelease(g_renderer.depth_texture);
+          
+          WGPUTextureDescriptor depth_desc{};
+          depth_desc.size = {static_cast<uint32_t>(g_renderer.width), static_cast<uint32_t>(g_renderer.height), 1};
+          depth_desc.format = WGPUTextureFormat_Depth24Plus;
+          depth_desc.usage = WGPUTextureUsage_RenderAttachment;
+          depth_desc.mipLevelCount = 1;
+          depth_desc.sampleCount = 1;
+          depth_desc.dimension = WGPUTextureDimension_2D;
+          g_renderer.depth_texture = wgpuDeviceCreateTexture(g_renderer.device, &depth_desc);
+          g_renderer.depth_view = wgpuTextureCreateView(g_renderer.depth_texture, nullptr);
+          
+          // Update Canvas Buffer Size (HTML5 API) - important for crisp rendering
+          emscripten_set_canvas_element_size("#canvas", g_renderer.width, g_renderer.height);
+      }
+  }
+
   canvas& c = *g_renderer.current_canvas;
 
   WGPUSurfaceTexture surface_texture{};
@@ -558,8 +866,8 @@ inline void render_frame()
     instance_data inst{};
     gpu_mat4 tr = matrix::translate(static_cast<float>(b.m_pos.x()), static_cast<float>(b.m_pos.y()),
                                     static_cast<float>(b.m_pos.z()));
-    inst.model = matrix::multiply(tr, matrix::scale(static_cast<float>(b.m_size.x()), static_cast<float>(b.m_size.y()),
-                                                    static_cast<float>(b.m_size.z())));
+    inst.model = matrix::multiply(tr, matrix::scale(static_cast<float>(b.m_length), static_cast<float>(b.m_height),
+                                                    static_cast<float>(b.m_width)));
     inst.color = to_gpu4(b.m_color, static_cast<float>(b.m_opacity));
     inst.material = {static_cast<float>(b.m_shininess), 0, 0, 0};
     box_instances.push_back(inst);
@@ -583,6 +891,271 @@ inline void render_frame()
                                         WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[1].index_count,
                                      static_cast<uint32_t>(box_instances.size()), 0, 0, 0);
+  }
+
+  // Helper for alignment rotation
+  // Aligns vector (1,0,0) to target axis using Basis Construction
+  // Robust against parallel/antiparallel cases relative to arbitrary up guide
+  auto align_x_to_axis = [](vec3 axis) -> gpu_mat4 {
+      vec3 fwd = hat(axis); // New X
+      
+      // Handle degenerate cases (zero length)
+      if (mag2(axis) < 1e-12) return matrix::identity();
+
+      // Guide Up vector
+      vec3 up_guide{0, 1, 0};
+      
+      // If fwd is parallel to up_guide, use Z as guide
+      if (std::abs(dot(fwd, up_guide)) > 0.99) {
+          up_guide = vec3{0, 0, 1};
+      }
+      
+      // Right = Cross(Fwd, Up_guide) -> New Z (Column 2)
+      // Note: In standard RHS, X cross Y = Z.
+      // We want X to map to Fwd.
+      // Let's decide Y and Z.
+      // If Basis is {Fwd, Y', Z'}, then det should be 1.
+      
+      vec3 right = hat(cross(fwd, up_guide)); // Z'
+      vec3 up_real = cross(right, fwd);       // Y' = Z' cross X'
+      
+      // Check handedness: Fwd cross Up_real = Right?
+      // (F) x (R x F) = R(F.F) - F(F.R) = R. Correct.
+      // So Basis: X=Fwd, Y=Up_real, Z=Right.
+      
+      gpu_mat4 m{};
+      
+      // Column 0: X axis
+      m.data[0] = static_cast<float>(fwd.x());
+      m.data[1] = static_cast<float>(fwd.y());
+      m.data[2] = static_cast<float>(fwd.z());
+      m.data[3] = 0.0f;
+      
+      // Column 1: Y axis
+      m.data[4] = static_cast<float>(up_real.x());
+      m.data[5] = static_cast<float>(up_real.y());
+      m.data[6] = static_cast<float>(up_real.z());
+      m.data[7] = 0.0f;
+      
+      // Column 2: Z axis
+      m.data[8] = static_cast<float>(right.x());
+      m.data[9] = static_cast<float>(right.y());
+      m.data[10] = static_cast<float>(right.z());
+      m.data[11] = 0.0f;
+      
+      // Column 3
+      m.data[12] = 0.0f;
+      m.data[13] = 0.0f;
+      m.data[14] = 0.0f;
+      m.data[15] = 1.0f;
+      
+      return m;
+  };
+
+  std::vector<instance_data> cylinder_instances;
+  std::vector<instance_data> cone_instances;
+  std::vector<instance_data> helix_instances; // Added helix_instances
+
+  // Process m_cylinders
+  for (const auto& obj : c.m_cylinders) {
+    if (!obj.m_visible) continue;
+    instance_data inst{};
+    
+    // Cylinder specified by radius. 
+    // Generator mesh has radius 0.5 (Diameter 1.0).
+    // So to get logical diameter D = 2*r, we scale mesh by D.
+    
+    float len = static_cast<float>(mag(obj.m_axis));
+    float dia = static_cast<float>(obj.m_radius * 2.0); // radius*2 matches mesh diameter 1.0 logic
+    
+    gpu_mat4 rot = align_x_to_axis(obj.m_axis);
+    gpu_mat4 scale = matrix::scale(len, dia, dia);
+    gpu_mat4 tr = matrix::translate((float)obj.m_pos.x(), (float)obj.m_pos.y(), (float)obj.m_pos.z());
+    
+    inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+    inst.color = to_gpu4(obj.m_color, (float)obj.m_opacity);
+    inst.material = {(float)obj.m_shininess, 0,0,0};
+    
+    cylinder_instances.push_back(inst);
+  }
+
+  // Process m_cones
+  for (const auto& obj : c.m_cones) {
+    if (!obj.m_visible) continue;
+    instance_data inst{};
+    
+    float len = static_cast<float>(mag(obj.m_axis));
+    float dia = static_cast<float>(obj.m_radius * 2.0);
+    
+    gpu_mat4 rot = align_x_to_axis(obj.m_axis);
+    gpu_mat4 scale = matrix::scale(len, dia, dia);
+    gpu_mat4 tr = matrix::translate((float)obj.m_pos.x(), (float)obj.m_pos.y(), (float)obj.m_pos.z());
+    
+    inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+    inst.color = to_gpu4(obj.m_color, (float)obj.m_opacity);
+    inst.material = {(float)obj.m_shininess, 0,0,0};
+    
+    cone_instances.push_back(inst);
+  }
+
+  // Process m_arrows (Composite)
+  for (const auto& obj : c.m_arrows) {
+    if (!obj.m_visible) continue;
+    
+    double len = mag(obj.m_axis);
+    if (len < 1e-6) continue;
+    
+    // Auto-sizing logic (mimic VPython)
+    // If headlength not set (0), use 3*shaftwidth or 0.2*length? 
+    // VPython: If shaftwidth=0, default is 0.1*length.
+    // If headlength=0, default is 3*shaftwidth.
+    // If headwidth=0, default is 2*shaftwidth.
+    
+    double shaft_dia = (obj.m_shaftwidth > 0) ? obj.m_shaftwidth : (0.1 * len);
+    
+    // Caution: arrow_object default m_shaftwidth is 0.1, m_headwidth 0.2, m_headlength 0.3
+    // But user might set them to 0 explicitly? Or use defaults.
+    // Assuming defaults: 0.3 might be too big or small depending on scale.
+    // If user created arrow(pos=..., axis=...) without other args, defaults apply.
+    // If defaults are fixed (0.3), and arrow is length 10, head is tiny.
+    // Let's rely on stored values but apply sanity checks if they seem uninitialized (0).
+    
+    double head_len = obj.m_headlength;
+    double head_dia = obj.m_headwidth;
+    
+    // Override if ZERO (meaning user didn't care/set, or default object was 0-init?)
+    // Struct defaults are non-zero. But if they mismatch scale, it looks bad.
+    // Let's assume struct defaults are authoritative unless user set them.
+    // However, for the torque scene, we want to know what was passed.
+    
+    // Check constraints
+    if (head_len > len) head_len = len; // Head cannot exceed arrow
+    
+    double shaft_len = len - head_len;
+    
+    // Rotation
+    gpu_mat4 rot = align_x_to_axis(obj.m_axis);
+    
+    // Shaft (Cylinder)
+    if (shaft_len > 0) {
+        instance_data inst{};
+        gpu_mat4 scale = matrix::scale((float)shaft_len, (float)shaft_dia, (float)shaft_dia);
+        gpu_mat4 tr = matrix::translate((float)obj.m_pos.x(), (float)obj.m_pos.y(), (float)obj.m_pos.z());
+        inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+        inst.color = to_gpu4(obj.m_color, (float)obj.m_opacity);
+        inst.material = {(float)obj.m_shininess, 0,0,0};
+        cylinder_instances.push_back(inst);
+    }
+    
+    // Head (Cone)
+    {
+        instance_data inst{};
+        
+        // Pos is start + axis_dir * shaft_len
+        vec3 head_pos = obj.m_pos + hat(obj.m_axis) * shaft_len;
+        
+        gpu_mat4 scale = matrix::scale((float)head_len, (float)head_dia, (float)head_dia);
+        gpu_mat4 tr = matrix::translate((float)head_pos.x(), (float)head_pos.y(), (float)head_pos.z());
+        inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+        inst.color = to_gpu4(obj.m_color, (float)obj.m_opacity);
+        inst.material = {(float)obj.m_shininess, 0,0,0};
+        cone_instances.push_back(inst);
+    }
+  }
+
+  // Process m_helixes
+  for (const auto& h : c.m_helixes)
+  {
+      if (!h.m_visible) continue;
+      
+      double len = mag(h.m_axis);
+      if (len < 1e-6) continue;
+      
+      // Helix Mesh Normalization:
+      // Length = 1.0 (X axis)
+      // Radius = 1.0 (Y/Z extents approx, actually path radius)
+      // Tube Radius = 0.1
+      
+      // We want to scale X by length.
+      // We want to scale Y/Z by radius?
+      // Wait, if we scale Y/Z, we also scale the tube thickness.
+      // Ideally we want independent control of radius vs thickness, but instance scaling is uniform.
+      // IF we simply scale Y/Z by h.m_radius, the tube thickness scales by that amount too.
+      // The mesh has tube radius 0.1.
+      // If h.m_radius = 5.0, scale=5.0 -> tube radius becomes 0.5.
+      // h.m_thickness should control tube radius.
+      // But we can't separate them with a single scale matrix if the mesh is baked.
+      // Current implementation accepts this limitation or we'd need dynamic mesh generation per object (too slow).
+      // Or we accept that thickness is proportional to radius (or length).
+      // VPython helix allows independent `radius` and `thickness`.
+      
+      // For now, let's just scale by radius/1.0. 
+      // And we ignore m_thickness (or assumes it scales with radius).
+      // Ideally we'd pass thickness as a uniform or vertex attribute, but that requires shader changes.
+      // Let's stick to simple scaling:
+      // Scale X = len
+      // Scale Y = radius
+      // Scale Z = radius
+      
+      instance_data inst{};
+      gpu_mat4 rot = align_x_to_axis(h.m_axis);
+      gpu_mat4 scale = matrix::scale((float)len, (float)h.m_radius, (float)h.m_radius);
+      
+      // Center shift: VPython helix origin is at one end.
+      // Mesh generates from X=0 to X=1.
+      // So pos corresponds to mesh origin.
+      gpu_mat4 tr = matrix::translate((float)h.m_pos.x(), (float)h.m_pos.y(), (float)h.m_pos.z());
+      
+      inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+      inst.color = to_gpu4(h.m_color, (float)h.m_opacity);
+      inst.material = {(float)h.m_shininess, 0,0,0};
+      
+      helix_instances.push_back(inst);
+  }
+
+  // Draw Cylinders
+  if (!cylinder_instances.empty()) {
+    std::size_t size = cylinder_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.cylinder_ib_cap) {
+      if (g_renderer.cylinder_ib) wgpuBufferRelease(g_renderer.cylinder_ib);
+      g_renderer.cylinder_ib_cap = size * 2;
+      g_renderer.cylinder_ib = create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.cylinder_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.cylinder_ib, 0, cylinder_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[2].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.cylinder_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[2].index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[2].index_count, static_cast<uint32_t>(cylinder_instances.size()), 0, 0, 0);
+  }
+
+  // Draw Cones
+  if (!cone_instances.empty()) {
+    std::size_t size = cone_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.cone_ib_cap) {
+      if (g_renderer.cone_ib) wgpuBufferRelease(g_renderer.cone_ib);
+      g_renderer.cone_ib_cap = size * 2;
+      g_renderer.cone_ib = create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.cone_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.cone_ib, 0, cone_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[3].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.cone_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[3].index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[3].index_count, static_cast<uint32_t>(cone_instances.size()), 0, 0, 0);
+  }
+
+  // Draw Helices
+  if (!helix_instances.empty()) {
+    std::size_t size = helix_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.helix_ib_cap) {
+      if (g_renderer.helix_ib) wgpuBufferRelease(g_renderer.helix_ib);
+      g_renderer.helix_ib_cap = size * 2;
+      g_renderer.helix_ib = create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.helix_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.helix_ib, 0, helix_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[4].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.helix_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[4].index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[4].index_count, static_cast<uint32_t>(helix_instances.size()), 0, 0, 0);
   }
 
   wgpuRenderPassEncoderEnd(pass);
@@ -685,6 +1258,24 @@ inline EM_BOOL on_context_menu(int eventType, const void* reserved, void* userDa
   return EM_TRUE; // Returning true prevents default behavior
 }
 
+inline EM_BOOL on_key_down(int eventType, const EmscriptenKeyboardEvent* e, void* userData)
+{
+  (void)eventType;
+  (void)userData;
+  // Store key code (e.g. "KeyA", "Digit1")
+  vcpp::g_input.key_down_events.push_back(e->code);
+  
+  // Debug log
+  emscripten_console_log((std::string("Key Down: ") + e->code).c_str());
+  
+  // Allow browser shortcuts (Cmd+R, Ctrl+R, F5, F12, etc.)
+  if (e->metaKey || e->ctrlKey) {
+    return EM_FALSE;
+  }
+  
+  return EM_TRUE;
+}
+
 // ============================================================================
 // Main Loop Callback
 // ============================================================================
@@ -700,6 +1291,13 @@ inline void main_loop_callback()
   }
   if (user_update_fn)
     user_update_fn();
+
+  // Clear key events after frame logic
+  vcpp::g_input.key_down_events.clear();
+
+  // Flush graph updates to JavaScript (batched for performance)
+  vcpp::graph_bridge::flush_updates();
+
   // Always render every frame for now (animation)
   render_frame();
 }
@@ -870,21 +1468,50 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
                   sphere_idx.size() * sizeof(uint32_t), sphere_idx.data());
   g_renderer.meshes[0].index_count = static_cast<uint32_t>(sphere_idx.size());
 
+  // Mesh 1: Box
   auto box_verts = meshes::generate_box();
-  auto box_idx = meshes::generate_box_indices();
-  g_renderer.meshes[1].vertex_buffer =
-    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst),
-                  box_verts.size() * sizeof(vertex), box_verts.data());
-  g_renderer.meshes[1].index_buffer =
-    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst),
-                  box_idx.size() * sizeof(uint32_t), box_idx.data());
-  g_renderer.meshes[1].index_count = static_cast<uint32_t>(box_idx.size());
+  auto box_inds = meshes::generate_box_indices();
+  g_renderer.meshes[1].vertex_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex), box_verts.size() * sizeof(vertex), box_verts.data());
+  g_renderer.meshes[1].index_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index), box_inds.size() * sizeof(uint32_t), box_inds.data());
+  g_renderer.meshes[1].index_count = box_inds.size();
+
+  // Mesh 2: Cylinder
+  auto cyl_verts = meshes::generate_cylinder();
+  auto cyl_inds = meshes::generate_cylinder_indices();
+  g_renderer.meshes[2].vertex_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex), cyl_verts.size() * sizeof(vertex), cyl_verts.data());
+  g_renderer.meshes[2].index_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index), cyl_inds.size() * sizeof(uint32_t), cyl_inds.data());
+  g_renderer.meshes[2].index_count = cyl_inds.size();
+
+  // Mesh 3: Cone
+  auto cone_verts = meshes::generate_cone();
+  auto cone_inds = meshes::generate_cone_indices();
+  g_renderer.meshes[3].vertex_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex), cone_verts.size() * sizeof(vertex), cone_verts.data());
+  g_renderer.meshes[3].index_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index), cone_inds.size() * sizeof(uint32_t), cone_inds.data());
+  g_renderer.meshes[3].index_count = cone_inds.size();
+
+  // Mesh 4: Helix
+  auto helix_verts = meshes::generate_helix(8, 8, 16); 
+  auto helix_inds = meshes::generate_helix_indices(8, 8, 16);
+  g_renderer.meshes[4].vertex_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex), helix_verts.size() * sizeof(vertex), helix_verts.data());
+  g_renderer.meshes[4].index_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index), helix_inds.size() * sizeof(uint32_t), helix_inds.data());
+  g_renderer.meshes[4].index_count = helix_inds.size();
 
   // Register input callbacks on the canvas element
   emscripten_set_mousemove_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_move);
   emscripten_set_mousedown_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_down);
   emscripten_set_mouseup_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_up);
   emscripten_set_wheel_callback(canvas_selector, nullptr, EM_TRUE, on_wheel);
+  
+  // Keyboard events on window (useCapture = false to allow bubbling)
+  emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, on_key_down);
 
   // Prevent context menu on right-click (so right-drag works)
   emscripten_set_click_callback(canvas_selector, nullptr, EM_TRUE,

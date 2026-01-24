@@ -41,6 +41,11 @@ export import :loop;
 // Input handling
 export import :input;
 
+// 2D Graphing
+export import :graph_base;
+export import :graph_objects;
+export import :graph_bridge;
+
 // Watermark - embedded in compiled binary for ownership verification
 namespace vcpp::internal
 {

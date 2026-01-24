@@ -272,6 +272,7 @@ public:
   void clear() noexcept
   {
     m_spheres.clear();
+    m_ellipsoids.clear();
     m_boxes.clear();
     m_cylinders.clear();
     m_cones.clear();

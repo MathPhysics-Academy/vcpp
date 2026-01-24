@@ -119,4 +119,29 @@ inline constexpr symbol dt{};           // time step (double)
 inline constexpr symbol target_canvas{}; // target canvas for rendering
 inline constexpr symbol group{};         // group membership
 
+// ============================================================================
+// Graph Properties (for 2D plotting)
+// ============================================================================
+
+// Graph container properties
+inline constexpr symbol xtitle{};     // X-axis label (string)
+inline constexpr symbol ytitle{};     // Y-axis label (string)
+inline constexpr symbol xmin{};       // X-axis minimum (double, 0 = auto)
+inline constexpr symbol xmax{};       // X-axis maximum (double, 0 = auto)
+inline constexpr symbol ymin{};       // Y-axis minimum (double, 0 = auto)
+inline constexpr symbol ymax{};       // Y-axis maximum (double, 0 = auto)
+inline constexpr symbol fast{};       // Performance mode (bool)
+inline constexpr symbol foreground{}; // Foreground/text color (vec3)
+
+// Plot properties
+inline constexpr symbol graph_ref{};    // Reference to parent graph
+inline constexpr symbol label{};        // Legend label (string)
+inline constexpr symbol legend{};       // Show in legend (bool)
+inline constexpr symbol show_dot{};     // Show markers on gcurve (bool)
+inline constexpr symbol dot_color{};    // Marker color for gcurve (vec3)
+inline constexpr symbol dot_radius{};   // Marker radius for gcurve (double)
+inline constexpr symbol markers{};      // Marker style (bool)
+inline constexpr symbol marker_radius{};// Marker radius (double)
+inline constexpr symbol delta{};        // Bar width for gvbars (double)
+
 } // namespace vcpp
