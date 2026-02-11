@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_MODULE_STD ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
-project(lam_vcpp VERSION 0.1.260118 LANGUAGES CXX)
+project(lam_vcpp VERSION 0.1.260125 LANGUAGES CXX)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -39,11 +39,22 @@ target_sources(vcpp PUBLIC
     src/vcpp-color.cppm
     src/vcpp-props.cppm
     src/vcpp-traits.cppm
+    src/vcpp-render-types.cppm
+    src/vcpp-render-resources.cppm
+    src/vcpp-mesh.cppm
+    src/vcpp-render-interface.cppm
     src/vcpp-object-base.cppm
     src/vcpp-objects.cppm
+    src/vcpp-shapes.cppm
+    src/vcpp-text-glyphs.cppm
+    src/vcpp-label-bridge.cppm
     src/vcpp-scene.cppm
     src/vcpp-loop.cppm
+    src/vcpp-coro.cppm
     src/vcpp-input.cppm
+    src/vcpp-graph-base.cppm
+    src/vcpp-graph-objects.cppm
+    src/vcpp-graph-bridge.cppm
 )
 target_compile_features(vcpp PUBLIC cxx_std_23)
 target_link_libraries(vcpp PUBLIC lam::symbols lam::linearalgebra)
@@ -185,6 +196,12 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/lam_vcppConfigVersion.cmake"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lam_vcpp
 )
+
+# Tests
+option(VCPP_BUILD_TESTS "Build tests" OFF)
+if(VCPP_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
 
 # Examples
 option(VCPP_BUILD_EXAMPLES "Build examples" OFF)

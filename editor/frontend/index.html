@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VCpp Live Editor</title>
+  <link rel="stylesheet" href="styles/editor.css">
+</head>
+<body>
+  <header id="toolbar">
+    <div class="toolbar-left">
+      <span class="logo">VCpp Live</span>
+    </div>
+    <div class="toolbar-center">
+      <select id="examples-select">
+        <option value="">-- Examples --</option>
+      </select>
+      <button id="run-btn" title="Compile and Run (Ctrl+Enter)">Run</button>
+    </div>
+    <div class="toolbar-right">
+      <span id="status-text">Ready</span>
+    </div>
+  </header>
+
+  <main id="workspace">
+    <div id="editor-pane">
+      <div id="editor-container"></div>
+    </div>
+    <div id="divider"></div>
+    <div id="output-pane">
+      <iframe id="output-frame" sandbox="allow-scripts allow-same-origin"></iframe>
+      <div id="output-placeholder">
+        <p>3D output will appear here after compilation.</p>
+        <p>Press <kbd>Run</kbd> or <kbd>Ctrl+Enter</kbd> to compile.</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="error-panel" class="collapsed">
+    <div id="error-header">
+      <span id="error-title">Compiler Output</span>
+      <button id="error-toggle">&#x25B2;</button>
+    </div>
+    <div id="error-content">
+      <pre id="error-messages"></pre>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>

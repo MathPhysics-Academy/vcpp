@@ -102,7 +102,15 @@ enum class object_type
   arrow,
   ring,
   helix,
-  pyramid
+  pyramid,
+  curve,
+  points,
+  label,
+  triangle,
+  quad,
+  compound,
+  text3d,
+  extrusion
 };
 
 // ============================================================================
@@ -154,6 +162,25 @@ public:
   std::vector<ring_object> m_rings;
   std::vector<helix_object> m_helixes;
   std::vector<pyramid_object> m_pyramids;
+  std::vector<curve_object> m_curves;
+  std::vector<points_object> m_points;
+  std::vector<label_object> m_labels;
+  std::vector<triangle_object> m_triangles;
+  std::vector<quad_object> m_quads;
+  std::vector<compound_object> m_compounds;
+  std::vector<text3d_object> m_text3ds;
+  std::vector<extrusion_object> m_extrusions;
+
+  // ========== Trail Data ==========
+  struct trail_data
+  {
+    std::vector<vec3> positions;
+    std::vector<double> timestamps;
+    vec3 color{1, 1, 1};
+    double radius{0.02};
+    mutable bool dirty{true};
+  };
+  std::unordered_map<std::size_t, trail_data> m_trails; // keyed by scene entry index
 
   // ========== Scene Graph ==========
   std::vector<scene_entry> m_entries;
@@ -244,6 +271,78 @@ public:
     return m_entries.size() - 1;
   }
 
+  std::size_t add(curve_object obj)
+  {
+    std::size_t idx = m_curves.size();
+    m_curves.push_back(std::move(obj));
+    m_entries.push_back({object_type::curve, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
+  std::size_t add(points_object obj)
+  {
+    std::size_t idx = m_points.size();
+    m_points.push_back(std::move(obj));
+    m_entries.push_back({object_type::points, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
+  std::size_t add(label_object obj)
+  {
+    std::size_t idx = m_labels.size();
+    m_labels.push_back(std::move(obj));
+    m_entries.push_back({object_type::label, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
+  std::size_t add(triangle_object obj)
+  {
+    std::size_t idx = m_triangles.size();
+    m_triangles.push_back(std::move(obj));
+    m_entries.push_back({object_type::triangle, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
+  std::size_t add(quad_object obj)
+  {
+    std::size_t idx = m_quads.size();
+    m_quads.push_back(std::move(obj));
+    m_entries.push_back({object_type::quad, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
+  std::size_t add(compound_object obj)
+  {
+    std::size_t idx = m_compounds.size();
+    m_compounds.push_back(std::move(obj));
+    m_entries.push_back({object_type::compound, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
+  std::size_t add(text3d_object obj)
+  {
+    std::size_t idx = m_text3ds.size();
+    m_text3ds.push_back(std::move(obj));
+    m_entries.push_back({object_type::text3d, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
+  std::size_t add(extrusion_object obj)
+  {
+    std::size_t idx = m_extrusions.size();
+    m_extrusions.push_back(std::move(obj));
+    m_entries.push_back({object_type::extrusion, idx, true});
+    m_scene_dirty = true;
+    return m_entries.size() - 1;
+  }
+
   // ========== Accessors ==========
 
   camera& cam() noexcept { return m_camera; }
@@ -272,6 +371,7 @@ public:
   void clear() noexcept
   {
     m_spheres.clear();
+    m_ellipsoids.clear();
     m_boxes.clear();
     m_cylinders.clear();
     m_cones.clear();
@@ -279,8 +379,91 @@ public:
     m_rings.clear();
     m_helixes.clear();
     m_pyramids.clear();
+    m_curves.clear();
+    m_points.clear();
+    m_labels.clear();
+    m_triangles.clear();
+    m_quads.clear();
+    m_compounds.clear();
+    m_text3ds.clear();
+    m_extrusions.clear();
+    m_trails.clear();
     m_entries.clear();
     m_scene_dirty = true;
+  }
+
+  // ========== Trail Management ==========
+
+  void update_trails(double current_time)
+  {
+    // Iterate through all scene entries and update trails for objects with make_trail=true
+    for (std::size_t entry_idx = 0; entry_idx < m_entries.size(); ++entry_idx)
+    {
+      const auto& entry = m_entries[entry_idx];
+      const object_base* obj = nullptr;
+      vec3 trail_col{1, 1, 1};
+      double retain = -1.0;
+
+      // Get the object based on type
+      switch (entry.type)
+      {
+        case object_type::sphere:
+          obj = &m_spheres[entry.index];
+          break;
+        case object_type::ellipsoid:
+          obj = &m_ellipsoids[entry.index];
+          break;
+        case object_type::box:
+          obj = &m_boxes[entry.index];
+          break;
+        case object_type::cylinder:
+          obj = &m_cylinders[entry.index];
+          break;
+        case object_type::cone:
+          obj = &m_cones[entry.index];
+          break;
+        case object_type::arrow:
+          obj = &m_arrows[entry.index];
+          break;
+        case object_type::ring:
+          obj = &m_rings[entry.index];
+          break;
+        case object_type::helix:
+          obj = &m_helixes[entry.index];
+          break;
+        case object_type::pyramid:
+          obj = &m_pyramids[entry.index];
+          break;
+        default:
+          continue; // Skip non-trailable objects
+      }
+
+      if (!obj || !obj->m_make_trail)
+        continue;
+
+      trail_col = obj->m_trail_color;
+      retain = obj->m_retain;
+
+      // Get or create trail data
+      auto& trail = m_trails[entry_idx];
+      trail.color = trail_col;
+
+      // Add current position
+      trail.positions.push_back(obj->m_pos);
+      trail.timestamps.push_back(current_time);
+      trail.dirty = true;
+
+      // Prune old points if retain is positive
+      if (retain > 0)
+      {
+        while (!trail.timestamps.empty() && (current_time - trail.timestamps.front()) > retain)
+        {
+          trail.positions.erase(trail.positions.begin());
+          trail.timestamps.erase(trail.timestamps.begin());
+          trail.dirty = true;
+        }
+      }
+    }
   }
 };
 

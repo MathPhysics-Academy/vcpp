@@ -13,35 +13,169 @@
 
     body {
       background: #1a1a2e;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      font-family: system-ui, sans-serif;
-      color: #eee;
+      margin: 0;
+      overflow: hidden;
+      /* Prevent scrollbars */
+      width: 100vw;
+      height: 100vh;
     }
 
-    h1 {
-      margin-bottom: 1rem;
+    #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: row;
+    }
+
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      height: 100%;
     }
 
     #canvas {
-      width: 800px;
-      height: 600px;
-      border: 2px solid #4a4a6a;
-      border-radius: 8px;
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      /* Remove blue highlight on focus */
     }
 
-    #status {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background: #2a2a4e;
+    /* Graph container - right sidebar for 2D plots */
+    #graph-container {
+      width: 320px;
+      min-width: 150px;
+      max-width: 60vw;
+      height: 100%;
+      overflow: auto;
+      display: none; /* Hidden until graphs are created - controlled by JS */
+      flex-direction: column;
+      align-items: flex-start; /* Allow children to have natural height */
+      gap: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    /* Resize handle between canvas and graph panel */
+    #graph-resize-handle {
+      width: 12px;
+      height: 100%;
+      background: rgba(50, 60, 80, 0.9);
+      cursor: ew-resize;
+      display: none;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1000;
+    }
+
+    #graph-resize-handle::before {
+      content: '║';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+    }
+
+    #graph-resize-handle:hover,
+    #graph-resize-handle.dragging {
+      background: rgba(70, 100, 160, 0.95);
+    }
+
+    .graph-wrapper {
+      /* Dimensions set by JavaScript */
+    }
+
+    .graph-wrapper canvas {
+      display: block;
+    }
+
+    /* Scrollbar styling for graph container */
+    #graph-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #graph-container::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    #graph-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
       border-radius: 4px;
     }
 
-    .error {
-      color: #ff6b6b;
+    #graph-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    #sidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 250px;
+      padding: 15px;
+      background-color: rgba(10, 10, 20, 0.85);
+      /* Darker background */
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      z-index: 9999;
+      /* Max Z */
+      pointer-events: none;
+      font-family: sans-serif;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    #controls-list {
+      margin-top: 15px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    #controls-list h4 {
+      margin-bottom: 5px;
+      color: #88ccff;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 2px;
+    }
+
+    #controls-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #controls-list li {
+      color: #ddd;
+    }
+
+    #controls-list strong {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .separator {
+      border: 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      margin: 10px 0;
+    }
+
+    .separator {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+      margin: 10px 0;
+    }
+
+    /* Footer hidden for immersive view, or overlay at bottom */
+    footer {
+      display: none;
     }
 
     footer {
@@ -63,10 +197,54 @@
 </head>
 
 <body>
-  <h1>VCpp WebGPU Demo</h1>
-  <canvas id="canvas" width="800" height="600"></canvas>
-  <div id="status">Initializing WebGPU...</div>
-  <footer>&copy; 2026 Colin Ford. VCpp - All rights reserved.</footer>
+  <div id="container">
+    <div id="canvas-container">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div id="graph-resize-handle"></div>
+    <div id="graph-container"></div>
+  </div>
+
+  <div id="sidebar">
+    <h3>VCpp WebGPU Demo</h3>
+    <div id="status">Initializing...</div>
+
+    <hr class="separator">
+
+    <div id="controls-list">
+      <h4>CONTROLS</h4>
+      <ul>
+        <li><strong>Left Drag:</strong> Orbit</li>
+        <li><strong>Shift + Drag:</strong> Pan</li>
+        <li><strong>Scroll:</strong> Zoom</li>
+        <li style="margin-top: 5px;"></li>
+        <li><strong>1-6:</strong> Scenes</li>
+        <li><strong>R:</strong> Reset</li>
+      </ul>
+
+      <hr class="separator">
+
+      <h4>LEGEND</h4>
+      <ul style="font-size: 0.8em; line-height: 1.4;">
+        <li><span
+            style="display:inline-block; width:10px; height:10px; background:#00FFFF; margin-right:5px; border-radius:50%;"></span><strong>Cyan:</strong>
+          B-Field & Solenoid</li>
+        <li><span
+            style="display:inline-block; width:10px; height:10px; background:#FFFFFF; margin-right:5px; border-radius:50%;"></span><strong>White:</strong>
+          Current Loop</li>
+        <li><span
+            style="display:inline-block; width:10px; height:10px; background:#FF0000; margin-right:5px; border-radius:50%;"></span><strong>Red:</strong>
+          Magnetic Force</li>
+        <li><span
+            style="display:inline-block; width:10px; height:10px; background:#FFFF00; margin-right:5px; border-radius:50%;"></span><strong>Yellow:</strong>
+          Torque</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Graph rendering modules -->
+  <script src="graph_instance.js"></script>
+  <script src="graph_manager.js"></script>
 
   <script type="module">
     // Check WebGPU support
@@ -94,12 +272,18 @@
         onRuntimeInitialized: function () {
           console.log('[JS] WASM runtime initialized!');
           document.getElementById('status').textContent = 'Running...';
+        },
+        locateFile: function (path, prefix) {
+          if (path.endsWith('.wasm')) {
+            return prefix + path + '?t=' + new Date().getTime();
+          }
+          return prefix + path;
         }
       };
 
       // Load the WASM module
       const script = document.createElement('script');
-      script.src = 'vcpp_web_test.js?t=RED_ELLIPSOID_FIX_' + new Date().getTime();
+      script.src = 'vcpp_web_test.js?t=LEGEND_ADDED_' + new Date().getTime();
       script.onload = () => console.log('[JS] vcpp_web_test.js loaded');
       script.onerror = () => {
         console.error('[JS] Failed to load vcpp_web_test.js');

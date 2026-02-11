@@ -28,18 +28,39 @@ export import :color;
 export import :props;
 export import :traits;
 
+// Render abstraction layer
+export import :render_types;
+export import :render_resources;
+export import :mesh;
+export import :render_interface;
+
 // Object system
 export import :object_base;
 export import :objects;
+
+// 2D Shapes for extrusions
+export import :shapes;
+
+// 3D Text glyphs
+export import :text_glyphs;
+
+// Label rendering bridge
+export import :label_bridge;
 
 // Scene management
 export import :scene;
 
 // Animation
 export import :loop;
+export import :coro;
 
 // Input handling
 export import :input;
+
+// 2D Graphing
+export import :graph_base;
+export import :graph_objects;
+export import :graph_bridge;
 
 // Watermark - embedded in compiled binary for ownership verification
 namespace vcpp::internal

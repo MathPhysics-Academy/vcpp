@@ -22,8 +22,10 @@ project(vcpp_web_example LANGUAGES CXX)
 # Emscripten needs manual __CMAKE::CXX23 target creation since CMake's
 # detection doesn't find the std modules in Emscripten's toolchain
 if(EMSCRIPTEN AND NOT TARGET "__CMAKE::CXX23")
-  set(_emscripten_libcxx_path "/usr/local/Cellar/emscripten/4.0.23/libexec/llvm/share/libc++/v1")
-  if(EXISTS "${_emscripten_libcxx_path}/std.cppm")
+  set(_emscripten_std_modules "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/emscripten-std-modules")
+  set(_emscripten_libcxx_headers "/usr/local/Cellar/emscripten/5.0.0/libexec/cache/sysroot/include/c++/v1")
+  set(_emscripten_sysroot "/usr/local/Cellar/emscripten/5.0.0/libexec/cache/sysroot/include")
+  if(EXISTS "${_emscripten_std_modules}/std.cppm")
     add_library(__cmake_cxx23 STATIC)
     target_sources(__cmake_cxx23 INTERFACE "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,STATIC_LIBRARY>:$<TARGET_OBJECTS:__cmake_cxx23>>")
     set_property(TARGET __cmake_cxx23 PROPERTY EXCLUDE_FROM_ALL 1)
@@ -32,19 +34,18 @@ if(EMSCRIPTEN AND NOT TARGET "__CMAKE::CXX23")
     target_compile_features(__cmake_cxx23 PUBLIC cxx_std_23)
     target_compile_options(__cmake_cxx23 PRIVATE -Wno-reserved-module-identifier)
     target_include_directories(__cmake_cxx23 PRIVATE
-      "${_emscripten_libcxx_path}"
-      "/usr/local/Cellar/emscripten/4.0.23/libexec/cache/sysroot/include/c++/v1"
-      "/usr/local/Cellar/emscripten/4.0.23/libexec/cache/sysroot/include")
+      "${_emscripten_libcxx_headers}"
+      "${_emscripten_sysroot}")
     target_sources(__cmake_cxx23
       PUBLIC
       FILE_SET std TYPE CXX_MODULES
-        BASE_DIRS "${_emscripten_libcxx_path}"
-        FILES "${_emscripten_libcxx_path}/std.cppm" "${_emscripten_libcxx_path}/std.compat.cppm")
+        BASE_DIRS "${_emscripten_std_modules}"
+        FILES "${_emscripten_std_modules}/std.cppm" "${_emscripten_std_modules}/std.compat.cppm")
     add_library(__CMAKE::CXX23 ALIAS __cmake_cxx23)
     list(APPEND CMAKE_CXX_COMPILER_IMPORT_STD "23")
     message(STATUS "Manually created __CMAKE::CXX23 target for Emscripten")
   else()
-    message(WARNING "Emscripten std.cppm not found at ${_emscripten_libcxx_path}")
+    message(WARNING "Emscripten std.cppm not found at ${_emscripten_std_modules}")
   endif()
 endif()
 
@@ -73,7 +74,6 @@ if(EMSCRIPTEN)
       -O3
       -flto
       --closure 1
-      -sSTRIP=1
     )
     message(STATUS "Release build: optimizations and stripping enabled")
   endif()
@@ -94,11 +94,22 @@ target_sources(vcpp_web_test
       ${VCPP_SRC_DIR}/vcpp-color.cppm
       ${VCPP_SRC_DIR}/vcpp-props.cppm
       ${VCPP_SRC_DIR}/vcpp-traits.cppm
+      ${VCPP_SRC_DIR}/vcpp-render-types.cppm
+      ${VCPP_SRC_DIR}/vcpp-render-resources.cppm
+      ${VCPP_SRC_DIR}/vcpp-mesh.cppm
+      ${VCPP_SRC_DIR}/vcpp-render-interface.cppm
       ${VCPP_SRC_DIR}/vcpp-object-base.cppm
       ${VCPP_SRC_DIR}/vcpp-objects.cppm
+      ${VCPP_SRC_DIR}/vcpp-shapes.cppm
+      ${VCPP_SRC_DIR}/vcpp-text-glyphs.cppm
+      ${VCPP_SRC_DIR}/vcpp-label-bridge.cppm
       ${VCPP_SRC_DIR}/vcpp-scene.cppm
       ${VCPP_SRC_DIR}/vcpp-loop.cppm
+      ${VCPP_SRC_DIR}/vcpp-coro.cppm
       ${VCPP_SRC_DIR}/vcpp-input.cppm
+      ${VCPP_SRC_DIR}/vcpp-graph-base.cppm
+      ${VCPP_SRC_DIR}/vcpp-graph-objects.cppm
+      ${VCPP_SRC_DIR}/vcpp-graph-bridge.cppm
       ${VCPP_SRC_DIR}/vcpp_wgpu_web.cppm
       web_test.cppm
   PRIVATE
@@ -107,8 +118,12 @@ target_sources(vcpp_web_test
 
 target_link_libraries(vcpp_web_test PRIVATE lam::symbols lam::linearalgebra)
 
-# Copy HTML and LICENSE files to build directory
+# Copy HTML, JS, and LICENSE files to build directory
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/index.html
                ${CMAKE_CURRENT_BINARY_DIR}/index.html COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/graph_instance.js
+               ${CMAKE_CURRENT_BINARY_DIR}/graph_instance.js COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/graph_manager.js
+               ${CMAKE_CURRENT_BINARY_DIR}/graph_manager.js COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../LICENSE
                ${CMAKE_CURRENT_BINARY_DIR}/LICENSE COPYONLY)

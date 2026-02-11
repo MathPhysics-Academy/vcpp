@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  vcpp-editor:
+    build:
+      context: ../..          # lam project root (needed for full source tree)
+      dockerfile: vcpp/editor/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - WORKERS=4
+      - SESSION_TTL=1800
+      - MAX_SESSIONS=100
+      - COMPILE_TIMEOUT=60
+    tmpfs:
+      - /tmp/sessions:size=2G
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE    # needed for file operations in /tmp
+    read_only: true
+    restart: unless-stopped

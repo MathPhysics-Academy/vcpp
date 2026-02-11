@@ -2,6 +2,7 @@
  *  vcpp.wgpu.web - WebGPU rendering backend for browsers (Emscripten)
  *
  *  Uses browser's native WebGPU API via Emscripten bindings.
+ *  Now uses shared modules for types, mesh generation, and render interface.
  */
 
 module;
@@ -24,299 +25,14 @@ namespace vcpp::wgpu::web
 {
 
 // ============================================================================
-// GPU Types (same as native)
+// Use shared types from render modules
 // ============================================================================
 
-struct alignas(16) gpu_vec3
-{
-  float x, y, z, _pad;
-};
-struct alignas(16) gpu_vec4
-{
-  float x, y, z, w;
-};
-struct alignas(16) gpu_mat4
-{
-  float data[16];
-};
-
-inline gpu_vec3 to_gpu(const vec3& v) noexcept
-{
-  return {static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z()), 0.0f};
-}
-
-inline gpu_vec4 to_gpu4(const vec3& v, float w = 1.0f) noexcept
-{
-  return {static_cast<float>(v.x()), static_cast<float>(v.y()), static_cast<float>(v.z()), w};
-}
+using namespace vcpp::render;
+using vcpp::mesh::vertex;
 
 // ============================================================================
-// Uniforms
-// ============================================================================
-
-struct alignas(256) camera_uniforms
-{
-  gpu_mat4 view;
-  gpu_mat4 projection;
-  gpu_mat4 view_projection;
-  gpu_vec3 camera_pos;
-};
-
-struct instance_data
-{
-  gpu_mat4 model;
-  gpu_vec4 color;
-  gpu_vec4 material;
-};
-
-// ============================================================================
-// Matrix Utilities
-// ============================================================================
-
-namespace matrix
-{
-
-inline gpu_mat4 identity() noexcept
-{
-  gpu_mat4 m{};
-  m.data[0] = m.data[5] = m.data[10] = m.data[15] = 1.0f;
-  return m;
-}
-
-inline gpu_mat4 translate(float x, float y, float z) noexcept
-{
-  gpu_mat4 m = identity();
-  m.data[12] = x;
-  m.data[13] = y;
-  m.data[14] = z;
-  return m;
-}
-
-inline gpu_mat4 scale(float x, float y, float z) noexcept
-{
-  gpu_mat4 m{};
-  m.data[0] = x;
-  m.data[5] = y;
-  m.data[10] = z;
-  m.data[15] = 1.0f;
-  return m;
-}
-
-inline gpu_mat4 multiply(const gpu_mat4& a, const gpu_mat4& b) noexcept
-{
-  gpu_mat4 result{};
-  for (int row = 0; row < 4; ++row)
-  {
-    for (int col = 0; col < 4; ++col)
-    {
-      float sum = 0.0f;
-      for (int k = 0; k < 4; ++k)
-      {
-        sum += a.data[row + k * 4] * b.data[k + col * 4];
-      }
-      result.data[row + col * 4] = sum;
-    }
-  }
-  return result;
-}
-
-inline gpu_mat4 look_at(const vec3& eye, const vec3& target, const vec3& up) noexcept
-{
-  vec3 f = hat(target - eye);
-  vec3 r = hat(cross(f, up));
-  vec3 u = cross(r, f);
-  gpu_mat4 m{};
-  m.data[0] = static_cast<float>(r.x());
-  m.data[4] = static_cast<float>(r.y());
-  m.data[8] = static_cast<float>(r.z());
-  m.data[1] = static_cast<float>(u.x());
-  m.data[5] = static_cast<float>(u.y());
-  m.data[9] = static_cast<float>(u.z());
-  m.data[2] = static_cast<float>(-f.x());
-  m.data[6] = static_cast<float>(-f.y());
-  m.data[10] = static_cast<float>(-f.z());
-  m.data[12] = static_cast<float>(-dot(r, eye));
-  m.data[13] = static_cast<float>(-dot(u, eye));
-  m.data[14] = static_cast<float>(dot(f, eye));
-  m.data[15] = 1.0f;
-  return m;
-}
-
-inline gpu_mat4 perspective(float fov_deg, float aspect, float near, float far) noexcept
-{
-  float fov_rad = fov_deg * 3.14159265f / 180.0f;
-  float f = 1.0f / std::tan(fov_rad * 0.5f);
-  gpu_mat4 m{};
-  m.data[0] = f / aspect;
-  m.data[5] = f;
-  m.data[10] = (far + near) / (near - far);
-  m.data[11] = -1.0f;
-  m.data[14] = (2.0f * far * near) / (near - far);
-  return m;
-}
-
-} // namespace matrix
-
-// ============================================================================
-// Renderer State
-// ============================================================================
-
-struct renderer_state
-{
-  WGPUDevice device{nullptr};
-  WGPUQueue queue{nullptr};
-  WGPUSurface surface{nullptr};
-  WGPURenderPipeline pipeline{nullptr};
-  WGPUBindGroup bind_group{nullptr};
-  WGPUBindGroupLayout bind_group_layout{nullptr};
-  WGPUBuffer camera_buffer{nullptr};
-
-  // Instance buffers per type to avoid race conditions
-  WGPUBuffer sphere_ib{nullptr};
-  std::size_t sphere_ib_cap{0};
-
-  WGPUBuffer ellipsoid_ib{nullptr};
-  std::size_t ellipsoid_ib_cap{0};
-
-  WGPUBuffer box_ib{nullptr};
-  std::size_t box_ib_cap{0};
-
-  WGPUTexture depth_texture{nullptr};
-  WGPUTextureView depth_view{nullptr};
-
-  struct mesh_data
-  {
-    WGPUBuffer vertex_buffer{nullptr};
-    WGPUBuffer index_buffer{nullptr};
-    uint32_t index_count{0};
-  };
-  mesh_data meshes[2]; // 0=sphere, 1=box
-
-  int width{800};
-  int height{600};
-  canvas* current_canvas{nullptr};
-  bool initialized{false};
-  bool should_close{false};
-};
-
-inline renderer_state g_renderer{};
-
-// ============================================================================
-// Mesh Generation (same as native)
-// ============================================================================
-
-struct vertex
-{
-  float pos[3];
-  float normal[3];
-  float uv[2];
-};
-
-namespace meshes
-{
-
-inline std::vector<vertex> generate_sphere(int slices = 16, int stacks = 12)
-{
-  std::vector<vertex> verts;
-  for (int i = 0; i <= stacks; ++i)
-  {
-    float phi = 3.14159265f * i / stacks;
-    float y = std::cos(phi);
-    float r = std::sin(phi);
-    for (int j = 0; j <= slices; ++j)
-    {
-      float theta = 2.0f * 3.14159265f * j / slices;
-      float x = r * std::cos(theta);
-      float z = r * std::sin(theta);
-      vertex v{};
-      v.pos[0] = x * 0.5f;
-      v.pos[1] = y * 0.5f;
-      v.pos[2] = z * 0.5f;
-      v.normal[0] = x;
-      v.normal[1] = y;
-      v.normal[2] = z;
-      v.uv[0] = static_cast<float>(j) / slices;
-      v.uv[1] = static_cast<float>(i) / stacks;
-      verts.push_back(v);
-    }
-  }
-  return verts;
-}
-
-inline std::vector<uint32_t> generate_sphere_indices(int slices = 16, int stacks = 12)
-{
-  std::vector<uint32_t> indices;
-  for (int i = 0; i < stacks; ++i)
-  {
-    for (int j = 0; j < slices; ++j)
-    {
-      uint32_t a = i * (slices + 1) + j;
-      uint32_t b = a + slices + 1;
-      indices.push_back(a);
-      indices.push_back(b);
-      indices.push_back(a + 1);
-      indices.push_back(a + 1);
-      indices.push_back(b);
-      indices.push_back(b + 1);
-    }
-  }
-  return indices;
-}
-
-inline std::vector<vertex> generate_box()
-{
-  std::vector<vertex> verts;
-  float n = 0.5f;
-  auto add_face = [&](float nx, float ny, float nz, float ax, float ay, float az, float bx, float by, float bz) {
-    float cx = nx * n, cy = ny * n, cz = nz * n;
-    float corners[4][3] = {{cx - ax - bx, cy - ay - by, cz - az - bz},
-                           {cx + ax - bx, cy + ay - by, cz + az - bz},
-                           {cx + ax + bx, cy + ay + by, cz + az + bz},
-                           {cx - ax + bx, cy - ay + by, cz - az + bz}};
-    float uvs[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
-    for (int i = 0; i < 4; ++i)
-    {
-      vertex v{};
-      v.pos[0] = corners[i][0];
-      v.pos[1] = corners[i][1];
-      v.pos[2] = corners[i][2];
-      v.normal[0] = nx;
-      v.normal[1] = ny;
-      v.normal[2] = nz;
-      v.uv[0] = uvs[i][0];
-      v.uv[1] = uvs[i][1];
-      verts.push_back(v);
-    }
-  };
-  add_face(1, 0, 0, 0, n, 0, 0, 0, n);
-  add_face(-1, 0, 0, 0, n, 0, 0, 0, -n);
-  add_face(0, 1, 0, n, 0, 0, 0, 0, n);
-  add_face(0, -1, 0, n, 0, 0, 0, 0, -n);
-  add_face(0, 0, 1, n, 0, 0, 0, n, 0);
-  add_face(0, 0, -1, -n, 0, 0, 0, n, 0);
-  return verts;
-}
-
-inline std::vector<uint32_t> generate_box_indices()
-{
-  std::vector<uint32_t> indices;
-  for (uint32_t face = 0; face < 6; ++face)
-  {
-    uint32_t base = face * 4;
-    indices.push_back(base);
-    indices.push_back(base + 1);
-    indices.push_back(base + 2);
-    indices.push_back(base);
-    indices.push_back(base + 2);
-    indices.push_back(base + 3);
-  }
-  return indices;
-}
-
-} // namespace meshes
-
-// ============================================================================
-// Shader (WGSL)
+// Shader (WGSL) with texture support
 // ============================================================================
 
 inline constexpr const char* shader_source = R"(
@@ -349,7 +65,8 @@ struct VertexOutput {
   @location(0) world_normal: vec3<f32>,
   @location(1) world_pos: vec3<f32>,
   @location(2) color: vec4<f32>,
-  @location(3) shininess: f32,
+  @location(3) uv: vec2<f32>,
+  @location(4) material: vec4<f32>,
 }
 
 @vertex
@@ -362,26 +79,179 @@ fn vs_main(vert: VertexInput, inst: InstanceInput) -> VertexOutput {
   out.world_normal = normalize(normal_mat * vert.normal);
   out.world_pos = world_pos.xyz;
   out.color = inst.color;
-  out.shininess = inst.material.x;
+  out.uv = vert.uv;
+  out.material = inst.material;
   return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+  var base_color = in.color;
+
+  // Lighting (shared by all paths)
   let light_dir = normalize(vec3<f32>(1.0, 1.0, 1.0));
-  let ambient = 0.3;
-  let diffuse = max(dot(in.world_normal, light_dir), 0.0) * 0.7;
   let view_dir = normalize(camera.pos - in.world_pos);
-  let reflect_dir = reflect(-light_dir, in.world_normal);
-  let spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0) * in.shininess * 0.5;
+  let N = normalize(in.world_normal);
+  let reflect_dir = reflect(-light_dir, N);
+  let shininess = in.material.x;
+
+  // === Raindrop effect mode (material.y > 0.5) ===
+  let is_raindrop = in.material.y > 0.5;
+  if (is_raindrop) {
+    // material.z = normalized speed (0=still, 1=terminal velocity)
+    // material.w = lifecycle phase (0=falling, 1=fully splatted)
+    let speed = clamp(in.material.z, 0.0, 1.0);
+    let phase = clamp(in.material.w, 0.0, 1.0);
+
+    // --- Physically-based water Fresnel (Schlick, IOR 1.33) ---
+    let NdotV = max(dot(N, view_dir), 0.0);
+    let R0 = 0.02;  // ((1.33-1)/(1.33+1))^2 ≈ 0.02 for water
+    let fresnel = R0 + (1.0 - R0) * pow(1.0 - NdotV, 5.0);
+
+    // --- Environment reflection (fake sky gradient from reflected direction) ---
+    let reflect_view = reflect(-view_dir, N);
+    let sky_t = clamp(reflect_view.y * 0.5 + 0.5, 0.0, 1.0);
+    let sky_dark  = vec3<f32>(0.4, 0.5, 0.65);   // horizon
+    let sky_light = vec3<f32>(0.75, 0.85, 1.0);   // zenith
+    let env_color = mix(sky_dark, sky_light, sky_t);
+
+    // --- Refraction tint (water body color, very subtle) ---
+    let water_tint = vec3<f32>(0.85, 0.92, 1.0);
+
+    // --- Dual specular: tight sun highlight + broad sky fill ---
+    let NdotL = max(dot(N, light_dir), 0.0);
+    // Primary: sharp sun glint
+    let half_vec = normalize(light_dir + view_dir);
+    let NdotH = max(dot(N, half_vec), 0.0);
+    let sun_spec = pow(NdotH, 256.0) * 2.5;
+    // Secondary: broad sky reflection
+    let sky_spec = pow(NdotH, 16.0) * 0.15;
+
+    // --- Compose: reflection + refraction weighted by Fresnel ---
+    let reflected = env_color + vec3<f32>(sun_spec + sky_spec);
+    let refracted = water_tint * (0.25 + NdotL * 0.3); // dim interior
+    let water_color = mix(refracted, reflected, fresnel);
+
+    // --- Transparency: water is mostly see-through ---
+    // Center of drop: slightly visible. Edges: Fresnel reflection makes it visible.
+    // Overall very transparent to let the scene show through.
+    let base_alpha = mix(0.15, 0.45, fresnel);  // very transparent center, brighter rim
+    let splat_alpha = mix(1.0, 0.0, phase * phase); // quadratic fade during splat
+
+    let final_alpha = base_alpha * splat_alpha * base_color.a;
+    return vec4<f32>(water_color, final_alpha);
+  }
+
+  // === Standard path (non-raindrop objects) ===
+  let ambient = 0.3;
+  let diffuse = max(dot(N, light_dir), 0.0) * 0.7;
+  let spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0) * shininess * 0.5;
   let lighting = ambient + diffuse + spec;
-  return vec4<f32>(in.color.rgb * lighting, in.color.a);
+
+  return vec4<f32>(base_color.rgb * lighting, base_color.a);
 }
 )";
 
 // ============================================================================
+// Renderer State
+// ============================================================================
+
+struct renderer_state
+{
+  WGPUDevice device{nullptr};
+  WGPUQueue queue{nullptr};
+  WGPUSurface surface{nullptr};
+  WGPURenderPipeline pipeline{nullptr};
+  WGPUBindGroup bind_group{nullptr};
+  WGPUBindGroupLayout bind_group_layout{nullptr};
+  WGPUBuffer camera_buffer{nullptr};
+
+  // Instance buffers per type to avoid race conditions
+  WGPUBuffer sphere_ib{nullptr};
+  std::size_t sphere_ib_cap{0};
+
+  WGPUBuffer ellipsoid_ib{nullptr};
+  std::size_t ellipsoid_ib_cap{0};
+
+  WGPUBuffer box_ib{nullptr};
+  std::size_t box_ib_cap{0};
+
+  WGPUBuffer cylinder_ib{nullptr};
+  std::size_t cylinder_ib_cap{0};
+
+  WGPUBuffer cone_ib{nullptr};
+  std::size_t cone_ib_cap{0};
+
+  WGPUBuffer helix_ib{nullptr};
+  std::size_t helix_ib_cap{0};
+
+  // Per-curve mesh data (curves have dynamic geometry, can't use standard instancing)
+  struct curve_mesh_data
+  {
+    WGPUBuffer vertex_buffer{nullptr};
+    WGPUBuffer index_buffer{nullptr};
+    std::uint32_t index_count{0};
+    std::size_t buffer_capacity{0};
+  };
+  std::vector<curve_mesh_data> curve_meshes;
+
+  // Points instance buffer
+  WGPUBuffer points_ib{nullptr};
+  std::size_t points_ib_cap{0};
+
+  // Triangle/quad batched mesh
+  WGPUBuffer tri_quad_vb{nullptr};
+  WGPUBuffer tri_quad_ib{nullptr};
+  std::size_t tri_quad_vb_cap{0};
+  std::size_t tri_quad_ib_cap{0};
+
+  // Per-compound mesh data
+  struct compound_mesh_data
+  {
+    WGPUBuffer vertex_buffer{nullptr};
+    WGPUBuffer index_buffer{nullptr};
+    std::uint32_t index_count{0};
+    std::size_t buffer_capacity{0};
+  };
+  std::vector<compound_mesh_data> compound_meshes;
+
+  // Per-trail mesh data (rendered as tubes)
+  std::unordered_map<std::size_t, curve_mesh_data> trail_meshes;
+
+  // Per-extrusion mesh data
+  std::vector<curve_mesh_data> extrusion_meshes;
+
+  // Per-text3d mesh data
+  std::vector<curve_mesh_data> text3d_meshes;
+
+  WGPUTexture depth_texture{nullptr};
+  WGPUTextureView depth_view{nullptr};
+
+  struct mesh_data
+  {
+    WGPUBuffer vertex_buffer{nullptr};
+    WGPUBuffer index_buffer{nullptr};
+    std::uint32_t index_count{0};
+  };
+  mesh_data meshes[5]; // 0=sphere, 1=box, 2=cylinder, 3=cone, 4=helix
+
+  int width{800};
+  int height{600};
+  int css_width{800};   // CSS pixel dimensions for 2D overlay
+  int css_height{600};  // (labels use CSS pixels, not physical pixels)
+  canvas* current_canvas{nullptr};
+  bool initialized{false};
+  bool should_close{false};
+};
+
+inline renderer_state g_renderer{};
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
+
+// Forward declarations
+inline void render_labels();
 
 inline WGPUBuffer create_buffer(WGPUBufferUsage usage, std::size_t size, const void* data = nullptr)
 {
@@ -402,6 +272,17 @@ inline WGPUBuffer create_buffer(WGPUBufferUsage usage, std::size_t size, const v
   return buffer;
 }
 
+inline void create_mesh_buffers(int idx, const mesh::mesh_data& mesh_d)
+{
+  g_renderer.meshes[idx].vertex_buffer =
+    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst),
+                  mesh_d.vertices.size() * sizeof(vertex), mesh_d.vertices.data());
+  g_renderer.meshes[idx].index_buffer =
+    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst),
+                  mesh_d.indices.size() * sizeof(std::uint32_t), mesh_d.indices.data());
+  g_renderer.meshes[idx].index_count = static_cast<std::uint32_t>(mesh_d.indices.size());
+}
+
 // ============================================================================
 // Render Frame
 // ============================================================================
@@ -410,6 +291,57 @@ inline void render_frame()
 {
   if (!g_renderer.initialized || !g_renderer.current_canvas)
     return;
+
+  // Check for canvas resize
+  double cw, ch;
+  emscripten_get_element_css_size("#canvas", &cw, &ch);
+
+  // Handle High DPI (Retina)
+  double dpr = emscripten_get_device_pixel_ratio();
+  int new_width = static_cast<int>(cw * dpr);
+  int new_height = static_cast<int>(ch * dpr);
+
+  if (new_width != g_renderer.width || new_height != g_renderer.height)
+  {
+    if (new_width > 0 && new_height > 0)
+    {
+      g_renderer.width = new_width;
+      g_renderer.height = new_height;
+      g_renderer.css_width = static_cast<int>(cw);
+      g_renderer.css_height = static_cast<int>(ch);
+
+      // Reconfigure Surface
+      WGPUSurfaceConfiguration config{};
+      config.device = g_renderer.device;
+      config.format = WGPUTextureFormat_BGRA8Unorm;
+      config.usage = WGPUTextureUsage_RenderAttachment;
+      config.width = g_renderer.width;
+      config.height = g_renderer.height;
+      config.presentMode = WGPUPresentMode_Fifo;
+      config.alphaMode = WGPUCompositeAlphaMode_Opaque;
+      wgpuSurfaceConfigure(g_renderer.surface, &config);
+
+      // Recreate Depth Texture
+      if (g_renderer.depth_view)
+        wgpuTextureViewRelease(g_renderer.depth_view);
+      if (g_renderer.depth_texture)
+        wgpuTextureRelease(g_renderer.depth_texture);
+
+      WGPUTextureDescriptor depth_desc{};
+      depth_desc.size = {static_cast<std::uint32_t>(g_renderer.width), static_cast<std::uint32_t>(g_renderer.height), 1};
+      depth_desc.format = WGPUTextureFormat_Depth24Plus;
+      depth_desc.usage = WGPUTextureUsage_RenderAttachment;
+      depth_desc.mipLevelCount = 1;
+      depth_desc.sampleCount = 1;
+      depth_desc.dimension = WGPUTextureDimension_2D;
+      g_renderer.depth_texture = wgpuDeviceCreateTexture(g_renderer.device, &depth_desc);
+      g_renderer.depth_view = wgpuTextureCreateView(g_renderer.depth_texture, nullptr);
+
+      // Update Canvas Buffer Size (HTML5 API) - important for crisp rendering
+      emscripten_set_canvas_element_size("#canvas", g_renderer.width, g_renderer.height);
+    }
+  }
+
   canvas& c = *g_renderer.current_canvas;
 
   WGPUSurfaceTexture surface_texture{};
@@ -425,9 +357,9 @@ inline void render_frame()
   // Update camera uniforms
   camera_uniforms cam{};
   cam.view = matrix::look_at(c.m_camera.m_pos, c.m_camera.m_center, c.m_camera.m_up);
-  cam.projection =
-    matrix::perspective(static_cast<float>(c.m_camera.m_fov), static_cast<float>(g_renderer.width) / g_renderer.height,
-                        static_cast<float>(c.m_camera.m_near), static_cast<float>(c.m_camera.m_far));
+  float fov_rad = static_cast<float>(c.m_camera.m_fov * 3.14159265 / 180.0);
+  cam.projection = matrix::perspective(fov_rad, static_cast<float>(g_renderer.width) / g_renderer.height,
+                                        static_cast<float>(c.m_camera.m_near), static_cast<float>(c.m_camera.m_far));
   cam.view_projection = matrix::multiply(cam.projection, cam.view);
   cam.camera_pos = to_gpu(c.m_camera.m_pos);
   wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.camera_buffer, 0, &cam, sizeof(cam));
@@ -457,27 +389,22 @@ inline void render_frame()
   wgpuRenderPassEncoderSetPipeline(pass, g_renderer.pipeline);
   wgpuRenderPassEncoderSetBindGroup(pass, 0, g_renderer.bind_group, 0, nullptr);
 
-  // Helper for model matrix (orientation + scale + translation)
-  auto compute_model_matrix = [](const object_base& obj, const vec3& scale_factors) {
-    vec3 z = hat(obj.m_axis);
-    vec3 x = hat(cross(obj.m_up, z));
-    vec3 y = cross(z, x);
-    gpu_mat4 rot{};
-    rot.data[0] = static_cast<float>(x.x());
-    rot.data[1] = static_cast<float>(x.y());
-    rot.data[2] = static_cast<float>(x.z());
-    rot.data[4] = static_cast<float>(y.x());
-    rot.data[5] = static_cast<float>(y.y());
-    rot.data[6] = static_cast<float>(y.z());
-    rot.data[8] = static_cast<float>(z.x());
-    rot.data[9] = static_cast<float>(z.y());
-    rot.data[10] = static_cast<float>(z.z());
-    rot.data[15] = 1.0f;
-    gpu_mat4 sc = matrix::scale(static_cast<float>(scale_factors.x()), static_cast<float>(scale_factors.y()),
-                                static_cast<float>(scale_factors.z()));
-    gpu_mat4 tr = matrix::translate(static_cast<float>(obj.m_pos.x()), static_cast<float>(obj.m_pos.y()),
-                                    static_cast<float>(obj.m_pos.z()));
-    return matrix::multiply(tr, matrix::multiply(rot, sc));
+  // Helper to build instance data
+  auto build_instance = [](const object_base& obj, const vec3& scale_factors) -> instance_data {
+    instance_data inst{};
+    inst.model = compute_model_matrix(obj.m_pos, obj.m_axis, obj.m_up, scale_factors);
+    inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
+    if (obj.m_emissive) {
+      // Emissive path: pack effect params into material.z/w for shader effects
+      inst.material = {static_cast<float>(obj.m_shininess), 1.0f,
+                       static_cast<float>(obj.m_effect_param0),
+                       static_cast<float>(obj.m_effect_param1)};
+    } else {
+      float has_tex = obj.m_texture.valid() ? 1.0f : 0.0f;
+      float tex_idx = obj.m_texture.valid() ? static_cast<float>(obj.m_texture.index) : 0.0f;
+      inst.material = {static_cast<float>(obj.m_shininess), 0.0f, tex_idx, has_tex};
+    }
+    return inst;
   };
 
   // Draw spheres
@@ -513,7 +440,7 @@ inline void render_frame()
     wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[0].index_buffer, WGPUIndexFormat_Uint32, 0,
                                         WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[0].index_count,
-                                     static_cast<uint32_t>(sphere_instances.size()), 0, 0, 0);
+                                     static_cast<std::uint32_t>(sphere_instances.size()), 0, 0, 0);
   }
 
   // Draw ellipsoids (reuse sphere mesh, index 0)
@@ -522,11 +449,7 @@ inline void render_frame()
   {
     if (!e.m_visible)
       continue;
-    instance_data inst{};
-    inst.model = compute_model_matrix(e, vec3{e.m_length, e.m_height, e.m_width});
-    inst.color = to_gpu4(e.m_color, static_cast<float>(e.m_opacity));
-    inst.material = {static_cast<float>(e.m_shininess), e.m_emissive ? 1.0f : 0.0f, 0, 0};
-    ellipsoid_instances.push_back(inst);
+    ellipsoid_instances.push_back(build_instance(e, vec3{e.m_length, e.m_height, e.m_width}));
   }
 
   if (!ellipsoid_instances.empty())
@@ -546,7 +469,7 @@ inline void render_frame()
     wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[0].index_buffer, WGPUIndexFormat_Uint32, 0,
                                         WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[0].index_count,
-                                     static_cast<uint32_t>(ellipsoid_instances.size()), 0, 0, 0);
+                                     static_cast<std::uint32_t>(ellipsoid_instances.size()), 0, 0, 0);
   }
 
   // Draw boxes
@@ -558,8 +481,8 @@ inline void render_frame()
     instance_data inst{};
     gpu_mat4 tr = matrix::translate(static_cast<float>(b.m_pos.x()), static_cast<float>(b.m_pos.y()),
                                     static_cast<float>(b.m_pos.z()));
-    inst.model = matrix::multiply(tr, matrix::scale(static_cast<float>(b.m_size.x()), static_cast<float>(b.m_size.y()),
-                                                    static_cast<float>(b.m_size.z())));
+    inst.model = matrix::multiply(tr, matrix::scale(static_cast<float>(b.m_length), static_cast<float>(b.m_height),
+                                                    static_cast<float>(b.m_width)));
     inst.color = to_gpu4(b.m_color, static_cast<float>(b.m_opacity));
     inst.material = {static_cast<float>(b.m_shininess), 0, 0, 0};
     box_instances.push_back(inst);
@@ -582,7 +505,693 @@ inline void render_frame()
     wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[1].index_buffer, WGPUIndexFormat_Uint32, 0,
                                         WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[1].index_count,
-                                     static_cast<uint32_t>(box_instances.size()), 0, 0, 0);
+                                     static_cast<std::uint32_t>(box_instances.size()), 0, 0, 0);
+  }
+
+  std::vector<instance_data> cylinder_instances;
+  std::vector<instance_data> cone_instances;
+  std::vector<instance_data> helix_instances;
+
+  // Process m_cylinders
+  for (const auto& obj : c.m_cylinders)
+  {
+    if (!obj.m_visible)
+      continue;
+    instance_data inst{};
+    float len = static_cast<float>(mag(obj.m_axis));
+    float dia = static_cast<float>(obj.m_radius * 2.0);
+    gpu_mat4 rot = matrix::align_x_to_axis(obj.m_axis);
+    gpu_mat4 scale = matrix::scale(len, dia, dia);
+    gpu_mat4 tr = matrix::translate(static_cast<float>(obj.m_pos.x()), static_cast<float>(obj.m_pos.y()),
+                                    static_cast<float>(obj.m_pos.z()));
+    inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+    inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
+    inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+    cylinder_instances.push_back(inst);
+  }
+
+  // Process m_cones
+  for (const auto& obj : c.m_cones)
+  {
+    if (!obj.m_visible)
+      continue;
+    instance_data inst{};
+    float len = static_cast<float>(mag(obj.m_axis));
+    float dia = static_cast<float>(obj.m_radius * 2.0);
+    gpu_mat4 rot = matrix::align_x_to_axis(obj.m_axis);
+    gpu_mat4 scale = matrix::scale(len, dia, dia);
+    gpu_mat4 tr = matrix::translate(static_cast<float>(obj.m_pos.x()), static_cast<float>(obj.m_pos.y()),
+                                    static_cast<float>(obj.m_pos.z()));
+    inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+    inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
+    inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+    cone_instances.push_back(inst);
+  }
+
+  // Process m_arrows (Composite)
+  for (const auto& obj : c.m_arrows)
+  {
+    if (!obj.m_visible)
+      continue;
+
+    double len = mag(obj.m_axis);
+    if (len < 1e-6)
+      continue;
+
+    double shaft_dia = (obj.m_shaftwidth > 0) ? obj.m_shaftwidth : (0.1 * len);
+    double head_len = obj.m_headlength;
+    double head_dia = obj.m_headwidth;
+    if (head_len > len)
+      head_len = len;
+    double shaft_len = len - head_len;
+
+    gpu_mat4 rot = matrix::align_x_to_axis(obj.m_axis);
+
+    // Shaft (Cylinder)
+    if (shaft_len > 0)
+    {
+      instance_data inst{};
+      gpu_mat4 scale = matrix::scale(static_cast<float>(shaft_len), static_cast<float>(shaft_dia),
+                                     static_cast<float>(shaft_dia));
+      gpu_mat4 tr = matrix::translate(static_cast<float>(obj.m_pos.x()), static_cast<float>(obj.m_pos.y()),
+                                      static_cast<float>(obj.m_pos.z()));
+      inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+      inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
+      inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+      cylinder_instances.push_back(inst);
+    }
+
+    // Head (Cone)
+    {
+      instance_data inst{};
+      vec3 head_pos = obj.m_pos + hat(obj.m_axis) * shaft_len;
+      gpu_mat4 scale = matrix::scale(static_cast<float>(head_len), static_cast<float>(head_dia),
+                                     static_cast<float>(head_dia));
+      gpu_mat4 tr = matrix::translate(static_cast<float>(head_pos.x()), static_cast<float>(head_pos.y()),
+                                      static_cast<float>(head_pos.z()));
+      inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+      inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
+      inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+      cone_instances.push_back(inst);
+    }
+  }
+
+  // Process m_helixes
+  for (const auto& h : c.m_helixes)
+  {
+    if (!h.m_visible)
+      continue;
+
+    double len = mag(h.m_axis);
+    if (len < 1e-6)
+      continue;
+
+    instance_data inst{};
+    gpu_mat4 rot = matrix::align_x_to_axis(h.m_axis);
+    gpu_mat4 scale = matrix::scale(static_cast<float>(len), static_cast<float>(h.m_radius),
+                                   static_cast<float>(h.m_radius));
+    gpu_mat4 tr = matrix::translate(static_cast<float>(h.m_pos.x()), static_cast<float>(h.m_pos.y()),
+                                    static_cast<float>(h.m_pos.z()));
+    inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
+    inst.color = to_gpu4(h.m_color, static_cast<float>(h.m_opacity));
+    inst.material = {static_cast<float>(h.m_shininess), 0, 0, 0};
+    helix_instances.push_back(inst);
+  }
+
+  // Draw Cylinders
+  if (!cylinder_instances.empty())
+  {
+    std::size_t size = cylinder_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.cylinder_ib_cap)
+    {
+      if (g_renderer.cylinder_ib)
+        wgpuBufferRelease(g_renderer.cylinder_ib);
+      g_renderer.cylinder_ib_cap = size * 2;
+      g_renderer.cylinder_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.cylinder_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.cylinder_ib, 0, cylinder_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[2].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.cylinder_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[2].index_buffer, WGPUIndexFormat_Uint32, 0,
+                                        WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[2].index_count,
+                                     static_cast<std::uint32_t>(cylinder_instances.size()), 0, 0, 0);
+  }
+
+  // Draw Cones
+  if (!cone_instances.empty())
+  {
+    std::size_t size = cone_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.cone_ib_cap)
+    {
+      if (g_renderer.cone_ib)
+        wgpuBufferRelease(g_renderer.cone_ib);
+      g_renderer.cone_ib_cap = size * 2;
+      g_renderer.cone_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.cone_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.cone_ib, 0, cone_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[3].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.cone_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[3].index_buffer, WGPUIndexFormat_Uint32, 0,
+                                        WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[3].index_count,
+                                     static_cast<std::uint32_t>(cone_instances.size()), 0, 0, 0);
+  }
+
+  // Draw Helices
+  if (!helix_instances.empty())
+  {
+    std::size_t size = helix_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.helix_ib_cap)
+    {
+      if (g_renderer.helix_ib)
+        wgpuBufferRelease(g_renderer.helix_ib);
+      g_renderer.helix_ib_cap = size * 2;
+      g_renderer.helix_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.helix_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.helix_ib, 0, helix_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[4].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.helix_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[4].index_buffer, WGPUIndexFormat_Uint32, 0,
+                                        WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[4].index_count,
+                                     static_cast<std::uint32_t>(helix_instances.size()), 0, 0, 0);
+  }
+
+  // Draw Curves (per-curve dynamic mesh generation)
+  while (g_renderer.curve_meshes.size() < c.m_curves.size())
+    g_renderer.curve_meshes.push_back({});
+
+  for (std::size_t curve_idx = 0; curve_idx < c.m_curves.size(); ++curve_idx)
+  {
+    const auto& crv = c.m_curves[curve_idx];
+    if (!crv.m_visible || crv.m_points.size() < 2)
+      continue;
+
+    auto& curve_mesh = g_renderer.curve_meshes[curve_idx];
+
+    // Regenerate mesh if geometry is dirty
+    if (crv.m_geometry_dirty)
+    {
+      auto tube_mesh = mesh::generate_tube(crv.m_points, static_cast<float>(crv.m_radius), 8);
+
+      if (!tube_mesh.indices.empty())
+      {
+        std::size_t vb_size = tube_mesh.vertices.size() * sizeof(vertex);
+        std::size_t ib_size = tube_mesh.indices.size() * sizeof(std::uint32_t);
+        std::size_t total_size = vb_size + ib_size;
+
+        // Recreate buffers if capacity insufficient
+        if (total_size > curve_mesh.buffer_capacity)
+        {
+          if (curve_mesh.vertex_buffer)
+            wgpuBufferRelease(curve_mesh.vertex_buffer);
+          if (curve_mesh.index_buffer)
+            wgpuBufferRelease(curve_mesh.index_buffer);
+
+          curve_mesh.buffer_capacity = total_size * 2;
+          curve_mesh.vertex_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size * 2);
+          curve_mesh.index_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size * 2);
+        }
+
+        wgpuQueueWriteBuffer(g_renderer.queue, curve_mesh.vertex_buffer, 0, tube_mesh.vertices.data(), vb_size);
+        wgpuQueueWriteBuffer(g_renderer.queue, curve_mesh.index_buffer, 0, tube_mesh.indices.data(), ib_size);
+        curve_mesh.index_count = static_cast<std::uint32_t>(tube_mesh.indices.size());
+      }
+
+      crv.m_geometry_dirty = false;
+    }
+
+    if (curve_mesh.index_count == 0 || !curve_mesh.vertex_buffer || !curve_mesh.index_buffer)
+      continue;
+
+    // Create instance data for this curve (identity transform + curve color)
+    instance_data inst{};
+    inst.model = matrix::identity();
+    inst.color = to_gpu4(crv.m_color, static_cast<float>(crv.m_opacity));
+    inst.material = {static_cast<float>(crv.m_shininess), 0, 0, 0};
+
+    // Use a temporary instance buffer
+    static WGPUBuffer curve_single_ib = nullptr;
+    static std::size_t curve_single_ib_cap = 0;
+    std::size_t inst_size = sizeof(instance_data);
+
+    if (inst_size > curve_single_ib_cap)
+    {
+      if (curve_single_ib)
+        wgpuBufferRelease(curve_single_ib);
+      curve_single_ib_cap = inst_size * 2;
+      curve_single_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), curve_single_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, curve_single_ib, 0, &inst, inst_size);
+
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, curve_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, curve_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, curve_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, curve_mesh.index_count, 1, 0, 0, 0);
+  }
+
+  // Draw Points (instanced small spheres at each point position)
+  std::vector<instance_data> points_instances;
+  for (const auto& pts : c.m_points)
+  {
+    if (!pts.m_visible)
+      continue;
+
+    // Each point becomes a small sphere instance
+    float point_scale = static_cast<float>(pts.m_size) * 0.01f; // Convert pixel size to world units
+    for (const auto& p : pts.m_points)
+    {
+      instance_data inst{};
+      gpu_mat4 tr = matrix::translate(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
+      inst.model = matrix::multiply(tr, matrix::scale(point_scale, point_scale, point_scale));
+      inst.color = to_gpu4(pts.m_color, static_cast<float>(pts.m_opacity));
+      inst.material = {static_cast<float>(pts.m_shininess), pts.m_emissive ? 1.0f : 0.0f, 0, 0};
+      points_instances.push_back(inst);
+    }
+  }
+
+  if (!points_instances.empty())
+  {
+    std::size_t size = points_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.points_ib_cap)
+    {
+      if (g_renderer.points_ib)
+        wgpuBufferRelease(g_renderer.points_ib);
+      g_renderer.points_ib_cap = size * 2;
+      g_renderer.points_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.points_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.points_ib, 0, points_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[0].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.points_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[0].index_buffer, WGPUIndexFormat_Uint32, 0,
+                                        WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[0].index_count,
+                                     static_cast<std::uint32_t>(points_instances.size()), 0, 0, 0);
+  }
+
+  // Draw Triangles and Quads (batched into single dynamic mesh)
+  if (!c.m_triangles.empty() || !c.m_quads.empty())
+  {
+    std::vector<vertex> tri_quad_verts;
+    std::vector<std::uint32_t> tri_quad_indices;
+
+    // Process triangles
+    for (const auto& tri : c.m_triangles)
+    {
+      if (!tri.m_visible)
+        continue;
+
+      std::uint32_t base = static_cast<std::uint32_t>(tri_quad_verts.size());
+
+      auto add_vert = [&](const vertex_data& vd) {
+        vertex v{};
+        v.position[0] = static_cast<float>(vd.pos.x());
+        v.position[1] = static_cast<float>(vd.pos.y());
+        v.position[2] = static_cast<float>(vd.pos.z());
+        v.normal[0] = static_cast<float>(vd.normal.x());
+        v.normal[1] = static_cast<float>(vd.normal.y());
+        v.normal[2] = static_cast<float>(vd.normal.z());
+        v.uv[0] = static_cast<float>(vd.texpos.x());
+        v.uv[1] = static_cast<float>(vd.texpos.y());
+        tri_quad_verts.push_back(v);
+      };
+
+      add_vert(tri.m_v0);
+      add_vert(tri.m_v1);
+      add_vert(tri.m_v2);
+
+      tri_quad_indices.push_back(base);
+      tri_quad_indices.push_back(base + 1);
+      tri_quad_indices.push_back(base + 2);
+    }
+
+    // Process quads (as two triangles)
+    for (const auto& q : c.m_quads)
+    {
+      if (!q.m_visible)
+        continue;
+
+      std::uint32_t base = static_cast<std::uint32_t>(tri_quad_verts.size());
+
+      auto add_vert = [&](const vertex_data& vd) {
+        vertex v{};
+        v.position[0] = static_cast<float>(vd.pos.x());
+        v.position[1] = static_cast<float>(vd.pos.y());
+        v.position[2] = static_cast<float>(vd.pos.z());
+        v.normal[0] = static_cast<float>(vd.normal.x());
+        v.normal[1] = static_cast<float>(vd.normal.y());
+        v.normal[2] = static_cast<float>(vd.normal.z());
+        v.uv[0] = static_cast<float>(vd.texpos.x());
+        v.uv[1] = static_cast<float>(vd.texpos.y());
+        tri_quad_verts.push_back(v);
+      };
+
+      add_vert(q.m_v0);
+      add_vert(q.m_v1);
+      add_vert(q.m_v2);
+      add_vert(q.m_v3);
+
+      // First triangle: v0, v1, v2
+      tri_quad_indices.push_back(base);
+      tri_quad_indices.push_back(base + 1);
+      tri_quad_indices.push_back(base + 2);
+
+      // Second triangle: v0, v2, v3
+      tri_quad_indices.push_back(base);
+      tri_quad_indices.push_back(base + 2);
+      tri_quad_indices.push_back(base + 3);
+    }
+
+    if (!tri_quad_indices.empty())
+    {
+      std::size_t vb_size = tri_quad_verts.size() * sizeof(vertex);
+      std::size_t ib_size = tri_quad_indices.size() * sizeof(std::uint32_t);
+
+      if (vb_size > g_renderer.tri_quad_vb_cap)
+      {
+        if (g_renderer.tri_quad_vb)
+          wgpuBufferRelease(g_renderer.tri_quad_vb);
+        g_renderer.tri_quad_vb_cap = vb_size * 2;
+        g_renderer.tri_quad_vb = create_buffer(
+          static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.tri_quad_vb_cap);
+      }
+
+      if (ib_size > g_renderer.tri_quad_ib_cap)
+      {
+        if (g_renderer.tri_quad_ib)
+          wgpuBufferRelease(g_renderer.tri_quad_ib);
+        g_renderer.tri_quad_ib_cap = ib_size * 2;
+        g_renderer.tri_quad_ib = create_buffer(
+          static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), g_renderer.tri_quad_ib_cap);
+      }
+
+      wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.tri_quad_vb, 0, tri_quad_verts.data(), vb_size);
+      wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.tri_quad_ib, 0, tri_quad_indices.data(), ib_size);
+
+      // Draw with identity instance
+      instance_data identity_inst{};
+      identity_inst.model = matrix::identity();
+      identity_inst.color = {1.0f, 1.0f, 1.0f, 1.0f};
+      identity_inst.material = {0.6f, 0, 0, 0};
+
+      static WGPUBuffer tri_single_ib = nullptr;
+      static std::size_t tri_single_ib_cap = 0;
+      if (sizeof(instance_data) > tri_single_ib_cap)
+      {
+        if (tri_single_ib)
+          wgpuBufferRelease(tri_single_ib);
+        tri_single_ib_cap = sizeof(instance_data) * 2;
+        tri_single_ib = create_buffer(
+          static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), tri_single_ib_cap);
+      }
+      wgpuQueueWriteBuffer(g_renderer.queue, tri_single_ib, 0, &identity_inst, sizeof(instance_data));
+
+      wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.tri_quad_vb, 0, WGPU_WHOLE_SIZE);
+      wgpuRenderPassEncoderSetVertexBuffer(pass, 1, tri_single_ib, 0, WGPU_WHOLE_SIZE);
+      wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.tri_quad_ib, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+      wgpuRenderPassEncoderDrawIndexed(pass, static_cast<std::uint32_t>(tri_quad_indices.size()), 1, 0, 0, 0);
+    }
+  }
+
+  // Draw Compounds (each is a pre-merged mesh)
+  while (g_renderer.compound_meshes.size() < c.m_compounds.size())
+    g_renderer.compound_meshes.push_back({});
+
+  for (std::size_t comp_idx = 0; comp_idx < c.m_compounds.size(); ++comp_idx)
+  {
+    const auto& comp = c.m_compounds[comp_idx];
+    if (!comp.m_visible || comp.m_indices.empty())
+      continue;
+
+    auto& comp_mesh = g_renderer.compound_meshes[comp_idx];
+
+    if (comp.m_geometry_dirty)
+    {
+      std::size_t vb_size = comp.m_vertices.size() * sizeof(float);
+      std::size_t ib_size = comp.m_indices.size() * sizeof(std::uint32_t);
+      std::size_t total = vb_size + ib_size;
+
+      if (total > comp_mesh.buffer_capacity)
+      {
+        if (comp_mesh.vertex_buffer)
+          wgpuBufferRelease(comp_mesh.vertex_buffer);
+        if (comp_mesh.index_buffer)
+          wgpuBufferRelease(comp_mesh.index_buffer);
+
+        comp_mesh.buffer_capacity = total * 2;
+        comp_mesh.vertex_buffer = create_buffer(
+          static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size * 2);
+        comp_mesh.index_buffer = create_buffer(
+          static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size * 2);
+      }
+
+      wgpuQueueWriteBuffer(g_renderer.queue, comp_mesh.vertex_buffer, 0, comp.m_vertices.data(), vb_size);
+      wgpuQueueWriteBuffer(g_renderer.queue, comp_mesh.index_buffer, 0, comp.m_indices.data(), ib_size);
+      comp_mesh.index_count = static_cast<std::uint32_t>(comp.m_indices.size());
+      comp.m_geometry_dirty = false;
+    }
+
+    if (comp_mesh.index_count == 0)
+      continue;
+
+    instance_data inst = build_instance(comp, vec3{1, 1, 1});
+
+    static WGPUBuffer comp_single_ib = nullptr;
+    static std::size_t comp_single_ib_cap = 0;
+    if (sizeof(instance_data) > comp_single_ib_cap)
+    {
+      if (comp_single_ib)
+        wgpuBufferRelease(comp_single_ib);
+      comp_single_ib_cap = sizeof(instance_data) * 2;
+      comp_single_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), comp_single_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, comp_single_ib, 0, &inst, sizeof(instance_data));
+
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, comp_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, comp_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, comp_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, comp_mesh.index_count, 1, 0, 0, 0);
+  }
+
+  // Draw Trails (rendered as tubes using generate_tube)
+  for (auto& [entry_idx, trail] : c.m_trails)
+  {
+    if (trail.positions.size() < 2)
+      continue;
+
+    auto& trail_mesh = g_renderer.trail_meshes[entry_idx];
+
+    if (trail.dirty)
+    {
+      auto tube_mesh = mesh::generate_tube(trail.positions, static_cast<float>(trail.radius), 6);
+
+      if (!tube_mesh.indices.empty())
+      {
+        std::size_t vb_size = tube_mesh.vertices.size() * sizeof(vertex);
+        std::size_t ib_size = tube_mesh.indices.size() * sizeof(std::uint32_t);
+        std::size_t total = vb_size + ib_size;
+
+        if (total > trail_mesh.buffer_capacity)
+        {
+          if (trail_mesh.vertex_buffer)
+            wgpuBufferRelease(trail_mesh.vertex_buffer);
+          if (trail_mesh.index_buffer)
+            wgpuBufferRelease(trail_mesh.index_buffer);
+
+          trail_mesh.buffer_capacity = total * 2;
+          trail_mesh.vertex_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size * 2);
+          trail_mesh.index_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size * 2);
+        }
+
+        wgpuQueueWriteBuffer(g_renderer.queue, trail_mesh.vertex_buffer, 0, tube_mesh.vertices.data(), vb_size);
+        wgpuQueueWriteBuffer(g_renderer.queue, trail_mesh.index_buffer, 0, tube_mesh.indices.data(), ib_size);
+        trail_mesh.index_count = static_cast<std::uint32_t>(tube_mesh.indices.size());
+      }
+      trail.dirty = false;
+    }
+
+    if (trail_mesh.index_count == 0 || !trail_mesh.vertex_buffer)
+      continue;
+
+    instance_data inst{};
+    inst.model = matrix::identity();
+    inst.color = to_gpu4(trail.color, 1.0f);
+    inst.material = {0.3f, 0, 0, 0};
+
+    static WGPUBuffer trail_single_ib = nullptr;
+    static std::size_t trail_single_ib_cap = 0;
+    if (sizeof(instance_data) > trail_single_ib_cap)
+    {
+      if (trail_single_ib)
+        wgpuBufferRelease(trail_single_ib);
+      trail_single_ib_cap = sizeof(instance_data) * 2;
+      trail_single_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), trail_single_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, trail_single_ib, 0, &inst, sizeof(instance_data));
+
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, trail_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, trail_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, trail_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, trail_mesh.index_count, 1, 0, 0, 0);
+  }
+
+  // Draw Extrusions (similar to curves but with custom cross-section)
+  while (g_renderer.extrusion_meshes.size() < c.m_extrusions.size())
+    g_renderer.extrusion_meshes.push_back({});
+
+  for (std::size_t ext_idx = 0; ext_idx < c.m_extrusions.size(); ++ext_idx)
+  {
+    const auto& ext = c.m_extrusions[ext_idx];
+    if (!ext.m_visible || ext.m_path.size() < 2 || ext.m_shape.empty())
+      continue;
+
+    auto& ext_mesh = g_renderer.extrusion_meshes[ext_idx];
+
+    if (ext.m_geometry_dirty)
+    {
+      // Generate extrusion mesh
+      auto gen_mesh = mesh::generate_extrusion(ext.m_path, ext.m_shape, ext.m_twist, ext.m_scale,
+                                               ext.m_show_start_face, ext.m_show_end_face);
+
+      if (!gen_mesh.indices.empty())
+      {
+        std::size_t vb_size = gen_mesh.vertices.size() * sizeof(vertex);
+        std::size_t ib_size = gen_mesh.indices.size() * sizeof(std::uint32_t);
+        std::size_t total = vb_size + ib_size;
+
+        if (total > ext_mesh.buffer_capacity)
+        {
+          if (ext_mesh.vertex_buffer)
+            wgpuBufferRelease(ext_mesh.vertex_buffer);
+          if (ext_mesh.index_buffer)
+            wgpuBufferRelease(ext_mesh.index_buffer);
+
+          ext_mesh.buffer_capacity = total * 2;
+          ext_mesh.vertex_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size * 2);
+          ext_mesh.index_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size * 2);
+        }
+
+        wgpuQueueWriteBuffer(g_renderer.queue, ext_mesh.vertex_buffer, 0, gen_mesh.vertices.data(), vb_size);
+        wgpuQueueWriteBuffer(g_renderer.queue, ext_mesh.index_buffer, 0, gen_mesh.indices.data(), ib_size);
+        ext_mesh.index_count = static_cast<std::uint32_t>(gen_mesh.indices.size());
+      }
+      ext.m_geometry_dirty = false;
+    }
+
+    if (ext_mesh.index_count == 0 || !ext_mesh.vertex_buffer)
+      continue;
+
+    instance_data inst = build_instance(ext, vec3{1, 1, 1});
+
+    static WGPUBuffer ext_single_ib = nullptr;
+    static std::size_t ext_single_ib_cap = 0;
+    if (sizeof(instance_data) > ext_single_ib_cap)
+    {
+      if (ext_single_ib)
+        wgpuBufferRelease(ext_single_ib);
+      ext_single_ib_cap = sizeof(instance_data) * 2;
+      ext_single_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), ext_single_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, ext_single_ib, 0, &inst, sizeof(instance_data));
+
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, ext_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, ext_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, ext_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, ext_mesh.index_count, 1, 0, 0, 0);
+  }
+
+  // Draw 3D Text
+  while (g_renderer.text3d_meshes.size() < c.m_text3ds.size())
+    g_renderer.text3d_meshes.push_back({});
+
+  for (std::size_t txt_idx = 0; txt_idx < c.m_text3ds.size(); ++txt_idx)
+  {
+    const auto& txt = c.m_text3ds[txt_idx];
+    if (!txt.m_visible || txt.m_text.empty())
+      continue;
+
+    auto& txt_mesh = g_renderer.text3d_meshes[txt_idx];
+
+    if (txt.m_geometry_dirty)
+    {
+      // Generate text mesh
+      auto gen_mesh = vcpp::text_glyphs::generate_text_mesh(txt.m_text, txt.m_height, txt.m_depth);
+
+      if (!gen_mesh.indices.empty())
+      {
+        std::size_t vb_size = gen_mesh.vertices.size() * sizeof(vertex);
+        std::size_t ib_size = gen_mesh.indices.size() * sizeof(std::uint32_t);
+        std::size_t total = vb_size + ib_size;
+
+        if (total > txt_mesh.buffer_capacity)
+        {
+          if (txt_mesh.vertex_buffer)
+            wgpuBufferRelease(txt_mesh.vertex_buffer);
+          if (txt_mesh.index_buffer)
+            wgpuBufferRelease(txt_mesh.index_buffer);
+
+          txt_mesh.buffer_capacity = total * 2;
+          txt_mesh.vertex_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size * 2);
+          txt_mesh.index_buffer = create_buffer(
+            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size * 2);
+        }
+
+        wgpuQueueWriteBuffer(g_renderer.queue, txt_mesh.vertex_buffer, 0, gen_mesh.vertices.data(), vb_size);
+        wgpuQueueWriteBuffer(g_renderer.queue, txt_mesh.index_buffer, 0, gen_mesh.indices.data(), ib_size);
+        txt_mesh.index_count = static_cast<std::uint32_t>(gen_mesh.indices.size());
+      }
+      txt.m_geometry_dirty = false;
+    }
+
+    if (txt_mesh.index_count == 0 || !txt_mesh.vertex_buffer)
+      continue;
+
+    // Compute text alignment offset
+    double text_width = vcpp::text_glyphs::get_text_width(txt.m_text) * txt.m_height;
+    double x_offset = 0.0;
+    if (txt.m_align == "center")
+      x_offset = -text_width / 2.0;
+    else if (txt.m_align == "right")
+      x_offset = -text_width;
+
+    instance_data inst{};
+    vec3 offset_pos = txt.m_pos + txt.m_axis * x_offset;
+    inst.model = compute_model_matrix(offset_pos, txt.m_axis, txt.m_up, vec3{1, 1, 1});
+    inst.color = to_gpu4(txt.m_color, static_cast<float>(txt.m_opacity));
+    inst.material = {static_cast<float>(txt.m_shininess), txt.m_emissive ? 1.0f : 0.0f, 0, 0};
+
+    static WGPUBuffer txt_single_ib = nullptr;
+    static std::size_t txt_single_ib_cap = 0;
+    if (sizeof(instance_data) > txt_single_ib_cap)
+    {
+      if (txt_single_ib)
+        wgpuBufferRelease(txt_single_ib);
+      txt_single_ib_cap = sizeof(instance_data) * 2;
+      txt_single_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), txt_single_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, txt_single_ib, 0, &inst, sizeof(instance_data));
+
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, txt_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, txt_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, txt_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, txt_mesh.index_count, 1, 0, 0, 0);
   }
 
   wgpuRenderPassEncoderEnd(pass);
@@ -594,8 +1203,6 @@ inline void render_frame()
   wgpuCommandBufferRelease(commands);
   wgpuCommandEncoderRelease(encoder);
   wgpuTextureViewRelease(back_buffer);
-  // Note: wgpuSurfacePresent is not used with emdawnwebgpu - presentation
-  // happens automatically
 }
 
 // ============================================================================
@@ -611,11 +1218,6 @@ inline EM_BOOL on_mouse_move(int eventType, const EmscriptenMouseEvent* e, void*
   vcpp::g_input.ctrl_held = e->ctrlKey;
   vcpp::g_input.shift_held = e->shiftKey;
   vcpp::g_input.alt_held = e->altKey;
-  // Debug: log when mouse moves while button is down
-  if (vcpp::g_input.mouse.left_down)
-  {
-    emscripten_console_log("[vcpp] mouse move while left down");
-  }
   return EM_TRUE;
 }
 
@@ -623,10 +1225,8 @@ inline EM_BOOL on_mouse_down(int eventType, const EmscriptenMouseEvent* e, void*
 {
   (void)eventType;
   (void)userData;
-  emscripten_console_log("[vcpp] mouse down!");
   vcpp::g_input.mouse.x = e->targetX;
   vcpp::g_input.mouse.y = e->targetY;
-  // Initialize last position on mouse down to prevent jump
   vcpp::g_input.mouse.last_x = e->targetX;
   vcpp::g_input.mouse.last_y = e->targetY;
   vcpp::g_input.ctrl_held = e->ctrlKey;
@@ -670,19 +1270,20 @@ inline EM_BOOL on_wheel(int eventType, const EmscriptenWheelEvent* e, void* user
 {
   (void)eventType;
   (void)userData;
-  emscripten_console_log("[vcpp] wheel event!");
-  // deltaY > 0 means scroll down (zoom out), < 0 means scroll up (zoom in)
-  vcpp::g_input.mouse.scroll_delta += e->deltaY * 0.01; // Normalize scroll amount
+  vcpp::g_input.mouse.scroll_delta += e->deltaY * 0.01;
   return EM_TRUE;
 }
 
-// Prevent context menu on right-click
-inline EM_BOOL on_context_menu(int eventType, const void* reserved, void* userData)
+inline EM_BOOL on_key_down(int eventType, const EmscriptenKeyboardEvent* e, void* userData)
 {
   (void)eventType;
-  (void)reserved;
   (void)userData;
-  return EM_TRUE; // Returning true prevents default behavior
+  vcpp::g_input.key_down_events.push_back(e->code);
+  if (e->metaKey || e->ctrlKey)
+  {
+    return EM_FALSE;
+  }
+  return EM_TRUE;
 }
 
 // ============================================================================
@@ -691,17 +1292,64 @@ inline EM_BOOL on_context_menu(int eventType, const void* reserved, void* userDa
 
 inline void (*user_update_fn)() = nullptr;
 
+inline double get_current_time()
+{
+  return emscripten_get_now() / 1000.0; // Convert ms to seconds
+}
+
 inline void main_loop_callback()
 {
-  // Process camera input from mouse state
   if (g_renderer.current_canvas)
   {
     vcpp::process_camera_input(*g_renderer.current_canvas);
+
+    // Update trails
+    double current_time = get_current_time();
+    g_renderer.current_canvas->update_trails(current_time);
   }
   if (user_update_fn)
     user_update_fn();
-  // Always render every frame for now (animation)
+
+  vcpp::g_input.key_down_events.clear();
+  vcpp::graph_bridge::flush_updates();
   render_frame();
+
+  // Render labels after 3D scene (on top)
+  render_labels();
+}
+
+inline void render_labels()
+{
+  if (!g_renderer.initialized || !g_renderer.current_canvas)
+    return;
+
+  canvas& c = *g_renderer.current_canvas;
+
+  if (c.m_labels.empty())
+  {
+    vcpp::label_bridge::clear();
+    return;
+  }
+
+  // Get current camera uniforms
+  render::camera_uniforms cam{};
+  cam.view = matrix::look_at(c.m_camera.m_pos, c.m_camera.m_center, c.m_camera.m_up);
+  float fov_rad = static_cast<float>(c.m_camera.m_fov * 3.14159265 / 180.0);
+  cam.projection = matrix::perspective(fov_rad, static_cast<float>(g_renderer.width) / g_renderer.height,
+                                        static_cast<float>(c.m_camera.m_near), static_cast<float>(c.m_camera.m_far));
+  cam.view_projection = matrix::multiply(cam.projection, cam.view);
+
+  vcpp::label_bridge::clear();
+
+  for (const auto& lbl : c.m_labels)
+  {
+    if (!lbl.m_visible)
+      continue;
+
+    vcpp::label_bridge::draw_label(lbl.m_pos, lbl.m_xoffset, lbl.m_yoffset, lbl.m_text, lbl.m_height, lbl.m_font,
+                                   lbl.m_color, lbl.m_opacity, lbl.m_box, lbl.m_background, lbl.m_background_opacity,
+                                   lbl.m_border, lbl.m_line, cam, g_renderer.css_width, g_renderer.css_height);
+  }
 }
 
 // ============================================================================
@@ -710,20 +1358,20 @@ inline void main_loop_callback()
 
 export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
 {
-  // Get WebGPU device from Emscripten
   g_renderer.device = emscripten_webgpu_get_device();
   if (!g_renderer.device)
     return false;
 
   g_renderer.queue = wgpuDeviceGetQueue(g_renderer.device);
 
-  // Get canvas size
   double w, h;
   emscripten_get_element_css_size(canvas_selector, &w, &h);
-  g_renderer.width = static_cast<int>(w);
-  g_renderer.height = static_cast<int>(h);
+  double dpr = emscripten_get_device_pixel_ratio();
+  g_renderer.css_width = static_cast<int>(w);
+  g_renderer.css_height = static_cast<int>(h);
+  g_renderer.width = static_cast<int>(w * dpr);
+  g_renderer.height = static_cast<int>(h * dpr);
 
-  // Create surface from canvas
   WGPUEmscriptenSurfaceSourceCanvasHTMLSelector canvas_desc{};
   canvas_desc.chain.sType = WGPUSType_EmscriptenSurfaceSourceCanvasHTMLSelector;
   canvas_desc.selector = {canvas_selector, WGPU_STRLEN};
@@ -733,7 +1381,6 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   WGPUInstance instance = wgpuCreateInstance(nullptr);
   g_renderer.surface = wgpuInstanceCreateSurface(instance, &surface_desc);
 
-  // Configure surface
   WGPUSurfaceConfiguration config{};
   config.device = g_renderer.device;
   config.format = WGPUTextureFormat_BGRA8Unorm;
@@ -744,9 +1391,8 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   config.alphaMode = WGPUCompositeAlphaMode_Opaque;
   wgpuSurfaceConfigure(g_renderer.surface, &config);
 
-  // Create depth texture
   WGPUTextureDescriptor depth_desc{};
-  depth_desc.size = {static_cast<uint32_t>(g_renderer.width), static_cast<uint32_t>(g_renderer.height), 1};
+  depth_desc.size = {static_cast<std::uint32_t>(g_renderer.width), static_cast<std::uint32_t>(g_renderer.height), 1};
   depth_desc.format = WGPUTextureFormat_Depth24Plus;
   depth_desc.usage = WGPUTextureUsage_RenderAttachment;
   depth_desc.mipLevelCount = 1;
@@ -755,11 +1401,9 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   g_renderer.depth_texture = wgpuDeviceCreateTexture(g_renderer.device, &depth_desc);
   g_renderer.depth_view = wgpuTextureCreateView(g_renderer.depth_texture, nullptr);
 
-  // Create camera uniform buffer
   g_renderer.camera_buffer = create_buffer(
     static_cast<WGPUBufferUsage>(WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst), sizeof(camera_uniforms));
 
-  // Create bind group layout and bind group
   WGPUBindGroupLayoutEntry bgl_entry{};
   bgl_entry.binding = 0;
   bgl_entry.visibility = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment;
@@ -782,7 +1426,6 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   bg_desc.entries = &bg_entry;
   g_renderer.bind_group = wgpuDeviceCreateBindGroup(g_renderer.device, &bg_desc);
 
-  // Create shader module
   WGPUShaderSourceWGSL wgsl_desc{};
   wgsl_desc.chain.sType = WGPUSType_ShaderSourceWGSL;
   wgsl_desc.code = {shader_source, WGPU_STRLEN};
@@ -791,13 +1434,11 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   sm_desc.nextInChain = reinterpret_cast<WGPUChainedStruct*>(&wgsl_desc);
   WGPUShaderModule shader = wgpuDeviceCreateShaderModule(g_renderer.device, &sm_desc);
 
-  // Create pipeline layout
   WGPUPipelineLayoutDescriptor pl_desc{};
   pl_desc.bindGroupLayoutCount = 1;
   pl_desc.bindGroupLayouts = &g_renderer.bind_group_layout;
   WGPUPipelineLayout pipeline_layout = wgpuDeviceCreatePipelineLayout(g_renderer.device, &pl_desc);
 
-  // Vertex buffer layouts
   WGPUVertexAttribute vertex_attrs[] = {
     {nullptr, WGPUVertexFormat_Float32x3, 0, 0},  // pos
     {nullptr, WGPUVertexFormat_Float32x3, 12, 1}, // normal
@@ -824,10 +1465,18 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   vb_layouts[1].attributeCount = 6;
   vb_layouts[1].attributes = instance_attrs;
 
-  // Create render pipeline
+  WGPUBlendState blend_state{};
+  blend_state.color.srcFactor = WGPUBlendFactor_SrcAlpha;
+  blend_state.color.dstFactor = WGPUBlendFactor_OneMinusSrcAlpha;
+  blend_state.color.operation = WGPUBlendOperation_Add;
+  blend_state.alpha.srcFactor = WGPUBlendFactor_One;
+  blend_state.alpha.dstFactor = WGPUBlendFactor_OneMinusSrcAlpha;
+  blend_state.alpha.operation = WGPUBlendOperation_Add;
+
   WGPUColorTargetState color_target{};
   color_target.format = WGPUTextureFormat_BGRA8Unorm;
   color_target.writeMask = WGPUColorWriteMask_All;
+  color_target.blend = &blend_state;
 
   WGPUFragmentState frag_state{};
   frag_state.module = shader;
@@ -859,39 +1508,27 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   wgpuShaderModuleRelease(shader);
   wgpuPipelineLayoutRelease(pipeline_layout);
 
-  // Create mesh buffers
-  auto sphere_verts = meshes::generate_sphere();
-  auto sphere_idx = meshes::generate_sphere_indices();
-  g_renderer.meshes[0].vertex_buffer =
-    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst),
-                  sphere_verts.size() * sizeof(vertex), sphere_verts.data());
-  g_renderer.meshes[0].index_buffer =
-    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst),
-                  sphere_idx.size() * sizeof(uint32_t), sphere_idx.data());
-  g_renderer.meshes[0].index_count = static_cast<uint32_t>(sphere_idx.size());
+  // Create mesh buffers using shared mesh module
+  create_mesh_buffers(0, mesh::generate_sphere());
+  create_mesh_buffers(1, mesh::generate_box());
+  create_mesh_buffers(2, mesh::generate_cylinder());
+  create_mesh_buffers(3, mesh::generate_cone());
+  create_mesh_buffers(4, mesh::generate_helix());
 
-  auto box_verts = meshes::generate_box();
-  auto box_idx = meshes::generate_box_indices();
-  g_renderer.meshes[1].vertex_buffer =
-    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst),
-                  box_verts.size() * sizeof(vertex), box_verts.data());
-  g_renderer.meshes[1].index_buffer =
-    create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst),
-                  box_idx.size() * sizeof(uint32_t), box_idx.data());
-  g_renderer.meshes[1].index_count = static_cast<uint32_t>(box_idx.size());
-
-  // Register input callbacks on the canvas element
+  // Register input callbacks
   emscripten_set_mousemove_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_move);
   emscripten_set_mousedown_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_down);
   emscripten_set_mouseup_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_up);
   emscripten_set_wheel_callback(canvas_selector, nullptr, EM_TRUE, on_wheel);
-
-  // Prevent context menu on right-click (so right-drag works)
+  emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, on_key_down);
   emscripten_set_click_callback(canvas_selector, nullptr, EM_TRUE,
                                 [](int, const EmscriptenMouseEvent*, void*) -> EM_BOOL { return EM_TRUE; });
 
   g_renderer.current_canvas = &c;
   g_renderer.initialized = true;
+
+  // Initialize label rendering
+  vcpp::label_bridge::init();
 
   return true;
 }

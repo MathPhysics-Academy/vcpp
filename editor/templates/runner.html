@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>VCpp Output</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+    #container {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: row;
+    }
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      height: 100%;
+    }
+    #canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+    #graph-resize-handle {
+      width: 8px;
+      height: 100%;
+      background: rgba(50, 60, 80, 0.9);
+      cursor: ew-resize;
+      display: none;
+      flex-shrink: 0;
+    }
+    #graph-container {
+      width: 280px;
+      min-width: 120px;
+      max-width: 50%;
+      height: 100%;
+      overflow: auto;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    #error-overlay {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20, 10, 10, 0.95);
+      color: #f38ba8;
+      border: 1px solid #f38ba8;
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 80%;
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="canvas-container">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div id="graph-resize-handle"></div>
+    <div id="graph-container"></div>
+  </div>
+  <div id="error-overlay"></div>
+
+  <!-- Graph rendering modules -->
+  <script src="graph_instance.js"></script>
+  <script src="graph_manager.js"></script>
+
+  <script type="module">
+    // Check WebGPU support
+    if (!navigator.gpu) {
+      const overlay = document.getElementById('error-overlay');
+      overlay.style.display = 'block';
+      overlay.textContent = 'WebGPU is not supported in this browser.\nTry Chrome 113+ or Edge 113+.';
+      throw new Error('WebGPU not supported');
+    }
+
+    async function initWebGPU() {
+      console.log('[Runner] Starting WebGPU init...');
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) throw new Error('No WebGPU adapter found');
+
+      const device = await adapter.requestDevice();
+      console.log('[Runner] WebGPU device acquired');
+
+      window.Module = {
+        preinitializedWebGPUDevice: device,
+        onRuntimeInitialized: function() {
+          console.log('[Runner] WASM runtime initialized');
+        },
+        locateFile: function(path, prefix) {
+          return prefix + path;
+        }
+      };
+
+      // Load the compiled WASM module
+      const script = document.createElement('script');
+      script.src = 'output.js';
+      script.onload = () => console.log('[Runner] output.js loaded');
+      script.onerror = () => {
+        const overlay = document.getElementById('error-overlay');
+        overlay.style.display = 'block';
+        overlay.textContent = 'Failed to load compiled WASM module.';
+      };
+      document.body.appendChild(script);
+    }
+
+    initWebGPU().catch(err => {
+      const overlay = document.getElementById('error-overlay');
+      overlay.style.display = 'block';
+      overlay.textContent = 'WebGPU Error: ' + err.message;
+    });
+  </script>
+</body>
+</html>
