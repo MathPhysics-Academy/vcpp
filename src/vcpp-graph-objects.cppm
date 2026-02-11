@@ -161,8 +161,8 @@ gcurve_object gcurve(Binders... binders)
   apply_params(obj, params, object_params<gcurve_object>::value);
 
   // Handle string parameters manually
-  if constexpr (is_bound<decltype(label), decltype(params)>)
-    obj.m_label = label(params);
+  if constexpr (is_bound<decltype(prop::label), decltype(params)>)
+    obj.m_label = prop::label(params);
 
   // Extract graph reference if provided
   if constexpr (is_bound<decltype(graph_ref), decltype(params)>)
@@ -215,8 +215,8 @@ gdots_object gdots(Binders... binders)
   apply_params(obj, params, object_params<gdots_object>::value);
 
   // Handle string parameters manually
-  if constexpr (is_bound<decltype(label), decltype(params)>)
-    obj.m_label = label(params);
+  if constexpr (is_bound<decltype(prop::label), decltype(params)>)
+    obj.m_label = prop::label(params);
 
   // Extract graph reference if provided
   if constexpr (is_bound<decltype(graph_ref), decltype(params)>)
@@ -269,8 +269,8 @@ gvbars_object gvbars(Binders... binders)
   apply_params(obj, params, object_params<gvbars_object>::value);
 
   // Handle string parameters manually
-  if constexpr (is_bound<decltype(label), decltype(params)>)
-    obj.m_label = label(params);
+  if constexpr (is_bound<decltype(prop::label), decltype(params)>)
+    obj.m_label = prop::label(params);
 
   // Extract graph reference if provided
   if constexpr (is_bound<decltype(graph_ref), decltype(params)>)

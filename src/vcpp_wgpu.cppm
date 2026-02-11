@@ -485,9 +485,16 @@ inline void wgpu_renderer::render(canvas& c)
     instance_data inst{};
     inst.model = compute_model_matrix(obj.m_pos, obj.m_axis, obj.m_up, scale_factors);
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-    float has_tex = obj.m_texture.valid() ? 1.0f : 0.0f;
-    float tex_idx = obj.m_texture.valid() ? static_cast<float>(obj.m_texture.index) : 0.0f;
-    inst.material = {static_cast<float>(obj.m_shininess), obj.m_emissive ? 1.0f : 0.0f, tex_idx, has_tex};
+    if (obj.m_emissive) {
+      // Emissive path: pack effect params into material.z/w for shader effects
+      inst.material = {static_cast<float>(obj.m_shininess), 1.0f,
+                       static_cast<float>(obj.m_effect_param0),
+                       static_cast<float>(obj.m_effect_param1)};
+    } else {
+      float has_tex = obj.m_texture.valid() ? 1.0f : 0.0f;
+      float tex_idx = obj.m_texture.valid() ? static_cast<float>(obj.m_texture.index) : 0.0f;
+      inst.material = {static_cast<float>(obj.m_shininess), 0.0f, tex_idx, has_tex};
+    }
     return inst;
   };
 

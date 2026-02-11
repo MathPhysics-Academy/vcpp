@@ -40,7 +40,7 @@ struct vertex
 struct mesh_data
 {
   std::vector<vertex> vertices;
-  std::vector<uint32_t> indices;
+  std::vector<std::uint32_t> indices;
 
   bool valid() const noexcept { return !vertices.empty() && !indices.empty(); }
   std::size_t vertex_count() const noexcept { return vertices.size(); }
@@ -95,8 +95,8 @@ inline mesh_data generate_sphere(int slices = 16, int stacks = 12)
   {
     for (int j = 0; j < slices; ++j)
     {
-      uint32_t a = static_cast<uint32_t>(i * (slices + 1) + j);
-      uint32_t b = a + static_cast<uint32_t>(slices + 1);
+      std::uint32_t a = static_cast<std::uint32_t>(i * (slices + 1) + j);
+      std::uint32_t b = a + static_cast<std::uint32_t>(slices + 1);
 
       mesh.indices.push_back(a);
       mesh.indices.push_back(b);
@@ -152,9 +152,9 @@ inline mesh_data generate_box()
   add_face(0, 0, 1, n, 0, 0, 0, n, 0);  // +Z
   add_face(0, 0, -1, -n, 0, 0, 0, n, 0); // -Z
 
-  for (uint32_t f = 0; f < 6; ++f)
+  for (std::uint32_t f = 0; f < 6; ++f)
   {
-    uint32_t base = f * 4;
+    std::uint32_t base = f * 4;
     mesh.indices.push_back(base);
     mesh.indices.push_back(base + 1);
     mesh.indices.push_back(base + 2);
@@ -211,7 +211,7 @@ inline mesh_data generate_cylinder(int slices = 16)
   }
 
   // Base Cap center
-  uint32_t base_center_idx = static_cast<uint32_t>(mesh.vertices.size());
+  std::uint32_t base_center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
   mesh.vertices.push_back(vertex{{0, 0, 0}, {-1, 0, 0}, {0.5f, 0.5f}});
   for (int i = 0; i <= slices; ++i)
   {
@@ -223,7 +223,7 @@ inline mesh_data generate_cylinder(int slices = 16)
   }
 
   // Top Cap center
-  uint32_t top_center_idx = static_cast<uint32_t>(mesh.vertices.size());
+  std::uint32_t top_center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
   mesh.vertices.push_back(vertex{{1, 0, 0}, {1, 0, 0}, {0.5f, 0.5f}});
   for (int i = 0; i <= slices; ++i)
   {
@@ -237,7 +237,7 @@ inline mesh_data generate_cylinder(int slices = 16)
   // Body indices
   for (int i = 0; i < slices; ++i)
   {
-    uint32_t base = static_cast<uint32_t>(i * 2);
+    std::uint32_t base = static_cast<std::uint32_t>(i * 2);
     mesh.indices.push_back(base);
     mesh.indices.push_back(base + 1);
     mesh.indices.push_back(base + 2);
@@ -250,16 +250,16 @@ inline mesh_data generate_cylinder(int slices = 16)
   for (int i = 0; i < slices; ++i)
   {
     mesh.indices.push_back(base_center_idx);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<uint32_t>(i) + 1);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<uint32_t>(i));
+    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i) + 1);
+    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i));
   }
 
   // Top Cap indices
   for (int i = 0; i < slices; ++i)
   {
     mesh.indices.push_back(top_center_idx);
-    mesh.indices.push_back(top_center_idx + 1 + static_cast<uint32_t>(i));
-    mesh.indices.push_back(top_center_idx + 1 + static_cast<uint32_t>(i) + 1);
+    mesh.indices.push_back(top_center_idx + 1 + static_cast<std::uint32_t>(i));
+    mesh.indices.push_back(top_center_idx + 1 + static_cast<std::uint32_t>(i) + 1);
   }
 
   return mesh;
@@ -300,11 +300,11 @@ inline mesh_data generate_cone(int slices = 16)
   }
 
   // Tip vertex
-  uint32_t tip_idx = static_cast<uint32_t>(mesh.vertices.size());
+  std::uint32_t tip_idx = static_cast<std::uint32_t>(mesh.vertices.size());
   mesh.vertices.push_back(vertex{{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}});
 
   // Base Cap center
-  uint32_t base_center_idx = static_cast<uint32_t>(mesh.vertices.size());
+  std::uint32_t base_center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
   mesh.vertices.push_back(vertex{{0, 0, 0}, {-1, 0, 0}, {0.5f, 0.5f}});
   for (int i = 0; i <= slices; ++i)
   {
@@ -318,17 +318,17 @@ inline mesh_data generate_cone(int slices = 16)
   // Body indices (triangles to tip)
   for (int i = 0; i < slices; ++i)
   {
-    mesh.indices.push_back(static_cast<uint32_t>(i));
+    mesh.indices.push_back(static_cast<std::uint32_t>(i));
     mesh.indices.push_back(tip_idx);
-    mesh.indices.push_back(static_cast<uint32_t>(i + 1));
+    mesh.indices.push_back(static_cast<std::uint32_t>(i + 1));
   }
 
   // Base Cap indices
   for (int i = 0; i < slices; ++i)
   {
     mesh.indices.push_back(base_center_idx);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<uint32_t>(i) + 1);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<uint32_t>(i));
+    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i) + 1);
+    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i));
   }
 
   return mesh;
@@ -422,10 +422,10 @@ inline mesh_data generate_helix(int coils = 8, int tube_slices = 8, int steps_pe
     {
       int current_ring = i * (tube_slices + 1);
       int next_ring = (i + 1) * (tube_slices + 1);
-      uint32_t v0 = static_cast<uint32_t>(current_ring + j);
-      uint32_t v1 = static_cast<uint32_t>(next_ring + j);
-      uint32_t v2 = static_cast<uint32_t>(current_ring + j + 1);
-      uint32_t v3 = static_cast<uint32_t>(next_ring + j + 1);
+      std::uint32_t v0 = static_cast<std::uint32_t>(current_ring + j);
+      std::uint32_t v1 = static_cast<std::uint32_t>(next_ring + j);
+      std::uint32_t v2 = static_cast<std::uint32_t>(current_ring + j + 1);
+      std::uint32_t v3 = static_cast<std::uint32_t>(next_ring + j + 1);
 
       mesh.indices.push_back(v0);
       mesh.indices.push_back(v1);
@@ -504,13 +504,13 @@ inline mesh_data generate_ring(int major_segments = 32, int minor_segments = 12)
       int current = i * (minor_segments + 1) + j;
       int next = (i + 1) * (minor_segments + 1) + j;
 
-      mesh.indices.push_back(static_cast<uint32_t>(current));
-      mesh.indices.push_back(static_cast<uint32_t>(next));
-      mesh.indices.push_back(static_cast<uint32_t>(current + 1));
+      mesh.indices.push_back(static_cast<std::uint32_t>(current));
+      mesh.indices.push_back(static_cast<std::uint32_t>(next));
+      mesh.indices.push_back(static_cast<std::uint32_t>(current + 1));
 
-      mesh.indices.push_back(static_cast<uint32_t>(current + 1));
-      mesh.indices.push_back(static_cast<uint32_t>(next));
-      mesh.indices.push_back(static_cast<uint32_t>(next + 1));
+      mesh.indices.push_back(static_cast<std::uint32_t>(current + 1));
+      mesh.indices.push_back(static_cast<std::uint32_t>(next));
+      mesh.indices.push_back(static_cast<std::uint32_t>(next + 1));
     }
   }
 
@@ -607,10 +607,10 @@ inline mesh_data generate_tube(const std::vector<vec3>& points, float radius, in
       int current_ring = i * (tube_slices + 1);
       int next_ring = (i + 1) * (tube_slices + 1);
 
-      uint32_t v0 = static_cast<uint32_t>(current_ring + j);
-      uint32_t v1 = static_cast<uint32_t>(next_ring + j);
-      uint32_t v2 = static_cast<uint32_t>(current_ring + j + 1);
-      uint32_t v3 = static_cast<uint32_t>(next_ring + j + 1);
+      std::uint32_t v0 = static_cast<std::uint32_t>(current_ring + j);
+      std::uint32_t v1 = static_cast<std::uint32_t>(next_ring + j);
+      std::uint32_t v2 = static_cast<std::uint32_t>(current_ring + j + 1);
+      std::uint32_t v3 = static_cast<std::uint32_t>(next_ring + j + 1);
 
       mesh.indices.push_back(v0);
       mesh.indices.push_back(v1);
@@ -624,5 +624,425 @@ inline mesh_data generate_tube(const std::vector<vec3>& points, float radius, in
 
   return mesh;
 }
+
+// ============================================================================
+// Pyramid Mesh Generator
+//
+// Apex at x=1, base at x=0, base is 1x1 in YZ plane.
+// ============================================================================
+
+inline mesh_data generate_pyramid()
+{
+  mesh_data mesh;
+
+  // Apex
+  float apex_x = 1.0f;
+  // Base corners
+  float base_x = 0.0f;
+  float half = 0.5f;
+
+  // Base vertices (for base face)
+  vertex base_verts[4] = {
+    {{base_x, -half, -half}, {-1, 0, 0}, {0, 0}},
+    {{base_x, half, -half}, {-1, 0, 0}, {1, 0}},
+    {{base_x, half, half}, {-1, 0, 0}, {1, 1}},
+    {{base_x, -half, half}, {-1, 0, 0}, {0, 1}},
+  };
+
+  // Base face
+  std::uint32_t base_start = static_cast<std::uint32_t>(mesh.vertices.size());
+  for (int i = 0; i < 4; ++i)
+    mesh.vertices.push_back(base_verts[i]);
+  mesh.indices.push_back(base_start);
+  mesh.indices.push_back(base_start + 2);
+  mesh.indices.push_back(base_start + 1);
+  mesh.indices.push_back(base_start);
+  mesh.indices.push_back(base_start + 3);
+  mesh.indices.push_back(base_start + 2);
+
+  // Side faces
+  vec3 corners[4] = {
+    {base_x, -half, -half},
+    {base_x, half, -half},
+    {base_x, half, half},
+    {base_x, -half, half},
+  };
+  vec3 apex_vec{apex_x, 0, 0};
+
+  for (int i = 0; i < 4; ++i)
+  {
+    int next = (i + 1) % 4;
+    vec3 v0 = corners[i];
+    vec3 v1 = corners[next];
+    vec3 edge1 = apex_vec - v0;
+    vec3 edge2 = v1 - v0;
+    vec3 n = hat(cross(edge2, edge1));
+
+    std::uint32_t tri_start = static_cast<std::uint32_t>(mesh.vertices.size());
+
+    vertex vv0{};
+    vv0.position[0] = static_cast<float>(v0.x());
+    vv0.position[1] = static_cast<float>(v0.y());
+    vv0.position[2] = static_cast<float>(v0.z());
+    vv0.normal[0] = static_cast<float>(n.x());
+    vv0.normal[1] = static_cast<float>(n.y());
+    vv0.normal[2] = static_cast<float>(n.z());
+    vv0.uv[0] = 0;
+    vv0.uv[1] = 0;
+    mesh.vertices.push_back(vv0);
+
+    vertex vv1{};
+    vv1.position[0] = static_cast<float>(v1.x());
+    vv1.position[1] = static_cast<float>(v1.y());
+    vv1.position[2] = static_cast<float>(v1.z());
+    vv1.normal[0] = static_cast<float>(n.x());
+    vv1.normal[1] = static_cast<float>(n.y());
+    vv1.normal[2] = static_cast<float>(n.z());
+    vv1.uv[0] = 1;
+    vv1.uv[1] = 0;
+    mesh.vertices.push_back(vv1);
+
+    vertex apex_v{};
+    apex_v.position[0] = static_cast<float>(apex_vec.x());
+    apex_v.position[1] = static_cast<float>(apex_vec.y());
+    apex_v.position[2] = static_cast<float>(apex_vec.z());
+    apex_v.normal[0] = static_cast<float>(n.x());
+    apex_v.normal[1] = static_cast<float>(n.y());
+    apex_v.normal[2] = static_cast<float>(n.z());
+    apex_v.uv[0] = 0.5f;
+    apex_v.uv[1] = 1;
+    mesh.vertices.push_back(apex_v);
+
+    mesh.indices.push_back(tri_start);
+    mesh.indices.push_back(tri_start + 1);
+    mesh.indices.push_back(tri_start + 2);
+  }
+
+  return mesh;
+}
+
+// ============================================================================
+// Merge Meshes - Combine multiple meshes into one
+//
+// Used for compound objects. Concatenates vertices and adjusts indices.
+// ============================================================================
+
+inline mesh_data merge_meshes(const std::vector<mesh_data>& meshes)
+{
+  mesh_data result;
+
+  for (const auto& m : meshes)
+  {
+    std::uint32_t base_vertex = static_cast<std::uint32_t>(result.vertices.size());
+
+    // Copy vertices
+    result.vertices.insert(result.vertices.end(), m.vertices.begin(), m.vertices.end());
+
+    // Copy and offset indices
+    for (std::uint32_t idx : m.indices)
+    {
+      result.indices.push_back(base_vertex + idx);
+    }
+  }
+
+  return result;
+}
+
+// ============================================================================
+// Transform Mesh - Apply a transformation matrix to all vertices
+// ============================================================================
+
+inline void transform_mesh(mesh_data& mesh, const vec3& pos, const vec3& axis, const vec3& up, const vec3& scale)
+{
+  // Build rotation matrix from axis and up
+  vec3 x_axis = hat(axis);
+  vec3 z_axis = hat(cross(x_axis, up));
+  vec3 y_axis = cross(z_axis, x_axis);
+
+  for (auto& v : mesh.vertices)
+  {
+    // Original position
+    double px = v.position[0] * scale.x();
+    double py = v.position[1] * scale.y();
+    double pz = v.position[2] * scale.z();
+
+    // Rotate
+    double rx = px * x_axis.x() + py * y_axis.x() + pz * z_axis.x();
+    double ry = px * x_axis.y() + py * y_axis.y() + pz * z_axis.y();
+    double rz = px * x_axis.z() + py * y_axis.z() + pz * z_axis.z();
+
+    // Translate
+    v.position[0] = static_cast<float>(rx + pos.x());
+    v.position[1] = static_cast<float>(ry + pos.y());
+    v.position[2] = static_cast<float>(rz + pos.z());
+
+    // Rotate normal (no scale)
+    double nx = v.normal[0];
+    double ny = v.normal[1];
+    double nz = v.normal[2];
+    v.normal[0] = static_cast<float>(nx * x_axis.x() + ny * y_axis.x() + nz * z_axis.x());
+    v.normal[1] = static_cast<float>(nx * x_axis.y() + ny * y_axis.y() + nz * z_axis.y());
+    v.normal[2] = static_cast<float>(nx * x_axis.z() + ny * y_axis.z() + nz * z_axis.z());
+  }
+}
+
+// ============================================================================
+// Extrusion Mesh Generator
+//
+// Extrudes a 2D shape along a 3D path with optional twist and scaling.
+// Uses Frenet frames (similar to generate_tube but with custom cross-section).
+// ============================================================================
+
+inline mesh_data generate_extrusion(const std::vector<vec3>& path, const std::vector<vec2>& shape, double twist = 0.0,
+                                    double end_scale = 1.0, bool cap_start = true, bool cap_end = true)
+{
+  mesh_data mesh;
+
+  if (path.size() < 2 || shape.empty())
+    return mesh;
+
+  int n = static_cast<int>(path.size());
+  int shape_n = static_cast<int>(shape.size());
+
+  // Compute tangents
+  std::vector<vec3> tangents(n);
+  for (int i = 0; i < n; ++i)
+  {
+    if (i == 0)
+      tangents[i] = hat(path[1] - path[0]);
+    else if (i == n - 1)
+      tangents[i] = hat(path[n - 1] - path[n - 2]);
+    else
+      tangents[i] = hat(path[i + 1] - path[i - 1]);
+
+    if (mag2(tangents[i]) < 1e-12)
+      tangents[i] = vec3{1, 0, 0};
+  }
+
+  // Compute normals and binormals using parallel transport
+  std::vector<vec3> normals(n);
+  std::vector<vec3> binormals(n);
+
+  vec3 up_guide{0, 1, 0};
+  if (std::abs(dot(tangents[0], up_guide)) > 0.99)
+    up_guide = vec3{0, 0, 1};
+
+  normals[0] = hat(cross(tangents[0], up_guide));
+  binormals[0] = cross(tangents[0], normals[0]);
+
+  for (int i = 1; i < n; ++i)
+  {
+    vec3 proj = normals[i - 1] - tangents[i] * dot(normals[i - 1], tangents[i]);
+    if (mag2(proj) < 1e-12)
+    {
+      proj = cross(tangents[i], up_guide);
+      if (mag2(proj) < 1e-12)
+        proj = cross(tangents[i], vec3{0, 0, 1});
+    }
+    normals[i] = hat(proj);
+    binormals[i] = cross(tangents[i], normals[i]);
+  }
+
+  // Generate vertices at each path point
+  for (int i = 0; i < n; ++i)
+  {
+    float t = static_cast<float>(i) / static_cast<float>(n - 1);
+    double current_twist = twist * t;
+    double current_scale = 1.0 + (end_scale - 1.0) * t;
+
+    double cos_twist = std::cos(current_twist);
+    double sin_twist = std::sin(current_twist);
+
+    // Rotated frame for twist
+    vec3 rot_normal = normals[i] * cos_twist + binormals[i] * sin_twist;
+    vec3 rot_binormal = -normals[i] * sin_twist + binormals[i] * cos_twist;
+
+    for (int j = 0; j < shape_n; ++j)
+    {
+      // 2D shape point
+      double sx = shape[j].x() * current_scale;
+      double sy = shape[j].y() * current_scale;
+
+      // Transform to 3D
+      vec3 pos_3d = path[i] + rot_normal * sx + rot_binormal * sy;
+
+      // Compute normal (pointing outward from shape center)
+      vec3 shape_normal = hat(rot_normal * shape[j].x() + rot_binormal * shape[j].y());
+
+      vertex v{};
+      v.position[0] = static_cast<float>(pos_3d.x());
+      v.position[1] = static_cast<float>(pos_3d.y());
+      v.position[2] = static_cast<float>(pos_3d.z());
+      v.normal[0] = static_cast<float>(shape_normal.x());
+      v.normal[1] = static_cast<float>(shape_normal.y());
+      v.normal[2] = static_cast<float>(shape_normal.z());
+      v.uv[0] = t;
+      v.uv[1] = static_cast<float>(j) / static_cast<float>(shape_n);
+      mesh.vertices.push_back(v);
+    }
+  }
+
+  // Generate indices for the tube surface
+  for (int i = 0; i < n - 1; ++i)
+  {
+    for (int j = 0; j < shape_n; ++j)
+    {
+      int current_ring = i * shape_n;
+      int next_ring = (i + 1) * shape_n;
+      int next_j = (j + 1) % shape_n;
+
+      std::uint32_t v0 = static_cast<std::uint32_t>(current_ring + j);
+      std::uint32_t v1 = static_cast<std::uint32_t>(next_ring + j);
+      std::uint32_t v2 = static_cast<std::uint32_t>(current_ring + next_j);
+      std::uint32_t v3 = static_cast<std::uint32_t>(next_ring + next_j);
+
+      mesh.indices.push_back(v0);
+      mesh.indices.push_back(v1);
+      mesh.indices.push_back(v2);
+
+      mesh.indices.push_back(v1);
+      mesh.indices.push_back(v3);
+      mesh.indices.push_back(v2);
+    }
+  }
+
+  // Cap start
+  if (cap_start && shape_n >= 3)
+  {
+    std::uint32_t center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
+    vec3 center_pos = path[0];
+    vec3 cap_normal = tangents[0] * -1.0;
+
+    vertex center_v{};
+    center_v.position[0] = static_cast<float>(center_pos.x());
+    center_v.position[1] = static_cast<float>(center_pos.y());
+    center_v.position[2] = static_cast<float>(center_pos.z());
+    center_v.normal[0] = static_cast<float>(cap_normal.x());
+    center_v.normal[1] = static_cast<float>(cap_normal.y());
+    center_v.normal[2] = static_cast<float>(cap_normal.z());
+    center_v.uv[0] = 0.5f;
+    center_v.uv[1] = 0.5f;
+    mesh.vertices.push_back(center_v);
+
+    // Add cap vertices with correct normal
+    std::uint32_t cap_start_idx = static_cast<std::uint32_t>(mesh.vertices.size());
+    for (int j = 0; j < shape_n; ++j)
+    {
+      vertex cap_v = mesh.vertices[j]; // Copy position from ring 0
+      cap_v.normal[0] = static_cast<float>(cap_normal.x());
+      cap_v.normal[1] = static_cast<float>(cap_normal.y());
+      cap_v.normal[2] = static_cast<float>(cap_normal.z());
+      mesh.vertices.push_back(cap_v);
+    }
+
+    // Triangle fan (reversed winding for start cap)
+    for (int j = 0; j < shape_n; ++j)
+    {
+      int next_j = (j + 1) % shape_n;
+      mesh.indices.push_back(center_idx);
+      mesh.indices.push_back(cap_start_idx + static_cast<std::uint32_t>(next_j));
+      mesh.indices.push_back(cap_start_idx + static_cast<std::uint32_t>(j));
+    }
+  }
+
+  // Cap end
+  if (cap_end && shape_n >= 3)
+  {
+    std::uint32_t center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
+    vec3 center_pos = path[n - 1];
+    vec3 cap_normal = tangents[n - 1];
+
+    vertex center_v{};
+    center_v.position[0] = static_cast<float>(center_pos.x());
+    center_v.position[1] = static_cast<float>(center_pos.y());
+    center_v.position[2] = static_cast<float>(center_pos.z());
+    center_v.normal[0] = static_cast<float>(cap_normal.x());
+    center_v.normal[1] = static_cast<float>(cap_normal.y());
+    center_v.normal[2] = static_cast<float>(cap_normal.z());
+    center_v.uv[0] = 0.5f;
+    center_v.uv[1] = 0.5f;
+    mesh.vertices.push_back(center_v);
+
+    // Add cap vertices with correct normal
+    std::uint32_t cap_start_idx = static_cast<std::uint32_t>(mesh.vertices.size());
+    int last_ring = (n - 1) * shape_n;
+    for (int j = 0; j < shape_n; ++j)
+    {
+      vertex cap_v = mesh.vertices[last_ring + j]; // Copy position from last ring
+      cap_v.normal[0] = static_cast<float>(cap_normal.x());
+      cap_v.normal[1] = static_cast<float>(cap_normal.y());
+      cap_v.normal[2] = static_cast<float>(cap_normal.z());
+      mesh.vertices.push_back(cap_v);
+    }
+
+    // Triangle fan
+    for (int j = 0; j < shape_n; ++j)
+    {
+      int next_j = (j + 1) % shape_n;
+      mesh.indices.push_back(center_idx);
+      mesh.indices.push_back(cap_start_idx + static_cast<std::uint32_t>(j));
+      mesh.indices.push_back(cap_start_idx + static_cast<std::uint32_t>(next_j));
+    }
+  }
+
+  return mesh;
+}
+
+// ============================================================================
+// Object Mesh Generation
+//
+// Generate meshes for vcpp objects with their transforms applied.
+// Used for compound object creation.
+// ============================================================================
+
+namespace object_mesh
+{
+
+// Generate mesh for a sphere
+inline mesh_data generate_sphere_mesh(const vec3& pos, double radius, const vec3& axis, const vec3& up)
+{
+  auto mesh = generate_sphere();
+  transform_mesh(mesh, pos, axis, up, vec3{radius * 2.0, radius * 2.0, radius * 2.0});
+  return mesh;
+}
+
+// Generate mesh for a box
+inline mesh_data generate_box_mesh(const vec3& pos, double length, double height, double width, const vec3& axis,
+                                   const vec3& up)
+{
+  auto mesh = generate_box();
+  transform_mesh(mesh, pos, axis, up, vec3{length, height, width});
+  return mesh;
+}
+
+// Generate mesh for a cylinder
+inline mesh_data generate_cylinder_mesh(const vec3& pos, double radius, double length, const vec3& axis,
+                                        const vec3& up)
+{
+  auto mesh = generate_cylinder();
+  // Cylinder mesh is aligned along X, length 1, diameter 1
+  transform_mesh(mesh, pos, axis, up, vec3{length, radius * 2.0, radius * 2.0});
+  return mesh;
+}
+
+// Generate mesh for a cone
+inline mesh_data generate_cone_mesh(const vec3& pos, double radius, double length, const vec3& axis, const vec3& up)
+{
+  auto mesh = generate_cone();
+  // Cone mesh is aligned along X, length 1, diameter 1
+  transform_mesh(mesh, pos, axis, up, vec3{length, radius * 2.0, radius * 2.0});
+  return mesh;
+}
+
+// Generate mesh for a pyramid
+inline mesh_data generate_pyramid_mesh(const vec3& pos, double length, double height, double width, const vec3& axis,
+                                       const vec3& up)
+{
+  auto mesh = generate_pyramid();
+  transform_mesh(mesh, pos, axis, up, vec3{length, height, width});
+  return mesh;
+}
+
+} // namespace object_mesh
 
 } // namespace vcpp::mesh

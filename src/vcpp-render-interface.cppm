@@ -113,7 +113,7 @@ protected:
 // ============================================================================
 
 // Create a solid color texture
-inline texture_handle create_solid_texture(renderer_base& r, const vec3& color, uint32_t size = 4)
+inline texture_handle create_solid_texture(renderer_base& r, const vec3& color, std::uint32_t size = 4)
 {
   texture_desc desc;
   desc.width = size;
@@ -125,16 +125,16 @@ inline texture_handle create_solid_texture(renderer_base& r, const vec3& color, 
   if (!h)
     return h;
 
-  image_data img = image_data::solid_color(size, size, static_cast<uint8_t>(color.x() * 255),
-                                           static_cast<uint8_t>(color.y() * 255),
-                                           static_cast<uint8_t>(color.z() * 255), 255);
+  image_data img = image_data::solid_color(size, size, static_cast<std::uint8_t>(color.x() * 255),
+                                           static_cast<std::uint8_t>(color.y() * 255),
+                                           static_cast<std::uint8_t>(color.z() * 255), 255);
 
   r.upload_texture(h, img);
   return h;
 }
 
 // Create a checkerboard texture (useful for debugging UV mapping)
-inline texture_handle create_checkerboard_texture(renderer_base& r, uint32_t size = 64, uint32_t cell_size = 8)
+inline texture_handle create_checkerboard_texture(renderer_base& r, std::uint32_t size = 64, std::uint32_t cell_size = 8)
 {
   texture_desc desc;
   desc.width = size;

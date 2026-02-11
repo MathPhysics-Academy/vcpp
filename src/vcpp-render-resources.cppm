@@ -50,12 +50,12 @@ struct bind_group_tag
 template<typename Tag>
 struct handle
 {
-  uint32_t index{0};
-  uint32_t generation{0};
+  std::uint32_t index{0};
+  std::uint32_t generation{0};
 
   // Default handle is invalid
   constexpr handle() noexcept = default;
-  constexpr handle(uint32_t idx, uint32_t gen) noexcept : index{idx}, generation{gen} {}
+  constexpr handle(std::uint32_t idx, std::uint32_t gen) noexcept : index{idx}, generation{gen} {}
 
   // Check if handle is valid (generation != 0 indicates it was allocated)
   constexpr bool valid() const noexcept { return generation != 0; }
@@ -86,7 +86,7 @@ template<typename Resource>
 struct resource_slot
 {
   Resource resource{};
-  uint32_t generation{0};
+  std::uint32_t generation{0};
   bool in_use{false};
 };
 
@@ -118,7 +118,7 @@ public:
   // Allocate a new slot and return its handle
   Handle allocate(Resource resource)
   {
-    uint32_t index;
+    std::uint32_t index;
 
     if (!m_free_list.empty())
     {
@@ -129,7 +129,7 @@ public:
     else
     {
       // Grow the pool
-      index = static_cast<uint32_t>(m_slots.size());
+      index = static_cast<std::uint32_t>(m_slots.size());
       m_slots.emplace_back();
     }
 
@@ -238,14 +238,14 @@ public:
 
 private:
   std::vector<resource_slot<Resource>> m_slots;
-  std::vector<uint32_t> m_free_list;
+  std::vector<std::uint32_t> m_free_list;
 };
 
 // ============================================================================
 // Texture Description
 // ============================================================================
 
-enum class texture_format : uint8_t
+enum class texture_format : std::uint8_t
 {
   rgba8_unorm,
   bgra8_unorm,
@@ -257,7 +257,7 @@ enum class texture_format : uint8_t
   depth32_float,
 };
 
-enum class texture_usage : uint8_t
+enum class texture_usage : std::uint8_t
 {
   none = 0,
   sampled = 1 << 0,
@@ -270,25 +270,25 @@ enum class texture_usage : uint8_t
 // Bitwise operators for texture_usage
 inline constexpr texture_usage operator|(texture_usage a, texture_usage b) noexcept
 {
-  return static_cast<texture_usage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+  return static_cast<texture_usage>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b));
 }
 
 inline constexpr texture_usage operator&(texture_usage a, texture_usage b) noexcept
 {
-  return static_cast<texture_usage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+  return static_cast<texture_usage>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
 }
 
 inline constexpr bool has_flag(texture_usage flags, texture_usage flag) noexcept
 {
-  return (static_cast<uint8_t>(flags) & static_cast<uint8_t>(flag)) != 0;
+  return (static_cast<std::uint8_t>(flags) & static_cast<std::uint8_t>(flag)) != 0;
 }
 
 struct texture_desc
 {
-  uint32_t width{1};
-  uint32_t height{1};
-  uint32_t depth{1};
-  uint32_t mip_levels{1};
+  std::uint32_t width{1};
+  std::uint32_t height{1};
+  std::uint32_t depth{1};
+  std::uint32_t mip_levels{1};
   texture_format format{texture_format::rgba8_unorm};
   texture_usage usage{texture_usage::sampled};
   bool generate_mipmaps{false};
@@ -298,13 +298,13 @@ struct texture_desc
 // Sampler Description
 // ============================================================================
 
-enum class filter_mode : uint8_t
+enum class filter_mode : std::uint8_t
 {
   nearest,
   linear,
 };
 
-enum class address_mode : uint8_t
+enum class address_mode : std::uint8_t
 {
   repeat,
   mirror_repeat,
@@ -329,10 +329,10 @@ struct sampler_desc
 
 struct image_data
 {
-  std::vector<uint8_t> pixels;
-  uint32_t width{0};
-  uint32_t height{0};
-  uint32_t channels{4}; // RGBA
+  std::vector<std::uint8_t> pixels;
+  std::uint32_t width{0};
+  std::uint32_t height{0};
+  std::uint32_t channels{4}; // RGBA
 
   bool valid() const noexcept
   {
@@ -340,7 +340,7 @@ struct image_data
   }
 
   // Create a solid color image
-  static image_data solid_color(uint32_t w, uint32_t h, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255)
+  static image_data solid_color(std::uint32_t w, std::uint32_t h, std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255)
   {
     image_data img;
     img.width = w;
@@ -358,19 +358,19 @@ struct image_data
   }
 
   // Create a checkerboard pattern (useful for debugging)
-  static image_data checkerboard(uint32_t w, uint32_t h, uint32_t cell_size = 8)
+  static image_data checkerboard(std::uint32_t w, std::uint32_t h, std::uint32_t cell_size = 8)
   {
     image_data img;
     img.width = w;
     img.height = h;
     img.channels = 4;
     img.pixels.resize(w * h * 4);
-    for (uint32_t y = 0; y < h; ++y)
+    for (std::uint32_t y = 0; y < h; ++y)
     {
-      for (uint32_t x = 0; x < w; ++x)
+      for (std::uint32_t x = 0; x < w; ++x)
       {
         bool white = ((x / cell_size) + (y / cell_size)) % 2 == 0;
-        uint8_t c = white ? 255 : 128;
+        std::uint8_t c = white ? 255 : 128;
         std::size_t i = (y * w + x) * 4;
         img.pixels[i + 0] = c;
         img.pixels[i + 1] = c;
@@ -386,7 +386,7 @@ struct image_data
 // Buffer Description
 // ============================================================================
 
-enum class buffer_usage : uint8_t
+enum class buffer_usage : std::uint8_t
 {
   none = 0,
   vertex = 1 << 0,
@@ -399,17 +399,17 @@ enum class buffer_usage : uint8_t
 
 inline constexpr buffer_usage operator|(buffer_usage a, buffer_usage b) noexcept
 {
-  return static_cast<buffer_usage>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+  return static_cast<buffer_usage>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b));
 }
 
 inline constexpr buffer_usage operator&(buffer_usage a, buffer_usage b) noexcept
 {
-  return static_cast<buffer_usage>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+  return static_cast<buffer_usage>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b));
 }
 
 inline constexpr bool has_flag(buffer_usage flags, buffer_usage flag) noexcept
 {
-  return (static_cast<uint8_t>(flags) & static_cast<uint8_t>(flag)) != 0;
+  return (static_cast<std::uint8_t>(flags) & static_cast<std::uint8_t>(flag)) != 0;
 }
 
 struct buffer_desc

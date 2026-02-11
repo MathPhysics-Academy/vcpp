@@ -38,11 +38,21 @@ export import :render_interface;
 export import :object_base;
 export import :objects;
 
+// 2D Shapes for extrusions
+export import :shapes;
+
+// 3D Text glyphs
+export import :text_glyphs;
+
+// Label rendering bridge
+export import :label_bridge;
+
 // Scene management
 export import :scene;
 
 // Animation
 export import :loop;
+export import :coro;
 
 // Input handling
 export import :input;
