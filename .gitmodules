@@ -1,0 +1,3 @@
+[submodule "lam"]
+	path = lam
+	url = https://github.com/colinrford/lam

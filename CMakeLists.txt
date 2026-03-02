@@ -17,15 +17,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_MODULE_STD ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
-project(lam_vcpp VERSION 0.1.260125 LANGUAGES CXX)
+project(lam_vcpp VERSION 0.1.260302 LANGUAGES CXX)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Dependencies
-find_package(lam_symbols REQUIRED)
-find_package(lam_linearalgebra REQUIRED)
+# Dependencies — prefer an installed lam, fall back to building from submodule
+find_package(lam_symbols QUIET)
+find_package(lam_linearalgebra QUIET)
+if(NOT lam_symbols_FOUND OR NOT lam_linearalgebra_FOUND)
+  message(STATUS "lam not found installed; building from submodule at lam/")
+  add_subdirectory(lam EXCLUDE_FROM_ALL)
+endif()
 
 add_library(vcpp src/vcpp.cppm)
 add_library(lam_vcpp::vcpp ALIAS vcpp)
