@@ -62,7 +62,7 @@ inline constexpr float TWO_PI = 2.0f * PI;
 // Poles at Y axis.
 // ============================================================================
 
-inline mesh_data generate_sphere(int slices = 16, int stacks = 12)
+inline mesh_data generate_sphere(int slices = 32, int stacks = 24)
 {
   mesh_data mesh;
 
