@@ -18,6 +18,7 @@ import std;
 export module vcpp.wgpu.web;
 
 import vcpp;
+import lam.linearalgebra; // clang-23 ADL: operators on fixed_vector not found via transitive import
 
 #ifdef __EMSCRIPTEN__
 
