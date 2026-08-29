@@ -67,13 +67,49 @@ if(EMSCRIPTEN)
     --shell-file=${CMAKE_CURRENT_SOURCE_DIR}/shell.html
   )
 
+  # EM_JS symbols from C++23 module interface units are marked live: 0 in the
+  # ThinLTO summary, so wasm-ld's DCE strips them before binaryen can extract
+  # JS wrappers. --undefined forces them into the LTO live-root set so they
+  # survive; --export then ensures they appear in the WASM export table where
+  # extract_metadata.py reads them as ExternType.GLOBAL entries.
+  add_link_options(
+    -Wl,--undefined=__em_js__js_create_graph
+    -Wl,--undefined=__em_js__js_create_plot
+    -Wl,--undefined=__em_js__js_add_point
+    -Wl,--undefined=__em_js__js_add_points_batch
+    -Wl,--undefined=__em_js__js_update_graph_bounds
+    -Wl,--undefined=__em_js__js_redraw_graph
+    -Wl,--undefined=__em_js__js_clear_plot
+    -Wl,--undefined=__em_js__js_remove_graph
+    -Wl,--undefined=__em_js__js_set_plot_visible
+    -Wl,--undefined=__em_js__js_init_label_canvas
+    -Wl,--undefined=__em_js__js_clear_labels
+    -Wl,--undefined=__em_js__js_draw_label
+    -Wl,--export=__em_js__js_create_graph
+    -Wl,--export=__em_js__js_create_plot
+    -Wl,--export=__em_js__js_add_point
+    -Wl,--export=__em_js__js_add_points_batch
+    -Wl,--export=__em_js__js_update_graph_bounds
+    -Wl,--export=__em_js__js_redraw_graph
+    -Wl,--export=__em_js__js_clear_plot
+    -Wl,--export=__em_js__js_remove_graph
+    -Wl,--export=__em_js__js_set_plot_visible
+    -Wl,--export=__em_js__js_init_label_canvas
+    -Wl,--export=__em_js__js_clear_labels
+    -Wl,--export=__em_js__js_draw_label
+  )
+
   # Release build: optimize and strip debug info for smaller/harder to reverse-engineer output
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-O3 -flto -DNDEBUG)
+    # Note: LTO (-flto) is intentionally omitted here. Clang's ThinLTO and Full
+    # LTO both DCE the __em_js__* data globals from C++23 module interface units
+    # (they appear as live:0 in the LTO summary despite being in @llvm.used).
+    # Without LTO, wasm-ld's regular GC-based DCE correctly keeps these symbols
+    # alive. Emscripten still runs binaryen wasm-opt at -O3 for output quality.
+    add_compile_options(-O3 -DNDEBUG)
     add_link_options(
       -O3
-      -flto
-      --closure 1
+      --closure 0
     )
     message(STATUS "Release build: optimizations and stripping enabled")
   endif()
