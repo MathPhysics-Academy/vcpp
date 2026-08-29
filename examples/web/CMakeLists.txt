@@ -22,9 +22,10 @@ project(vcpp_web_example LANGUAGES CXX)
 # Emscripten needs manual __CMAKE::CXX23 target creation since CMake's
 # detection doesn't find the std modules in Emscripten's toolchain
 if(EMSCRIPTEN AND NOT TARGET "__CMAKE::CXX23")
-  set(_emscripten_std_modules "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/emscripten-std-modules")
-  set(_emscripten_libcxx_headers "/usr/local/Cellar/emscripten/5.0.0/libexec/cache/sysroot/include/c++/v1")
-  set(_emscripten_sysroot "/usr/local/Cellar/emscripten/5.0.0/libexec/cache/sysroot/include")
+  set(_emscripten_std_modules "${CMAKE_CURRENT_SOURCE_DIR}/../../lam/cmake/emscripten-std-modules")
+  execute_process(COMMAND em-config CACHE OUTPUT_VARIABLE _emscripten_cache OUTPUT_STRIP_TRAILING_WHITESPACE)
+  set(_emscripten_libcxx_headers "${_emscripten_cache}/sysroot/include/c++/v1")
+  set(_emscripten_sysroot "${_emscripten_cache}/sysroot/include")
   if(EXISTS "${_emscripten_std_modules}/std.cppm")
     add_library(__cmake_cxx23 STATIC)
     target_sources(__cmake_cxx23 INTERFACE "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,STATIC_LIBRARY>:$<TARGET_OBJECTS:__cmake_cxx23>>")
@@ -49,9 +50,13 @@ if(EMSCRIPTEN AND NOT TARGET "__CMAKE::CXX23")
   endif()
 endif()
 
-# Dependencies
-find_package(lam_symbols REQUIRED)
-find_package(lam_linearalgebra REQUIRED)
+# Dependencies — prefer installed lam, fall back to building from submodule
+find_package(lam_symbols QUIET)
+find_package(lam_linearalgebra QUIET)
+if(NOT lam_symbols_FOUND OR NOT lam_linearalgebra_FOUND)
+  message(STATUS "lam not found installed; building from submodule")
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../lam ${CMAKE_CURRENT_BINARY_DIR}/lam EXCLUDE_FROM_ALL)
+endif()
 
 # Emscripten settings
 if(EMSCRIPTEN)
