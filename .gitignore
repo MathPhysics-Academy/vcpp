@@ -11,6 +11,8 @@ CTestTestfile.cmake
 _deps/
 *.cmake
 !CMakeLists.txt
+# ...but cmake/ holds hand-written project modules, not generated output
+!cmake/*.cmake
 
 # Compiled output
 *.o
