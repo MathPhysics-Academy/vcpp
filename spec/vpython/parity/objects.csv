@@ -1,0 +1,412 @@
+object,attr,doc_type,doc_default,doc_page,read_only,vcpp_struct,vcpp_name,vcpp_status,kwarg_uses,assign_uses,read_uses,programs
+arrow,axis,vector,"<1,0,0>",arrow.html,,arrow_object,axis,wired,3,2,1,4
+arrow,canvas,object,scene,arrow.html,,arrow_object,canvas,missing,0,0,0,0
+arrow,color,vector,color.white,arrow.html,,arrow_object,color,wired,5,1,1,5
+arrow,emissive,boolean,False,arrow.html,,arrow_object,emissive,wired,1,0,0,1
+arrow,group,object,,arrow.html,,arrow_object,group,declared-only,0,0,0,0
+arrow,headlength,scalar,3*shaftwidth,arrow.html,,arrow_object,headlength,wired,0,0,0,0
+arrow,headwidth,scalar,2*shaftwidth,arrow.html,,arrow_object,headwidth,wired,0,0,0,0
+arrow,interval,scalar,,trail.html,,arrow_object,interval,missing,0,0,0,0
+arrow,make_trail,boolean,,arrow.html,,arrow_object,make_trail,wired,0,0,0,0
+arrow,opacity,scalar,1.0,arrow.html,,arrow_object,opacity,wired,0,0,0,0
+arrow,pos,vector,"<0,0,0>",arrow.html,,arrow_object,pos,wired,5,2,5,5
+arrow,pps,scalar,,trail.html,,arrow_object,pps,missing,0,0,0,0
+arrow,retain,scalar,to retain all,trail.html,,arrow_object,retain,wired,0,0,0,0
+arrow,round,boolean,False,arrow.html,,arrow_object,round,wired,0,0,0,0
+arrow,shaftwidth,scalar,0.1*(length of arrow),arrow.html,,arrow_object,shaftwidth,wired,2,0,0,2
+arrow,shininess,scalar,0.6,arrow.html,,arrow_object,shininess,wired,0,0,0,0
+arrow,texture,class element or path,None,arrow.html,,arrow_object,texture,wired,0,0,0,0
+arrow,trail_radius,scalar,0 (thin curve) for curve,trail.html,,arrow_object,trail_radius,declared-only,0,0,0,0
+arrow,trail_type,string,,trail.html,,arrow_object,trail_type,missing,0,0,0,0
+arrow,up,vector,,arrow.html,,arrow_object,up,wired,0,0,0,0
+arrow,visible,boolean,: True,arrow.html,,arrow_object,visible,wired,0,0,0,0
+attach_arrow,color,vector,the color of the object to which the arrow is attached,attacharrow.html,,,color,no-object,0,0,0,0
+attach_arrow,scale,scalar,,attacharrow.html,,,scale,no-object,0,0,0,0
+attach_arrow,shaftwidth,,,attacharrow.html,,,shaftwidth,no-object,0,0,0,0
+attach_light,color,vector,the color of the object to which the light is attached,attach_light.html,,,color,no-object,0,0,0,0
+attach_light,offset,vector,"<0,0,0>",attach_light.html,,,offset,no-object,0,0,0,0
+box,axis,vector,"<1,0,0>",box.html,,box_object,axis,wired,5,3,4,3
+box,canvas,object,scene,box.html,,box_object,canvas,missing,0,0,0,0
+box,color,vector,color.white,box.html,,box_object,color,wired,38,4,4,11
+box,emissive,boolean,False,box.html,,box_object,emissive,wired,2,0,0,1
+box,group,object,,box.html,,box_object,group,declared-only,2,0,0,1
+box,height,scalar,1,box.html,,box_object,height,wired,2,0,0,1
+box,interval,scalar,,trail.html,,box_object,interval,missing,0,0,0,0
+box,length,scalar,1,box.html,,box_object,length,wired,2,0,0,1
+box,make_trail,boolean,,box.html,,box_object,make_trail,wired,0,0,0,0
+box,opacity,scalar,1.0,box.html,,box_object,opacity,wired,4,0,0,2
+box,pos,vector,"<0,0,0>",box.html,,box_object,pos,wired,46,3,19,14
+box,pps,scalar,,trail.html,,box_object,pps,missing,0,0,0,0
+box,retain,scalar,to retain all,trail.html,,box_object,retain,wired,0,0,0,0
+box,shininess,scalar,0.6,box.html,,box_object,shininess,wired,1,0,0,1
+box,size,vector,,box.html,,box_object,size,field-only,40,0,0,11
+box,texture,dictionary,,texture.html,,box_object,texture,wired,9,0,0,6
+box,trail_radius,scalar,0 (thin curve) for curve,trail.html,,box_object,trail_radius,declared-only,0,0,0,0
+box,trail_type,string,,trail.html,,box_object,trail_type,missing,0,0,0,0
+box,up,vector,,box.html,,box_object,up,wired,0,0,0,0
+box,visible,boolean,: True,box.html,,box_object,visible,wired,1,0,0,1
+box,width,scalar,1,box.html,,box_object,width,wired,2,0,0,1
+button,background,vector,,button.html,,,background,no-object,1,2,0,1
+button,bind,function,,button.html,,,bind,no-object,8,0,0,6
+button,color,vector,,button.html,,,color,no-object,1,2,0,1
+button,disabled,boolean,,button.html,,,disabled,no-object,0,0,0,0
+button,pos,attribute of canvas,scene.caption_anchor,button.html,,,pos,no-object,2,0,0,1
+button,text,string,,button.html,,,text,no-object,8,2,0,6
+canvas,align,string,‘none’,canvas.html,,,align,no-object,1,0,0,1
+canvas,background,vector,color.black,canvas.html,,,background,no-object,0,0,0,0
+canvas,caption,string,,canvas.html,,,caption,no-object,0,1,0,1
+canvas,height,vector,400,canvas.html,,,height,no-object,1,0,0,1
+canvas,pixel_to_world,scalar,,canvas.html,yes,,pixel_to_world,no-object,0,0,0,0
+canvas,resizable,boolean,True,canvas.html,,,resizable,no-object,0,0,0,0
+canvas,title,string,,canvas.html,,,title,no-object,0,1,0,1
+canvas,visible,boolean,True,canvas.html,,,visible,no-object,0,0,0,0
+canvas,width,scalar,640,canvas.html,,,width,no-object,1,0,0,1
+checkbox,bind,function,,checkbox.html,,,bind,no-object,2,0,0,2
+checkbox,checked,boolean,,checkbox.html,,,checked,no-object,1,0,0,1
+checkbox,disabled,boolean,,checkbox.html,,,disabled,no-object,0,0,0,0
+checkbox,pos,attribute of canvas,scene.caption_anchor,checkbox.html,,,pos,no-object,0,0,0,0
+checkbox,text,string,,checkbox.html,,,text,no-object,2,0,0,2
+compound,axis,vector,"<1,0,0>",compound.html,,compound_object,axis,wired,0,2,2,1
+compound,canvas,object,scene,compound.html,,compound_object,canvas,missing,0,0,0,0
+compound,color,vector,color.white,compound.html,,compound_object,color,wired,0,0,0,0
+compound,emissive,boolean,False,compound.html,,compound_object,emissive,wired,0,0,0,0
+compound,interval,scalar,,trail.html,,compound_object,interval,missing,0,0,0,0
+compound,make_trail,boolean,,compound.html,,compound_object,make_trail,wired,0,0,0,0
+compound,opacity,scalar,1.0,compound.html,,compound_object,opacity,wired,0,0,0,0
+compound,origin,vector,center of bounding box,compound.html,,compound_object,origin,missing,0,0,0,0
+compound,pos,vector,"<0,0,0>",compound.html,,compound_object,pos,wired,0,3,5,2
+compound,pps,scalar,,trail.html,,compound_object,pps,missing,0,0,0,0
+compound,retain,scalar,to retain all,trail.html,,compound_object,retain,wired,0,0,0,0
+compound,shininess,scalar,0.6,compound.html,,compound_object,shininess,wired,0,0,0,0
+compound,size,vector,"<1,1,1>",compound.html,,compound_object,size,field-only,0,0,0,0
+compound,texture,class element or path,None,compound.html,,compound_object,texture,wired,2,1,0,2
+compound,trail_radius,scalar,0 (thin curve) for curve,trail.html,,compound_object,trail_radius,declared-only,0,0,0,0
+compound,trail_type,string,,trail.html,,compound_object,trail_type,missing,0,0,0,0
+compound,up,vector,,compound.html,,compound_object,up,wired,0,0,0,0
+compound,visible,boolean,: True,compound.html,,compound_object,visible,wired,0,1,0,1
+cone,axis,vector,"<1,0,0>",cone.html,,cone_object,axis,wired,3,0,0,2
+cone,canvas,object,scene,cone.html,,cone_object,canvas,missing,0,0,0,0
+cone,color,vector,color.white,cone.html,,cone_object,color,wired,3,0,0,3
+cone,emissive,boolean,False,cone.html,,cone_object,emissive,wired,0,0,0,0
+cone,group,object,,cone.html,,cone_object,group,declared-only,0,0,0,0
+cone,interval,scalar,,trail.html,,cone_object,interval,missing,0,0,0,0
+cone,length,scalar,1,cone.html,,cone_object,length,wired,1,0,0,1
+cone,make_trail,boolean,,cone.html,,cone_object,make_trail,wired,0,0,0,0
+cone,opacity,scalar,1.0,cone.html,,cone_object,opacity,wired,1,0,0,1
+cone,pos,vector,"<0,0,0>",cone.html,,cone_object,pos,wired,5,0,1,4
+cone,pps,scalar,,trail.html,,cone_object,pps,missing,0,0,0,0
+cone,radius,scalar,1,cone.html,,cone_object,radius,wired,2,0,0,2
+cone,retain,scalar,to retain all,trail.html,,cone_object,retain,wired,0,0,0,0
+cone,shininess,scalar,0.6,cone.html,,cone_object,shininess,wired,0,0,0,0
+cone,size,vector,"<1,2,2>",cone.html,,cone_object,size,field-only,4,0,0,3
+cone,texture,class element or path,None,cone.html,,cone_object,texture,wired,1,0,0,1
+cone,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cone_object,trail_radius,declared-only,0,0,0,0
+cone,trail_type,string,,trail.html,,cone_object,trail_type,missing,0,0,0,0
+cone,up,vector,,cone.html,,cone_object,up,wired,0,0,0,0
+cone,visible,boolean,: True,cone.html,,cone_object,visible,wired,1,0,0,1
+curve,axis,vector,"<1,0,0>",curve.html,,curve_object,axis,wired,0,0,0,0
+curve,canvas,object,scene,curve.html,,curve_object,canvas,missing,0,0,0,0
+curve,color,vector,color.white,curve.html,,curve_object,color,wired,14,0,0,5
+curve,emissive,boolean,False,curve.html,,curve_object,emissive,wired,0,0,0,0
+curve,origin,vector,"<0,0,0>",curve.html,,curve_object,origin,missing,0,0,0,0
+curve,pos,list of vectors,[] (no points),curve.html,,curve_object,pos,wired,3,0,0,1
+curve,radius,scalar,"0, which gives a very thin curve",curve.html,,curve_object,radius,wired,14,0,0,5
+curve,retain,scalar,,curve.html,,curve_object,retain,wired,0,0,0,0
+curve,shininess,scalar,0.6,curve.html,,curve_object,shininess,wired,0,0,0,0
+curve,size,vector,"<1,1,1>",curve.html,,curve_object,size,field-only,0,0,0,0
+curve,up,vector,,curve.html,,curve_object,up,wired,0,0,0,0
+curve,visible,boolean,: True,curve.html,,curve_object,visible,wired,0,0,0,0
+cylinder,axis,vector,"<1,0,0>",cylinder.html,,cylinder_object,axis,wired,20,0,6,8
+cylinder,canvas,object,scene,cylinder.html,,cylinder_object,canvas,missing,0,0,0,0
+cylinder,color,vector,color.white,cylinder.html,,cylinder_object,color,wired,19,0,3,7
+cylinder,emissive,boolean,False,cylinder.html,,cylinder_object,emissive,wired,0,0,0,0
+cylinder,group,object,,cylinder.html,,cylinder_object,group,declared-only,0,0,0,0
+cylinder,interval,scalar,,trail.html,,cylinder_object,interval,missing,0,0,0,0
+cylinder,length,scalar,1,cylinder.html,,cylinder_object,length,wired,1,0,0,1
+cylinder,make_trail,boolean,,cylinder.html,,cylinder_object,make_trail,wired,0,0,0,0
+cylinder,opacity,scalar,1.0,cylinder.html,,cylinder_object,opacity,wired,0,0,0,0
+cylinder,pos,vector,"<0,0,0>",cylinder.html,,cylinder_object,pos,wired,21,2,35,9
+cylinder,pps,scalar,,trail.html,,cylinder_object,pps,missing,0,0,0,0
+cylinder,radius,,1,cylinder.html,,cylinder_object,radius,wired,13,0,3,8
+cylinder,retain,scalar,to retain all,trail.html,,cylinder_object,retain,wired,0,0,0,0
+cylinder,shininess,scalar,0.6,cylinder.html,,cylinder_object,shininess,wired,0,0,0,0
+cylinder,size,vector,"<1,1,1>",cylinder.html,,cylinder_object,size,field-only,10,0,3,3
+cylinder,texture,class element or path,None,cylinder.html,,cylinder_object,texture,wired,2,0,0,2
+cylinder,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cylinder_object,trail_radius,declared-only,0,0,0,0
+cylinder,trail_type,string,,trail.html,,cylinder_object,trail_type,missing,0,0,0,0
+cylinder,up,vector,,cylinder.html,,cylinder_object,up,wired,0,0,0,0
+cylinder,visible,boolean,: True,cylinder.html,,cylinder_object,visible,wired,1,0,0,1
+distant_light,color,vector,,light.html,,,color,no-object,1,0,0,1
+distant_light,direction,vector,,light.html,,,direction,no-object,2,2,0,2
+ellipsoid,axis,vector,"<1,0,0>",ellipsoid.html,,ellipsoid_object,axis,wired,0,0,0,0
+ellipsoid,canvas,object,scene,ellipsoid.html,,ellipsoid_object,canvas,missing,0,0,0,0
+ellipsoid,color,vector,color.white,ellipsoid.html,,ellipsoid_object,color,wired,1,0,0,1
+ellipsoid,emissive,boolean,False,ellipsoid.html,,ellipsoid_object,emissive,wired,0,0,0,0
+ellipsoid,group,object,,ellipsoid.html,,ellipsoid_object,group,declared-only,0,0,0,0
+ellipsoid,height,scalar,,ellipsoid.html,,ellipsoid_object,height,wired,0,0,0,0
+ellipsoid,interval,scalar,,trail.html,,ellipsoid_object,interval,missing,0,0,0,0
+ellipsoid,length,scalar,,ellipsoid.html,,ellipsoid_object,length,wired,0,0,0,0
+ellipsoid,make_trail,boolean,,ellipsoid.html,,ellipsoid_object,make_trail,wired,0,0,0,0
+ellipsoid,opacity,scalar,1.0,ellipsoid.html,,ellipsoid_object,opacity,wired,0,0,0,0
+ellipsoid,pos,vector,"<0,0,0>",ellipsoid.html,,ellipsoid_object,pos,wired,1,0,0,1
+ellipsoid,pps,scalar,,trail.html,,ellipsoid_object,pps,missing,0,0,0,0
+ellipsoid,retain,scalar,to retain all,trail.html,,ellipsoid_object,retain,wired,0,0,0,0
+ellipsoid,shininess,scalar,0.6,ellipsoid.html,,ellipsoid_object,shininess,wired,0,0,0,0
+ellipsoid,size,vector,"<1,1,1> (a sphere)",ellipsoid.html,,ellipsoid_object,size,field-only,1,0,0,1
+ellipsoid,texture,class element or path,None,ellipsoid.html,,ellipsoid_object,texture,wired,0,0,0,0
+ellipsoid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,ellipsoid_object,trail_radius,declared-only,0,0,0,0
+ellipsoid,trail_type,string,,trail.html,,ellipsoid_object,trail_type,missing,0,0,0,0
+ellipsoid,up,vector,,ellipsoid.html,,ellipsoid_object,up,wired,0,0,0,0
+ellipsoid,visible,boolean,: True,ellipsoid.html,,ellipsoid_object,visible,wired,0,0,0,0
+ellipsoid,width,scalar,,ellipsoid.html,,ellipsoid_object,width,wired,0,0,0,0
+extrusion,color,vector,color.white,extrusion.html,,extrusion_object,color,wired,25,0,0,5
+extrusion,end_normal,vector,,extrusion.html,,extrusion_object,end_normal,missing,0,0,0,0
+extrusion,group,object,,extrusion.html,,extrusion_object,group,declared-only,0,0,0,0
+extrusion,path,list,,extrusion.html,,extrusion_object,path,field-only,30,0,0,5
+extrusion,scale,scalar or list,,extrusion.html,,extrusion_object,scale,field-only,1,0,0,1
+extrusion,shape,list,,extrusion.html,,extrusion_object,shape,field-only,30,0,0,5
+extrusion,sharp_joints,list,,extrusion.html,,extrusion_object,sharp_joints,missing,0,0,0,0
+extrusion,show_end_face,boolean,,extrusion.html,,extrusion_object,show_end_face,field-only,0,0,0,0
+extrusion,show_start_face,boolean,True,extrusion.html,,extrusion_object,show_start_face,field-only,0,0,0,0
+extrusion,smooth,scalar,: 0.95 (an angle of 18 degrees),extrusion.html,,extrusion_object,smooth,missing,0,0,0,0
+extrusion,smooth_joints,list,,extrusion.html,,extrusion_object,smooth_joints,missing,0,0,0,0
+extrusion,start_normal,vector,,extrusion.html,,extrusion_object,start_normal,missing,0,0,0,0
+extrusion,twist,scalar or list,,extrusion.html,,extrusion_object,twist,field-only,2,0,0,1
+extrusion,xscale,scalar or list,,extrusion.html,,extrusion_object,xscale,missing,0,0,0,0
+extrusion,yscale,scalar or list,,extrusion.html,,extrusion_object,yscale,missing,0,0,0,0
+gcurve,color,vector,color.black,graph.html,,gcurve_object,color,wired,130,0,0,13
+gcurve,data,list,,graph.html,,gcurve_object,data,field-only,0,4,0,1
+gcurve,dot,boolean,,graph.html,,gcurve_object,show_dot,wired,0,0,0,0
+gcurve,dot_color,vector,same as gcurve,graph.html,,gcurve_object,dot_color,wired,0,0,0,0
+gcurve,dot_radius,scalar,3,graph.html,,gcurve_object,dot_radius,wired,0,0,0,0
+gcurve,graph,object,: most recently created graph,graph.html,,gcurve_object,graph_ref,wired,124,0,0,10
+gcurve,label,string,,graph.html,,gcurve_object,label,wired,5,0,0,2
+gcurve,legend,boolean,True,graph.html,,gcurve_object,legend,wired,0,0,0,0
+gcurve,marker_color,vector,the gcurve color,graph.html,,gcurve_object,marker_color,missing,1,0,0,1
+gcurve,markers,boolean,,graph.html,,gcurve_object,markers,wired,1,0,0,1
+gcurve,visible,boolean,True,graph.html,,gcurve_object,visible,wired,0,0,0,0
+gcurve,width,,slightly larger than gcurve width,graph.html,,gcurve_object,width,wired,2,0,0,2
+gdots,color,vector,color.black,graph.html,,gdots_object,color,wired,1,0,0,1
+gdots,data,list,,graph.html,,gdots_object,data,field-only,0,0,0,0
+gdots,graph,object,: most recently created graph,graph.html,,gdots_object,graph,missing,0,0,0,0
+gdots,label,string,,graph.html,,gdots_object,label,wired,1,0,0,1
+gdots,legend,boolean,True,graph.html,,gdots_object,legend,wired,0,0,0,0
+gdots,radius,scalar,3,graph.html,,gdots_object,radius,wired,0,0,0,0
+gdots,size,scalar,,graph.html,,gdots_object,size,declared-only,1,0,0,1
+gdots,visible,boolean,True,graph.html,,gdots_object,visible,wired,0,0,0,0
+graph,align,string,‘none’,graph.html,,graph_object,align,declared-only,1,0,0,1
+graph,background,vector,color.white,graph.html,,graph_object,background,wired,0,0,0,0
+graph,fast,boolean,True,graph.html,,graph_object,fast,wired,1,0,0,1
+graph,foreground,vector,color.black,graph.html,,graph_object,foreground,wired,0,0,0,0
+graph,height,scalar,480,graph.html,,graph_object,height,wired,1,0,0,1
+graph,logx,boolean,,graph.html,,graph_object,logx,missing,0,0,0,0
+graph,logy,boolean,,graph.html,,graph_object,logy,missing,0,0,0,0
+graph,scroll,boolean,,graph.html,,graph_object,scroll,missing,1,0,0,1
+graph,title,string,,graph.html,,graph_object,title,wired,50,0,0,11
+graph,width,scalar,640,graph.html,,graph_object,width,wired,2,0,0,2
+graph,xmax,scalar,: graph will adjust automatically as points are added,graph.html,,graph_object,xmax,wired,2,0,0,2
+graph,xmin,scalar,: graph will adjust automatically as points are added,graph.html,,graph_object,xmin,wired,1,0,0,1
+graph,xtitle,string,,graph.html,,graph_object,xtitle,wired,51,0,0,12
+graph,ymax,scalar,: graph will adjust automatically as points are added,graph.html,,graph_object,ymax,wired,1,0,0,1
+graph,ymin,scalar,: graph will adjust automatically as points are added,graph.html,,graph_object,ymin,wired,0,0,0,0
+graph,ytitle,string,,graph.html,,graph_object,ytitle,wired,51,0,0,12
+group,axis,vector,"vec(1,0,0)",group.html,,,axis,no-object,0,0,0,0
+group,color,vector,,group.html,,,color,no-object,0,0,0,0
+group,pos,vector,"vec(0,0,0)",group.html,,,pos,no-object,0,1,1,1
+group,up,vector,,group.html,,,up,no-object,0,0,0,0
+group,visible,boolean,True,group.html,,,visible,no-object,0,0,0,0
+gvbars,color,vector,color.black,graph.html,,gvbars_object,color,wired,2,0,0,2
+gvbars,data,list,,graph.html,,gvbars_object,data,field-only,0,1,0,1
+gvbars,delta,scalar,1,graph.html,,gvbars_object,delta,wired,2,0,0,2
+gvbars,graph,object,: most recently created graph,graph.html,,gvbars_object,graph,missing,0,0,0,0
+gvbars,label,string,,graph.html,,gvbars_object,label,wired,1,0,0,1
+gvbars,legend,boolean,True,graph.html,,gvbars_object,legend,wired,0,0,0,0
+gvbars,visible,boolean,True,graph.html,,gvbars_object,visible,wired,0,0,0,0
+helix,axis,vector,"<1,0,0>",helix.html,,helix_object,axis,wired,1,4,5,3
+helix,canvas,object,scene,helix.html,,helix_object,canvas,missing,0,0,0,0
+helix,ccw,boolean,,helix.html,,helix_object,ccw,wired,0,0,0,0
+helix,coils,scalar,5,helix.html,,helix_object,coils,wired,0,0,0,0
+helix,color,vector,color.white,helix.html,,helix_object,color,wired,2,1,0,3
+helix,emissive,boolean,False,helix.html,,helix_object,emissive,wired,0,0,0,0
+helix,length,scalar,1,helix.html,,helix_object,length,wired,0,3,0,2
+helix,make_trail,boolean,,helix.html,,helix_object,make_trail,wired,0,0,0,0
+helix,pos,vector,"<0,0,0>",helix.html,,helix_object,pos,wired,2,2,2,3
+helix,radius,vector,1,helix.html,,helix_object,radius,wired,1,1,0,2
+helix,shininess,scalar,0.6,helix.html,,helix_object,shininess,wired,0,0,0,0
+helix,size,vector,"<1,1,1>",helix.html,,helix_object,size,field-only,1,0,1,1
+helix,thickness,scalar,radius/20,helix.html,,helix_object,thickness,wired,2,1,0,3
+helix,up,vector,,helix.html,,helix_object,up,wired,0,0,0,0
+helix,visible,boolean,: True,helix.html,,helix_object,visible,wired,0,1,0,1
+label,align,string,‘center’,label.html,,label_object,align,declared-only,0,0,0,0
+label,background,,scene.background,label.html,,label_object,background,field-only,0,0,0,0
+label,border,scalar,5 pixels,label.html,,label_object,border,field-only,0,0,0,0
+label,box,boolean,True,label.html,,label_object,box,field-only,1,0,0,1
+label,canvas,object,scene,label.html,,label_object,canvas,missing,0,0,0,0
+label,color,vector,color.white,label.html,,label_object,color,wired,1,0,0,1
+label,font,string,‘sans’,label.html,,label_object,font,field-only,0,0,0,0
+label,height,,,label.html,,label_object,height,wired,1,0,0,1
+label,line,boolean,True,label.html,,label_object,line,field-only,0,0,0,0
+label,linecolor,vector,scene.foreground,label.html,,label_object,linecolor,missing,0,0,0,0
+label,linewidth,scalar,1 pixel,label.html,,label_object,linewidth,missing,0,0,0,0
+label,opacity,scalar,1.0,label.html,,label_object,opacity,wired,0,0,0,0
+label,pos,vector,"<0,0,0>",label.html,,label_object,pos,wired,2,0,1,2
+label,space,scalar,,label.html,,label_object,space,missing,0,0,0,0
+label,text,string or numerical expression,,label.html,,label_object,text,field-only,3,0,0,3
+label,visible,boolean,: True,label.html,,label_object,visible,wired,0,1,0,1
+label,xoffset,scalar,,label.html,,label_object,xoffset,wired,1,0,0,1
+label,yoffset,scalar,,label.html,,label_object,yoffset,wired,0,1,0,1
+local_light,color,vector,,light.html,,,color,no-object,0,0,0,0
+local_light,pos,vector,,light.html,,,pos,no-object,0,0,0,0
+menu,bind,function,,menu.html,,,bind,no-object,2,0,0,2
+menu,choices,list,,menu.html,,,choices,no-object,2,0,0,2
+menu,disabled,boolean,,menu.html,,,disabled,no-object,0,0,0,0
+menu,index,scalar,,menu.html,,,index,no-object,1,0,0,1
+menu,selected,string,,menu.html,,,selected,no-object,1,0,0,1
+points,canvas,object,scene,points.html,,points_object,canvas,missing,0,0,0,0
+points,color,vector,color.white,points.html,,points_object,color,wired,0,0,0,0
+points,emissive,boolean,False,points.html,,points_object,emissive,wired,0,0,0,0
+points,opacity,scalar,1.0,points.html,,points_object,opacity,wired,0,0,0,0
+points,pos,list of vectors,[] (no points),points.html,,points_object,pos,wired,1,0,0,1
+points,radius,scalar,2.5 pixels,points.html,,points_object,radius,declared-only,0,0,0,0
+points,shininess,scalar,0.6,points.html,,points_object,shininess,wired,0,0,0,0
+points,size_units,string,‘pixels’,points.html,,points_object,size_units,missing,1,0,0,1
+points,visible,boolean,: True,points.html,,points_object,visible,wired,0,0,0,0
+pyramid,axis,vector,"<1,0,0>",pyramid.html,,pyramid_object,axis,wired,1,0,0,1
+pyramid,canvas,object,scene,pyramid.html,,pyramid_object,canvas,missing,0,0,0,0
+pyramid,color,vector,color.white,pyramid.html,,pyramid_object,color,wired,2,0,0,2
+pyramid,emissive,boolean,False,pyramid.html,,pyramid_object,emissive,wired,0,0,0,0
+pyramid,group,object,,pyramid.html,,pyramid_object,group,declared-only,0,0,0,0
+pyramid,height,scalar,,pyramid.html,,pyramid_object,height,wired,0,0,0,0
+pyramid,interval,scalar,,trail.html,,pyramid_object,interval,missing,0,0,0,0
+pyramid,length,scalar,,pyramid.html,,pyramid_object,length,wired,0,0,0,0
+pyramid,make_trail,boolean,,pyramid.html,,pyramid_object,make_trail,wired,0,0,0,0
+pyramid,opacity,scalar,1.0,pyramid.html,,pyramid_object,opacity,wired,0,0,0,0
+pyramid,pos,vector,"<0,0,0>",pyramid.html,,pyramid_object,pos,wired,3,0,0,3
+pyramid,pps,scalar,,trail.html,,pyramid_object,pps,missing,0,0,0,0
+pyramid,retain,scalar,to retain all,trail.html,,pyramid_object,retain,wired,0,0,0,0
+pyramid,shininess,scalar,0.6,pyramid.html,,pyramid_object,shininess,wired,0,1,0,1
+pyramid,size,vector,"<1,1,1>",pyramid.html,,pyramid_object,size,field-only,3,0,0,3
+pyramid,texture,class element or path,None,pyramid.html,,pyramid_object,texture,wired,1,1,0,2
+pyramid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,pyramid_object,trail_radius,declared-only,0,0,0,0
+pyramid,trail_type,string,,trail.html,,pyramid_object,trail_type,missing,0,0,0,0
+pyramid,up,vector,,pyramid.html,,pyramid_object,up,wired,0,0,0,0
+pyramid,visible,boolean,: True,pyramid.html,,pyramid_object,visible,wired,1,0,0,1
+pyramid,width,scalar,,pyramid.html,,pyramid_object,width,wired,0,0,0,0
+quad,v0,vertex,,vertex.html,,quad_object,v0,field-only,0,0,0,0
+quad,v1,vertex,,vertex.html,,quad_object,v1,field-only,0,0,0,0
+quad,v2,vertex,,vertex.html,,quad_object,v2,field-only,0,0,0,0
+quad,v3,vertex,,vertex.html,,quad_object,v3,field-only,0,0,0,0
+quad,vs,list,,vertex.html,,quad_object,vs,missing,3,0,0,3
+radio,bind,function,,radiobutton.html,,,bind,no-object,2,0,0,1
+radio,checked,boolean,False,radiobutton.html,,,checked,no-object,1,4,0,1
+radio,disabled,boolean,,radiobutton.html,,,disabled,no-object,0,0,0,0
+radio,name,string,,radiobutton.html,,,name,no-object,2,0,0,1
+radio,pos,attribute of canvas,scene.caption_anchor,radiobutton.html,,,pos,no-object,0,0,0,0
+radio,text,string,,radiobutton.html,,,text,no-object,2,0,0,1
+ring,axis,vector,"<1,0,0>",ring.html,,ring_object,axis,wired,3,0,0,3
+ring,canvas,object,scene,ring.html,,ring_object,canvas,missing,0,0,0,0
+ring,color,vector,color.white,ring.html,,ring_object,color,wired,4,0,0,4
+ring,emissive,boolean,False,ring.html,,ring_object,emissive,wired,0,0,0,0
+ring,group,object,,ring.html,,ring_object,group,declared-only,0,0,0,0
+ring,interval,scalar,,trail.html,,ring_object,interval,missing,0,0,0,0
+ring,make_trail,boolean,,ring.html,,ring_object,make_trail,wired,0,0,0,0
+ring,opacity,scalar,1.0,ring.html,,ring_object,opacity,wired,0,0,0,0
+ring,pos,vector,"<0,0,0>",ring.html,,ring_object,pos,wired,4,0,1,4
+ring,pps,scalar,,trail.html,,ring_object,pps,missing,0,0,0,0
+ring,radius,scalar,1,ring.html,,ring_object,radius,wired,4,0,0,4
+ring,retain,scalar,to retain all,trail.html,,ring_object,retain,wired,0,0,0,0
+ring,shininess,scalar,0.6,ring.html,,ring_object,shininess,wired,0,0,0,0
+ring,size,vector,"<0.2, 2,2, 2.2>",ring.html,,ring_object,size,field-only,1,0,0,1
+ring,texture,class element or path,None,ring.html,,ring_object,texture,wired,0,0,0,0
+ring,thickness,scalar,0.1*radius,ring.html,,ring_object,thickness,wired,4,0,0,4
+ring,trail_radius,scalar,0 (thin curve) for curve,trail.html,,ring_object,trail_radius,declared-only,0,0,0,0
+ring,trail_type,string,,trail.html,,ring_object,trail_type,missing,0,0,0,0
+ring,up,vector,,ring.html,,ring_object,up,wired,0,0,0,0
+ring,visible,boolean,: True,ring.html,,ring_object,visible,wired,0,0,0,0
+simple_sphere,interval,scalar,,trail.html,,,interval,no-object,0,0,0,0
+simple_sphere,make_trail,boolean,False,trail.html,,,make_trail,no-object,0,0,0,0
+simple_sphere,pps,scalar,,trail.html,,,pps,no-object,0,0,0,0
+simple_sphere,retain,scalar,to retain all,trail.html,,,retain,no-object,0,0,0,0
+simple_sphere,trail_radius,scalar,0 (thin curve) for curve,trail.html,,,trail_radius,no-object,0,0,0,0
+simple_sphere,trail_type,string,,trail.html,,,trail_type,no-object,0,0,0,0
+slider,align,string,,slider.html,,,align,no-object,0,0,0,0
+slider,bind,function,,slider.html,,,bind,no-object,2,0,0,2
+slider,bottom,scalar,"0 px for horizontal, 8 px for vertical",slider.html,,,bottom,no-object,0,0,0,0
+slider,disabled,boolean,,slider.html,,,disabled,no-object,0,0,0,0
+slider,left,scalar,12 px,slider.html,,,left,no-object,1,0,0,1
+slider,length,scalar,400 px,slider.html,,,length,no-object,2,0,0,2
+slider,max,scalar,1,slider.html,,,max,no-object,2,0,0,2
+slider,min,scalar,0,slider.html,,,min,no-object,2,0,0,2
+slider,pos,attribute of canvas,scene.caption_anchor,slider.html,,,pos,no-object,0,0,0,0
+slider,right,scalar,12 px,slider.html,,,right,no-object,1,0,0,1
+slider,step,scalar,0.001*(max-min),slider.html,,,step,no-object,0,0,0,0
+slider,top,scalar,"0 px for horizontal, 8 px for vertical",slider.html,,,top,no-object,0,0,0,0
+slider,value,scalar,,slider.html,,,value,no-object,1,0,2,1
+slider,vertical,boolean,False (horizontal),slider.html,,,vertical,no-object,0,0,0,0
+slider,width,scalar,10 px,slider.html,,,width,no-object,0,0,0,0
+sphere,axis,vector,"<1,0,0>",sphere.html,,sphere_object,axis,wired,0,0,0,0
+sphere,canvas,object,scene,sphere.html,,sphere_object,canvas,missing,0,0,0,0
+sphere,color,vector,color.white,sphere.html,,sphere_object,color,wired,47,2,0,24
+sphere,emissive,boolean,False,sphere.html,,sphere_object,emissive,wired,2,0,0,1
+sphere,group,object,,sphere.html,,sphere_object,group,declared-only,0,0,0,0
+sphere,interval,scalar,,trail.html,,sphere_object,interval,missing,2,0,0,1
+sphere,make_trail,boolean,,sphere.html,,sphere_object,make_trail,wired,31,0,0,16
+sphere,opacity,scalar,1.0,sphere.html,,sphere_object,opacity,wired,3,0,0,2
+sphere,pos,vector,"<0,0,0>",sphere.html,,sphere_object,pos,wired,49,37,111,26
+sphere,pps,scalar,,trail.html,,sphere_object,pps,missing,0,0,0,0
+sphere,radius,scalar,1,sphere.html,,sphere_object,radius,wired,44,2,3,22
+sphere,retain,scalar,to retain all,trail.html,,sphere_object,retain,wired,7,0,0,6
+sphere,shininess,scalar,0.6,sphere.html,,sphere_object,shininess,wired,3,0,0,2
+sphere,size,vector,"<2,2,2>",sphere.html,,sphere_object,size,field-only,8,0,0,4
+sphere,texture,class element or path,None,sphere.html,,sphere_object,texture,wired,0,0,0,0
+sphere,trail_radius,scalar,0 (thin curve) for curve,trail.html,,sphere_object,trail_radius,declared-only,2,1,0,3
+sphere,trail_type,string,,trail.html,,sphere_object,trail_type,missing,10,0,0,5
+sphere,up,vector,,sphere.html,,sphere_object,up,wired,0,0,0,0
+sphere,visible,boolean,: True,sphere.html,,sphere_object,visible,wired,2,3,2,3
+text,align,string,‘left’,text.html,,text3d_object,align,field-only,8,0,0,4
+text,axis,vector,"<1,0,0>",text.html,,text3d_object,axis,wired,0,0,0,0
+text,billboard,boolean,False,text.html,,text3d_object,billboard,declared-only,6,0,0,2
+text,canvas,object,scene,text.html,,text3d_object,canvas,missing,0,0,0,0
+text,color,vector,color.white,text.html,,text3d_object,color,wired,7,1,0,4
+text,depth,scalar,0.2*height,text.html,,text3d_object,thickness,wired,5,0,0,4
+text,descender,scalar,,text.html,yes,text3d_object,descender,missing,0,0,0,0
+text,emissive,boolean,False,text.html,,text3d_object,emissive,wired,6,0,0,2
+text,end,,,text.html,yes,text3d_object,end,missing,0,0,0,0
+text,end_face_color,vector,same as text color,text.html,,text3d_object,end_face_color,missing,1,0,0,1
+text,font,string,‘sans’,text.html,,text3d_object,font,field-only,1,0,0,1
+text,group,object,,text.html,,text3d_object,group,declared-only,1,0,0,1
+text,height,scalar,1,text.html,,text3d_object,height,wired,8,0,0,4
+text,length,scalar,,text.html,,text3d_object,length,declared-only,0,0,0,0
+text,opacity,,1.0,text.html,,text3d_object,opacity,wired,0,0,0,0
+text,pos,vector,"<0,0,0>",text.html,,text3d_object,pos,wired,11,0,0,5
+text,shininess,scalar,0.6,text.html,,text3d_object,shininess,wired,0,0,0,0
+text,start,scalar,,text.html,yes,text3d_object,start,missing,0,0,2,1
+text,start_face_color,vector,same as text color,text.html,,text3d_object,start_face_color,missing,1,0,0,1
+text,text,unicode string,,text.html,,text3d_object,text,field-only,11,0,0,5
+text,up,vector,,text.html,,text3d_object,up,wired,0,0,0,0
+text,vertical_spacing,scalar,,text.html,yes,text3d_object,vertical_spacing,missing,0,0,0,0
+text,visible,boolean,: True,text.html,,text3d_object,visible,wired,0,0,0,0
+triangle,bumpmap,class.attribute or path,,vertex.html,,triangle_object,bumpmap,missing,0,0,0,0
+triangle,texture,class.attribute or path,,vertex.html,,triangle_object,texture,wired,0,0,0,0
+triangle,v0,vertex,,vertex.html,,triangle_object,v0,field-only,0,0,0,0
+triangle,v1,vertex,,vertex.html,,triangle_object,v1,field-only,0,0,0,0
+triangle,v2,vertex,,vertex.html,,triangle_object,v2,field-only,0,0,0,0
+triangle,visible,boolean,,vertex.html,,triangle_object,visible,wired,0,0,0,0
+triangle,vs,list,,vertex.html,,triangle_object,vs,missing,0,0,0,0
+vertex,bumpaxis,vector,"<1,0,0>",vertex.html,,,bumpaxis,no-object,0,0,0,0
+vertex,color,vector,,vertex.html,,,color,no-object,5,0,0,2
+vertex,emissive,boolean,False,vertex.html,,,emissive,no-object,0,0,0,0
+vertex,normal,vector,": <0,0,1>",vertex.html,,,normal,no-object,2,0,0,2
+vertex,opacity,scalar,,vertex.html,,,opacity,no-object,0,0,0,0
+vertex,pos,vector,,vertex.html,,,pos,no-object,6,0,0,3
+vertex,shininess,scalar,0.6,vertex.html,,,shininess,no-object,1,0,0,1
+vertex,texpos,vector,,vertex.html,,,texpos,no-object,1,0,0,1
+winput,bind,function,,textinput.html,,,bind,no-object,0,0,0,0
+winput,disabled,boolean,,textinput.html,,,disabled,no-object,0,0,0,0
+winput,height,scalar,20,textinput.html,,,height,no-object,0,0,0,0
+winput,number,scalar,,textinput.html,,,number,no-object,0,0,0,0
+winput,pos,attribute of canvas,scene.caption_anchor,textinput.html,,,pos,no-object,0,0,0,0
+winput,prompt,string,,textinput.html,,,prompt,no-object,0,0,0,0
+winput,text,string,,textinput.html,,,text,no-object,0,0,0,0
+winput,type,string,,textinput.html,,,type,no-object,0,0,0,0
+winput,width,scalar,100,textinput.html,,,width,no-object,0,0,0,0

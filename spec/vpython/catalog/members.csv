@@ -1,0 +1,1208 @@
+owner,member,kind,default,read_only,note,runtime_source,inherited_from,documented,user_facing,vcpp_status,vcpp_name,corpus_uses,programs
+arrow,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,6,4
+arrow,axis_and_length,unsupported,,,getter throws,primitives.js:1013,,yes,yes,missing,axis_and_length,0,0
+arrow,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+arrow,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+arrow,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+arrow,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+arrow,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+arrow,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,7,5
+arrow,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+arrow,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,1,1
+arrow,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+arrow,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+arrow,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+arrow,headlength,attribute,,,accessor,primitives.js:1037,,yes,yes,wired,headlength,0,0
+arrow,headwidth,attribute,,,accessor,primitives.js:1030,,yes,yes,wired,headwidth,0,0
+arrow,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
+arrow,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+arrow,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
+arrow,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+arrow,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+arrow,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+arrow,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+arrow,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,12,5
+arrow,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+arrow,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,1,1
+arrow,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+arrow,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+arrow,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+arrow,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+arrow,round,attribute,,,accessor,primitives.js:1017,,yes,yes,wired,round,0,0
+arrow,scale,attribute,,,accessor,primitives.js:1056,,yes,yes,missing,scale,0,0
+arrow,shaftwidth,attribute,,,accessor,primitives.js:1023,,yes,yes,wired,shaftwidth,2,2
+arrow,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+arrow,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,0,0
+arrow,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+arrow,start,method,,,,primitives.js:1063,,yes,yes,missing,start,0,0
+arrow,stop,method,,,,primitives.js:1064,,yes,yes,missing,stop,0,0
+arrow,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+arrow,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+arrow,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+arrow,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+arrow,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+arrow,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
+arrow,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
+arrow,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+arrow,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+arrow,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+attach_arrow,canvas,attribute,,,constructor option,primitives.js:2842,,yes,yes,no-object,,0,0
+attach_arrow,color,attribute,,,constructor option,primitives.js:2842,,yes,yes,no-object,,0,0
+attach_arrow,pickable,attribute,,,constructor option,primitives.js:2842,,yes,yes,no-object,,0,0
+attach_arrow,scale,attribute,,,constructor option,primitives.js:2842,,yes,yes,no-object,,0,0
+attach_arrow,shaftwidth,attribute,,,constructor option,primitives.js:2842,,yes,yes,no-object,,0,0
+attach_light,canvas,attribute,,,constructor option,primitives.js:2864,,yes,yes,no-object,,0,0
+attach_light,color,attribute,,,constructor option,primitives.js:2864,,yes,yes,no-object,,0,0
+attach_light,offset,attribute,,,constructor option,primitives.js:2864,,yes,yes,no-object,,0,0
+attach_light,pickable,attribute,,,constructor option,primitives.js:2864,,yes,yes,no-object,,0,0
+attach_light,pos,attribute,,,constructor option,primitives.js:2864,,yes,yes,no-object,,0,0
+attach_trail,canvas,attribute,,,constructor option,primitives.js:2746,,yes,yes,no-object,,0,0
+attach_trail,clear,method,,,,primitives.js:2832,,yes,yes,no-object,,0,0
+attach_trail,color,attribute,,,accessor,primitives.js:2805,,yes,yes,no-object,,0,0
+attach_trail,pps,attribute,,,constructor option,primitives.js:2746,,yes,yes,no-object,,0,0
+attach_trail,radius,attribute,,,accessor,primitives.js:2809,,yes,yes,no-object,,0,0
+attach_trail,retain,attribute,,,accessor,primitives.js:2817,,yes,yes,no-object,,0,0
+attach_trail,start,method,,,,primitives.js:2821,,yes,yes,no-object,,0,0
+attach_trail,stop,method,,,,primitives.js:2829,,yes,yes,no-object,,0,0
+attach_trail,type,attribute,,,constructor option,primitives.js:2746,,yes,yes,no-object,,0,0
+box,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,12,3
+box,blue,attribute,,,accessor,primitives.js:769,,yes,yes,missing,blue,0,0
+box,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+box,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+box,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+box,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+box,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,46,11
+box,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+box,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,2,1
+box,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+box,green,attribute,,,accessor,primitives.js:762,,yes,yes,missing,green,0,0
+box,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,2,1
+box,height,attribute,,,accessor,primitives.js:741,,yes,yes,wired,height,2,1
+box,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+box,length,attribute,,,accessor,primitives.js:718,,yes,yes,wired,length,2,1
+box,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+box,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+box,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,4,2
+box,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+box,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,68,14
+box,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+box,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+box,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+box,red,attribute,,,accessor,primitives.js:755,,yes,yes,missing,red,0,0
+box,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+box,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,6,2
+box,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,1,1
+box,size,attribute,"<1,1,1>",,vector,primitives.js:717,,yes,yes,field-only,size,40,11
+box,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+box,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,9,6
+box,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+box,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+box,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+box,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+box,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
+box,width,attribute,,,accessor,primitives.js:748,,yes,yes,wired,width,2,1
+box,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+box,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+box,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+bumpmaps,gravel,constant,""":gravel_bumpmap.jpg""",,,primitives.js:232,,yes,yes,missing,,0,0
+bumpmaps,rock,constant,""":rock_bumpmap.jpg""",,,primitives.js:232,,yes,yes,missing,,0,0
+bumpmaps,stones,constant,""":stones_bumpmap.jpg""",,,primitives.js:232,,yes,yes,missing,,1,1
+bumpmaps,stucco,constant,""":stucco_bumpmap.jpg""",,,primitives.js:233,,yes,yes,missing,,0,0
+bumpmaps,wood_old,constant,""":wood_old_bumpmap.jpg""",,,primitives.js:233,,yes,yes,missing,,0,0
+button,aria_describedby,attribute,"""""",,constructor option,primitives.js:3374,,no,no,no-object,,0,0
+button,aria_label,attribute,"""""",,constructor option,primitives.js:3374,,no,no,no-object,,0,0
+button,aria_labelledby,attribute,"""""",,constructor option,primitives.js:3374,,no,no,no-object,,0,0
+button,background,attribute,"vec(1,1,1)",,constructor option,primitives.js:3374,,yes,yes,no-object,,3,1
+button,bind,attribute,,,constructor option,primitives.js:3374,,yes,yes,no-object,,8,6
+button,color,attribute,"vec(0,0,0)",,constructor option,primitives.js:3374,,yes,yes,no-object,,3,1
+button,delete,method,,,,primitives.js:3374,,yes,yes,no-object,,0,0
+button,disabled,attribute,false,,constructor option,primitives.js:3374,,yes,yes,no-object,,0,0
+button,focus,method,,,,primitives.js:3374,,no,no,no-object,,0,0
+button,pos,attribute,cvs.caption_anchor,,constructor option,primitives.js:3374,,yes,yes,no-object,,2,1
+button,text,attribute,' ',,constructor option,primitives.js:3374,,yes,yes,no-object,,10,6
+button,textcolor,attribute,,,accessor,primitives.js:3374,,no,no,no-object,,0,0
+camera,axis,attribute,,,accessor,orbital_camera.js:35,,yes,yes,missing,axis,0,0
+camera,follow,method,,,,orbital_camera.js:84,,yes,yes,missing,follow,0,0
+camera,pos,attribute,,,accessor,orbital_camera.js:24,,yes,yes,field-only,pos,0,0
+camera,rotate,method,,,,orbital_camera.js:48,,yes,yes,missing,rotate,0,0
+canvas,align,attribute,,,accessor,canvas.js:659,,yes,yes,missing,align,1,1
+canvas,all,attribute,,yes,accessor static,canvas.js:762,,yes,yes,missing,all,0,0
+canvas,ambient,attribute,"new vec(0.2,0.2,0.2)",,,canvas.js:611,,yes,yes,field-only,ambient,0,0
+canvas,append_to_caption,method,,,,canvas.js:508,,yes,yes,missing,append_to_caption,0,0
+canvas,append_to_title,method,,,,canvas.js:499,,no,no,missing,append_to_title,0,0
+canvas,aria_label,attribute,,,constructor option,canvas.js:87,,no,no,missing,aria_label,0,0
+canvas,autoscale,attribute,,,accessor,canvas.js:696,,yes,yes,missing,autoscale,0,0
+canvas,axis,attribute,"<0,0,-1>",,vector,canvas.js:620,,yes,yes,missing,axis,0,0
+canvas,background,attribute,"new vec(0,0,0)",,,canvas.js:609,,yes,yes,wired,background,0,0
+canvas,bind,method,,,,canvas.js:517,,yes,yes,missing,bind,0,0
+canvas,caption,attribute,,,accessor,canvas.js:491,,yes,yes,field-only,caption,1,1
+canvas,caption_anchor,attribute,,,accessor,canvas.js:473,,yes,yes,missing,caption_anchor,0,0
+canvas,caption_aria_live,attribute,,,constructor option,canvas.js:87,,no,no,missing,caption_aria_live,0,0
+canvas,capture,method,,,,canvas.js:358,,yes,yes,missing,capture,0,0
+canvas,center,attribute,"<0,0,0>",,vector,canvas.js:619,,yes,yes,missing,center,0,0
+canvas,container,attribute,,,accessor static,canvas.js:769,,no,no,missing,container,0,0
+canvas,delete,method,,,,canvas.js:289,,yes,yes,missing,delete,0,0
+canvas,forward,attribute,,,accessor,canvas.js:623,,yes,yes,missing,forward,0,0
+canvas,fov,attribute,60*Math.PI/180,,,canvas.js:647,,yes,yes,missing,fov,0,0
+canvas,get_selected,method,,,static,canvas.js:760,,yes,yes,missing,get_selected,0,0
+canvas,height,attribute,400,,typed,canvas.js:654,,yes,yes,field-only,height,1,1
+canvas,objects,attribute,,yes,accessor,canvas.js:736,,yes,yes,missing,objects,0,0
+canvas,opacity,attribute,1,,,canvas.js:610,,yes,yes,missing,opacity,0,0
+canvas,pause,method,,,,canvas.js:401,,yes,yes,missing,pause,0,0
+canvas,pixel_to_world,attribute,,,accessor,canvas.js:719,,yes,yes,missing,pixel_to_world,0,0
+canvas,range,attribute,,,accessor,canvas.js:705,,yes,yes,missing,range,1,1
+canvas,resizable,attribute,true,,typed,canvas.js:685,,yes,yes,field-only,resizable,0,0
+canvas,screenshot,method,,,,canvas.js:338,,no,no,missing,screenshot,0,0
+canvas,select,method,,,,canvas.js:457,,yes,yes,missing,select,0,0
+canvas,selected,attribute,,,accessor static,canvas.js:756,,yes,yes,missing,selected,0,0
+canvas,title,attribute,,,accessor,canvas.js:483,,yes,yes,field-only,title,1,1
+canvas,title_anchor,attribute,,,accessor,canvas.js:463,,yes,yes,missing,title_anchor,0,0
+canvas,title_aria_live,attribute,,,constructor option,canvas.js:87,,no,no,missing,title_aria_live,0,0
+canvas,trigger,method,,,,canvas.js:555,,no,no,missing,trigger,0,0
+canvas,unbind,method,,,,canvas.js:530,,no,no,missing,unbind,0,0
+canvas,up,attribute,"<0,1,0>",,vector,canvas.js:621,,yes,yes,missing,up,0,0
+canvas,userpan,attribute,true,,,canvas.js:646,,yes,yes,missing,userpan,0,0
+canvas,userspin,attribute,true,,,canvas.js:645,,yes,yes,missing,userspin,0,0
+canvas,userzoom,attribute,true,,,canvas.js:644,,yes,yes,missing,userzoom,0,0
+canvas,waitfor,method,,,,canvas.js:370,,yes,yes,missing,waitfor,0,0
+canvas,width,attribute,640,,typed,canvas.js:649,,yes,yes,field-only,width,1,1
+checkbox,aria_describedby,attribute,"""""",,constructor option,primitives.js:3126,,no,no,no-object,,0,0
+checkbox,aria_label,attribute,"""""",,constructor option,primitives.js:3126,,no,no,no-object,,0,0
+checkbox,aria_labelledby,attribute,"""""",,constructor option,primitives.js:3126,,no,no,no-object,,0,0
+checkbox,bind,attribute,,,constructor option,primitives.js:3126,,yes,yes,no-object,,2,2
+checkbox,checked,attribute,false,,constructor option,primitives.js:3126,,yes,yes,no-object,,1,1
+checkbox,delete,method,,,,primitives.js:3126,,yes,yes,no-object,,0,0
+checkbox,disabled,attribute,false,,constructor option,primitives.js:3126,,yes,yes,no-object,,0,0
+checkbox,focus,method,,,,primitives.js:3126,,no,no,no-object,,0,0
+checkbox,pos,attribute,cvs.caption_anchor,,constructor option,primitives.js:3126,,yes,yes,no-object,,0,0
+checkbox,text,attribute,'',,constructor option,primitives.js:3126,,yes,yes,no-object,,2,2
+color,black,constant,"vec(0, 0, 0)",,,color.js:14,,yes,yes,wired,colors::black,4,3
+color,blend,function,,,,color.js:79,,yes,yes,missing,colors::blend,0,0
+color,blue,constant,"vec(0, 0, 1)",,,color.js:7,,yes,yes,wired,colors::blue,70,21
+color,cyan,constant,"vec(0, 1, 1)",,,color.js:10,,yes,yes,wired,colors::cyan,29,12
+color,gray,function,,,,color.js:15,,yes,yes,missing,colors::gray,30,14
+color,green,constant,"vec(0, 1, 0)",,,color.js:6,,yes,yes,wired,colors::green,54,25
+color,hsv_to_rgb,function,,,,color.js:16,,yes,yes,missing,colors::hsv_to_rgb,3,2
+color,magenta,constant,"vec(1, 0, 1)",,,color.js:11,,yes,yes,wired,colors::magenta,5,4
+color,orange,constant,"vec(1, 0.6, 0)",,,color.js:9,,yes,yes,wired,colors::orange,18,8
+color,purple,constant,"vec(0.4, 0.2, 0.6)",,,color.js:12,,yes,yes,wired,colors::purple,5,1
+color,red,constant,"vec(1, 0, 0)",,,color.js:5,,yes,yes,wired,colors::red,76,26
+color,rgb_to_hsv,function,,,,color.js:43,,yes,yes,missing,colors::rgb_to_hsv,1,1
+color,to_html,function,,,,color.js:67,,no,no,missing,colors::to_html,0,0
+color,to_html_rgba,function,,,,color.js:73,,no,no,missing,colors::to_html_rgba,0,0
+color,white,constant,"vec(1, 1, 1)",,,color.js:13,,yes,yes,wired,colors::white,7,7
+color,yellow,constant,"vec(1, 1, 0)",,,color.js:8,,yes,yes,wired,colors::yellow,27,18
+compound,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,4,1
+compound,blue,attribute,,,accessor,primitives.js:1846,,yes,yes,missing,blue,0,0
+compound,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+compound,canvas,attribute,,,constructor option,primitives.js:1749,,yes,yes,missing,canvas,0,0
+compound,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+compound,clone,method,,,,primitives.js:1779,,yes,yes,missing,clone,4,1
+compound,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,0,0
+compound,compound_to_world,method,,,,primitives.js:1863,,yes,yes,missing,compound_to_world,0,0
+compound,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+compound,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+compound,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+compound,green,attribute,,,accessor,primitives.js:1839,,yes,yes,missing,green,0,0
+compound,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+compound,height,attribute,,,accessor,primitives.js:1818,,yes,yes,declared-only,height,0,0
+compound,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+compound,length,attribute,,,accessor,primitives.js:1811,,yes,yes,declared-only,length,2,1
+compound,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+compound,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+compound,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+compound,origin,attribute,,,accessor,primitives.js:1806,,yes,yes,missing,origin,0,0
+compound,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+compound,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,8,2
+compound,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+compound,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+compound,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+compound,red,attribute,,,accessor,primitives.js:1832,,yes,yes,missing,red,0,0
+compound,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+compound,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,3,3
+compound,self,attribute,,,constructor option,primitives.js:1749,,no,no,missing,self,0,0
+compound,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+compound,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,0,0
+compound,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+compound,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,3,2
+compound,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+compound,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+compound,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+compound,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+compound,visible,attribute,,,constructor option,primitives.js:1749,,yes,yes,wired,visible,1,1
+compound,width,attribute,,,accessor,primitives.js:1825,,yes,yes,declared-only,width,0,0
+compound,world_to_compound,method,,,,primitives.js:1853,,yes,yes,missing,world_to_compound,0,0
+compound,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+compound,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+compound,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+cone,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,3,2
+cone,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+cone,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+cone,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+cone,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+cone,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+cone,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,3,3
+cone,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+cone,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+cone,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+cone,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+cone,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+cone,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
+cone,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+cone,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,1,1
+cone,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+cone,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+cone,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,1,1
+cone,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+cone,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,6,4
+cone,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+cone,radius,attribute,,,accessor,primitives.js:866,cylinder,yes,yes,wired,radius,2,2
+cone,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+cone,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+cone,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+cone,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+cone,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+cone,size,attribute,"<1,2,2>",,vector,primitives.js:865,cylinder,yes,yes,field-only,size,4,3
+cone,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+cone,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,1,1
+cone,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+cone,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+cone,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+cone,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+cone,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
+cone,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
+cone,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+cone,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+cone,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+curve,append,method,,,,primitives.js:2130,,yes,yes,wired,append,21,4
+curve,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,0,0
+curve,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+curve,canvas,attribute,,,constructor option,primitives.js:1893,,yes,yes,missing,canvas,0,0
+curve,clear,method,,,,primitives.js:2166,,yes,yes,wired,clear_points,0,0
+curve,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+curve,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+curve,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,14,5
+curve,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+curve,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+curve,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+curve,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+curve,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+curve,length,attribute,,,constructor option,primitives.js:1893,,yes,yes,declared-only,length,0,0
+curve,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+curve,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+curve,modify,method,,,,primitives.js:2200,,yes,yes,missing,modify,0,0
+curve,npoints,attribute,,,accessor,primitives.js:1943,,yes,yes,missing,npoints,0,0
+curve,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+curve,origin,attribute,"<0,0,0>",,vector,primitives.js:1924,,yes,yes,missing,origin,0,0
+curve,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+curve,point,method,,,,primitives.js:2162,,yes,yes,missing,point,0,0
+curve,pop,method,,,,primitives.js:2136,,yes,yes,missing,pop,0,0
+curve,pos,unsupported,,,getter throws,primitives.js:1925,,yes,yes,wired,pos,3,1
+curve,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+curve,push,method,,,,primitives.js:2123,,no,no,missing,push,0,0
+curve,pypop,method,,,,primitives.js:2139,,no,no,missing,pypop,0,0
+curve,radius,attribute,,,accessor,primitives.js:1929,,yes,yes,wired,radius,14,5
+curve,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+curve,retain,attribute,,,accessor,primitives.js:1936,,yes,yes,wired,retain,0,0
+curve,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+curve,shift,method,,,,primitives.js:2171,,yes,yes,missing,shift,0,0
+curve,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+curve,size,attribute,"<1,1,1>",,vector,primitives.js:260,Primitive,yes,yes,field-only,size,0,0
+curve,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+curve,slice,method,,,,primitives.js:2212,,yes,yes,missing,slice,0,0
+curve,splice,method,,,,primitives.js:2181,,yes,yes,missing,splice,0,0
+curve,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+curve,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+curve,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+curve,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+curve,unshift,method,,,,primitives.js:2174,,yes,yes,missing,unshift,0,0
+curve,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+curve,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
+curve,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+curve,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+curve,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+cylinder,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,26,8
+cylinder,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+cylinder,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+cylinder,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+cylinder,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+cylinder,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,3,2
+cylinder,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,22,7
+cylinder,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+cylinder,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+cylinder,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+cylinder,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+cylinder,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+cylinder,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
+cylinder,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+cylinder,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,1,1
+cylinder,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+cylinder,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+cylinder,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+cylinder,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+cylinder,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,58,9
+cylinder,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+cylinder,radius,attribute,,,accessor,primitives.js:866,,yes,yes,wired,radius,16,8
+cylinder,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+cylinder,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+cylinder,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+cylinder,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,3,2
+cylinder,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+cylinder,size,attribute,"<1,2,2>",,vector,primitives.js:865,,yes,yes,field-only,size,13,3
+cylinder,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+cylinder,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,2,2
+cylinder,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+cylinder,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+cylinder,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+cylinder,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+cylinder,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
+cylinder,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
+cylinder,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+cylinder,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+cylinder,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+distant_light,axis,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,color,attribute,"<1,1,1>",,vector,primitives.js:2503,,yes,yes,no-object,,1,1
+distant_light,direction,attribute,"<0,0,1>",,vector,primitives.js:2502,,yes,yes,no-object,,4,2
+distant_light,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,make_trail,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,size,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,up,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+distant_light,visible,attribute,true,,,primitives.js:2504,,yes,yes,no-object,,0,0
+ellipsoid,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,0,0
+ellipsoid,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+ellipsoid,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+ellipsoid,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+ellipsoid,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+ellipsoid,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+ellipsoid,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,1,1
+ellipsoid,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+ellipsoid,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+ellipsoid,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+ellipsoid,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+ellipsoid,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+ellipsoid,height,attribute,,,accessor,primitives.js:741,box,yes,yes,wired,height,0,0
+ellipsoid,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+ellipsoid,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,0,0
+ellipsoid,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+ellipsoid,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+ellipsoid,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+ellipsoid,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+ellipsoid,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,1,1
+ellipsoid,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+ellipsoid,radius,unsupported,,,getter throws,primitives.js:904,,yes,yes,declared-only,radius,0,0
+ellipsoid,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+ellipsoid,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+ellipsoid,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+ellipsoid,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+ellipsoid,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+ellipsoid,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,1,1
+ellipsoid,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+ellipsoid,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+ellipsoid,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+ellipsoid,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+ellipsoid,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+ellipsoid,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+ellipsoid,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
+ellipsoid,width,attribute,,,accessor,primitives.js:748,box,yes,yes,wired,width,0,0
+ellipsoid,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+ellipsoid,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+ellipsoid,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+event,alt,attribute,,,key events only: ALT was down when the event fired,canvas.js:582,,yes,yes,no-object,,0,0
+event,canvas,attribute,,,"the canvas the event came from. NOT set for waitfor('textures'), whose trigger argument is null (WebGLRenderer.js:435)",canvas.js:588,,yes,yes,no-object,,0,0
+event,ctrl,attribute,,,key events only: CTRL was down when the event fired,canvas.js:583,,yes,yes,no-object,,0,0
+event,event,attribute,,,"mouse and key events: the same string as type. Custom events: the raw trigger argument, so redraw/draw_complete carry elapsed seconds as ev.event.dt (WebGLRenderer.js:1680,1706) and resize carries {event:'resize'} (canvas.js:271)","canvas.js:556,561,580",,yes,yes,no-object,,0,0
+event,key,attribute,,,key events only: key name from the keycode tables at canvas.js:13-61; the vocabulary is listed in catalog/EVENTS.md,canvas.js:581,,yes,yes,no-object,,0,0
+event,pageX,attribute,,,mouse events only: pixels from the left of the page,canvas.js:559,,yes,yes,no-object,,0,0
+event,pageY,attribute,,,mouse events only: pixels from the top of the page,canvas.js:559,,yes,yes,no-object,,0,0
+event,pos,attribute,,,"mouse events only: mouse position in world coordinates, in the plane through scene.center parallel to the screen",canvas.js:562,,yes,yes,no-object,,0,0
+event,press,attribute,,,"mouse events only: 'left' on mousedown, otherwise None",canvas.js:564,,yes,yes,no-object,,0,0
+event,release,attribute,,,"mouse events only: 'left' on mouseup and on click, otherwise None","canvas.js:571,577",,yes,yes,no-object,,0,0
+event,shift,attribute,,,"key events only: SHIFT was down, or shift-lock is on",canvas.js:584,,yes,yes,no-object,,0,0
+event,type,attribute,,,event type: mousedown mouseup mousemove mouseenter mouseleave click | keydown keyup | redraw draw_complete textures resize,canvas.js:556,,yes,yes,no-object,,0,0
+event,which,attribute,,,mouse events: always 1 — right and middle buttons are never reported. key events: the raw keycode,"canvas.js:559,580",,yes,yes,no-object,,0,0
+extrusion,axis,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,axis,1,1
+extrusion,blue,attribute,,,accessor,primitives.js:1846,compound,yes,yes,missing,blue,0,0
+extrusion,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+extrusion,canvas,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,canvas,0,0
+extrusion,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+extrusion,clone,method,,,,primitives.js:1779,compound,yes,yes,missing,clone,6,2
+extrusion,color,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,color,25,5
+extrusion,compound_to_world,method,,,,primitives.js:1863,compound,yes,yes,missing,compound_to_world,0,0
+extrusion,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+extrusion,emissive,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,emissive,2,1
+extrusion,end_face_color,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,end_face_color,2,1
+extrusion,end_normal,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,end_normal,0,0
+extrusion,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+extrusion,green,attribute,,,accessor,primitives.js:1839,compound,yes,yes,missing,green,0,0
+extrusion,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+extrusion,height,attribute,,,accessor,primitives.js:1818,compound,yes,yes,declared-only,height,0,0
+extrusion,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+extrusion,last_normal,attribute,,,constructor option,extrude.js:523,,no,no,missing,last_normal,0,0
+extrusion,length,attribute,,,accessor,primitives.js:1811,compound,yes,yes,declared-only,length,0,0
+extrusion,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+extrusion,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+extrusion,opacity,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,opacity,0,0
+extrusion,origin,attribute,,,accessor,primitives.js:1806,compound,yes,yes,missing,origin,0,0
+extrusion,path,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,path,30,5
+extrusion,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+extrusion,pos,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,pos,13,4
+extrusion,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+extrusion,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+extrusion,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+extrusion,red,attribute,,,accessor,primitives.js:1832,compound,yes,yes,missing,red,0,0
+extrusion,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+extrusion,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,8,4
+extrusion,scale,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,scale,1,1
+extrusion,self,attribute,,,constructor option,primitives.js:1749,compound,no,no,missing,self,0,0
+extrusion,shape,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,shape,30,5
+extrusion,sharp_joints,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,sharp_joints,0,0
+extrusion,shininess,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,shininess,2,1
+extrusion,show_end_face,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,show_end_face,0,0
+extrusion,show_start_face,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,show_start_face,0,0
+extrusion,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,0,0
+extrusion,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+extrusion,smooth,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,smooth,0,0
+extrusion,smooth_joints,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,smooth_joints,0,0
+extrusion,start_face_color,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,start_face_color,1,1
+extrusion,start_normal,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,start_normal,0,0
+extrusion,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,15,4
+extrusion,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+extrusion,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+extrusion,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+extrusion,twist,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,twist,2,1
+extrusion,up,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,up,1,1
+extrusion,visible,attribute,,,constructor option,primitives.js:1749,compound,yes,yes,wired,visible,0,0
+extrusion,width,attribute,,,accessor,primitives.js:1825,compound,yes,yes,declared-only,width,0,0
+extrusion,world_to_compound,method,,,,primitives.js:1853,compound,yes,yes,missing,world_to_compound,0,0
+extrusion,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+extrusion,xscale,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,xscale,0,0
+extrusion,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+extrusion,yscale,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,yscale,0,0
+extrusion,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+gcurve,color,attribute,,,accessor,graph.js:1221,gobject,yes,yes,wired,color,130,13
+gcurve,data,attribute,,,constructor option,graph.js:1503,,yes,yes,field-only,data,4,1
+gcurve,delta,attribute,,,accessor,graph.js:1311,gobject,yes,yes,declared-only,delta,0,0
+gcurve,dot,attribute,,,accessor,graph.js:1427,gobject,yes,yes,wired,show_dot,0,0
+gcurve,dot_color,attribute,,,accessor,graph.js:1435,gobject,yes,yes,wired,dot_color,0,0
+gcurve,dot_radius,attribute,,,constructor option,graph.js:1503,,yes,yes,wired,dot_radius,0,0
+gcurve,graph,attribute,,,accessor,graph.js:1144,gobject,yes,yes,wired,graph_ref,124,10
+gcurve,horizontal,attribute,,,accessor,graph.js:1393,gobject,yes,yes,missing,horizontal,0,0
+gcurve,label,attribute,,,accessor,graph.js:1273,gobject,yes,yes,wired,label,5,2
+gcurve,legend,attribute,,,accessor,graph.js:1293,gobject,yes,yes,wired,legend,0,0
+gcurve,marker_color,attribute,,,accessor,graph.js:1250,gobject,yes,yes,missing,marker_color,1,1
+gcurve,markers,attribute,,,accessor,graph.js:1198,gobject,yes,yes,wired,markers,1,1
+gcurve,orientation,attribute,,,accessor,graph.js:1409,gobject,yes,yes,missing,orientation,0,0
+gcurve,pos,attribute,,,constructor option,graph.js:1503,,yes,yes,declared-only,pos,0,0
+gcurve,radius,attribute,,,accessor,graph.js:1347,gobject,yes,yes,declared-only,radius,0,0
+gcurve,size,attribute,,,constructor option,graph.js:1503,,yes,yes,declared-only,size,0,0
+gcurve,type,attribute,,,constructor option,graph.js:1503,,yes,yes,missing,type,0,0
+gcurve,visible,attribute,,,accessor,graph.js:1467,gobject,yes,yes,wired,visible,0,0
+gcurve,width,attribute,,,accessor,graph.js:1324,gobject,yes,yes,wired,width,2,2
+gdots,color,attribute,,,accessor,graph.js:1221,gobject,yes,yes,wired,color,1,1
+gdots,data,attribute,,,constructor option,graph.js:1522,,yes,yes,field-only,data,0,0
+gdots,delta,attribute,,,accessor,graph.js:1311,gobject,yes,yes,declared-only,delta,0,0
+gdots,dot,attribute,,,accessor,graph.js:1427,gobject,yes,yes,missing,dot,0,0
+gdots,dot_color,attribute,,,accessor,graph.js:1435,gobject,yes,yes,declared-only,dot_color,0,0
+gdots,dot_radius,attribute,,,accessor,graph.js:1452,gobject,yes,yes,declared-only,dot_radius,0,0
+gdots,graph,attribute,,,accessor,graph.js:1144,gobject,yes,yes,missing,graph,0,0
+gdots,horizontal,attribute,,,accessor,graph.js:1393,gobject,yes,yes,missing,horizontal,0,0
+gdots,label,attribute,,,accessor,graph.js:1273,gobject,yes,yes,wired,label,1,1
+gdots,legend,attribute,,,accessor,graph.js:1293,gobject,yes,yes,wired,legend,0,0
+gdots,marker_color,attribute,,,accessor,graph.js:1250,gobject,yes,yes,missing,marker_color,0,0
+gdots,markers,attribute,,,accessor,graph.js:1198,gobject,yes,yes,declared-only,markers,0,0
+gdots,orientation,attribute,,,accessor,graph.js:1409,gobject,yes,yes,missing,orientation,0,0
+gdots,pos,attribute,,,constructor option,graph.js:1522,,yes,yes,declared-only,pos,0,0
+gdots,radius,attribute,,,accessor,graph.js:1347,gobject,yes,yes,wired,radius,0,0
+gdots,size,attribute,,,accessor,graph.js:1369,gobject,yes,yes,declared-only,size,1,1
+gdots,type,attribute,,,constructor option,graph.js:1522,,yes,yes,missing,type,0,0
+gdots,visible,attribute,,,accessor,graph.js:1467,gobject,yes,yes,wired,visible,0,0
+gdots,width,attribute,,,accessor,graph.js:1324,gobject,yes,yes,declared-only,width,0,0
+ghbars,color,attribute,,,accessor,graph.js:1221,gobject,yes,yes,no-object,,0,0
+ghbars,data,attribute,,,constructor option,graph.js:1543,,yes,yes,no-object,,0,0
+ghbars,delta,attribute,,,accessor,graph.js:1311,gobject,yes,yes,no-object,,0,0
+ghbars,dot,attribute,,,accessor,graph.js:1427,gobject,yes,yes,no-object,,0,0
+ghbars,dot_color,attribute,,,accessor,graph.js:1435,gobject,yes,yes,no-object,,0,0
+ghbars,dot_radius,attribute,,,accessor,graph.js:1452,gobject,yes,yes,no-object,,0,0
+ghbars,graph,attribute,,,accessor,graph.js:1144,gobject,yes,yes,no-object,,0,0
+ghbars,horizontal,attribute,,,constructor option,graph.js:1543,,yes,yes,no-object,,0,0
+ghbars,label,attribute,,,accessor,graph.js:1273,gobject,yes,yes,no-object,,0,0
+ghbars,legend,attribute,,,accessor,graph.js:1293,gobject,yes,yes,no-object,,0,0
+ghbars,marker_color,attribute,,,accessor,graph.js:1250,gobject,yes,yes,no-object,,0,0
+ghbars,markers,attribute,,,accessor,graph.js:1198,gobject,yes,yes,no-object,,0,0
+ghbars,orientation,attribute,,,accessor,graph.js:1409,gobject,yes,yes,no-object,,0,0
+ghbars,pos,attribute,,,constructor option,graph.js:1543,,yes,yes,no-object,,0,0
+ghbars,radius,attribute,,,accessor,graph.js:1347,gobject,yes,yes,no-object,,0,0
+ghbars,size,attribute,,,accessor,graph.js:1369,gobject,yes,yes,no-object,,0,0
+ghbars,type,attribute,,,constructor option,graph.js:1543,,yes,yes,no-object,,0,0
+ghbars,visible,attribute,,,accessor,graph.js:1467,gobject,yes,yes,no-object,,0,0
+ghbars,width,attribute,,,accessor,graph.js:1324,gobject,yes,yes,no-object,,0,0
+graph,add_to_graph,method,,,,graph.js:519,,no,no,missing,add_to_graph,0,0
+graph,align,attribute,,,accessor,graph.js:373,,yes,yes,declared-only,align,1,1
+graph,aria_focusable,attribute,,,constructor option,graph.js:61,,no,no,missing,aria_focusable,0,0
+graph,aria_label,attribute,,,constructor option,graph.js:61,,no,no,missing,aria_label,0,0
+graph,background,attribute,,,accessor,graph.js:464,,yes,yes,wired,background,0,0
+graph,delete,method,,,,graph.js:289,,yes,yes,missing,delete,0,0
+graph,fast,attribute,,,constructor option,graph.js:61,,yes,yes,wired,fast,1,1
+graph,foreground,attribute,,,accessor,graph.js:454,,yes,yes,wired,foreground,0,0
+graph,height,attribute,,,accessor,graph.js:359,,yes,yes,wired,height,1,1
+graph,logx,attribute,,,accessor,graph.js:414,,yes,yes,missing,logx,0,0
+graph,logy,attribute,,,accessor,graph.js:434,,yes,yes,missing,logy,0,0
+graph,make_title,method,,,,graph.js:474,,no,no,missing,make_title,0,0
+graph,make_xtitle,method,,,,graph.js:491,,no,no,missing,make_xtitle,0,0
+graph,make_ytitle,method,,,,graph.js:505,,no,no,missing,make_ytitle,0,0
+graph,scroll,attribute,,,constructor option,graph.js:61,,yes,yes,missing,scroll,1,1
+graph,select,method,,,,graph.js:281,,yes,yes,missing,select,0,0
+graph,title,attribute,,,accessor,graph.js:300,,yes,yes,wired,title,50,11
+graph,type,attribute,,,accessor,graph.js:277,,yes,yes,missing,type,0,0
+graph,width,attribute,,,accessor,graph.js:345,,yes,yes,wired,width,2,2
+graph,x,attribute,,,constructor option,graph.js:61,,yes,yes,missing,x,0,0
+graph,xmax,attribute,,,accessor,graph.js:390,,yes,yes,wired,xmax,2,2
+graph,xmin,attribute,,,accessor,graph.js:382,,yes,yes,wired,xmin,1,1
+graph,xtitle,attribute,,,accessor,graph.js:315,,yes,yes,wired,xtitle,51,12
+graph,y,attribute,,,constructor option,graph.js:61,,yes,yes,missing,y,0,0
+graph,ymax,attribute,,,accessor,graph.js:406,,yes,yes,wired,ymax,1,1
+graph,ymin,attribute,,,accessor,graph.js:398,,yes,yes,wired,ymin,0,0
+graph,ytitle,attribute,,,accessor,graph.js:330,,yes,yes,wired,ytitle,51,12
+group,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,no-object,,0,0
+group,axis_changed,method,,,,primitives.js:822,,no,no,no-object,,0,0
+group,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,no-object,,0,0
+group,bounding_box,method,,,,primitives.js:663,Primitive,no,no,no-object,,0,0
+group,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+group,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,no-object,,0,0
+group,clone,method,,,,primitives.js:505,Primitive,yes,yes,no-object,,0,0
+group,color,attribute,,,accessor,primitives.js:808,,yes,yes,no-object,,0,0
+group,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+group,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,no-object,,0,0
+group,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,no-object,,0,0
+group,green,attribute,,,accessor,primitives.js:762,box,yes,yes,no-object,,0,0
+group,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,no-object,,0,0
+group,group_to_world,method,,,,primitives.js:849,,yes,yes,no-object,,0,0
+group,height,attribute,,,accessor,primitives.js:741,box,yes,yes,no-object,,0,0
+group,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,no-object,,0,0
+group,length,attribute,,,accessor,primitives.js:718,box,yes,yes,no-object,,0,0
+group,light_in_world,method,,,,primitives.js:702,Primitive,no,no,no-object,,0,0
+group,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,no-object,,0,0
+group,objects,attribute,,,accessor,primitives.js:784,,yes,yes,no-object,,0,0
+group,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,no-object,,0,0
+group,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,no-object,,0,0
+group,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,no-object,,2,1
+group,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,no-object,,0,0
+group,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+group,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,no-object,,0,0
+group,red,attribute,,,accessor,primitives.js:755,box,yes,yes,no-object,,0,0
+group,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,no-object,,0,0
+group,rotate,method,,,,primitives.js:827,,yes,yes,no-object,,0,0
+group,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,no-object,,0,0
+group,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,no-object,,0,0
+group,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+group,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,no-object,,0,0
+group,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,no-object,,0,0
+group,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,no-object,,0,0
+group,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,no-object,,0,0
+group,up,attribute,,,accessor,primitives.js:799,,yes,yes,no-object,,0,0
+group,visible,attribute,,,accessor,primitives.js:790,,yes,yes,no-object,,0,0
+group,width,attribute,,,accessor,primitives.js:748,box,yes,yes,no-object,,0,0
+group,world_to_group,method,,,,primitives.js:852,,yes,yes,no-object,,0,0
+group,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,no-object,,0,0
+group,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,no-object,,0,0
+group,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,no-object,,0,0
+gvbars,color,attribute,,,accessor,graph.js:1221,gobject,yes,yes,wired,color,2,2
+gvbars,data,attribute,,,constructor option,graph.js:1532,,yes,yes,field-only,data,1,1
+gvbars,delta,attribute,,,accessor,graph.js:1311,gobject,yes,yes,wired,delta,2,2
+gvbars,dot,attribute,,,accessor,graph.js:1427,gobject,yes,yes,missing,dot,0,0
+gvbars,dot_color,attribute,,,accessor,graph.js:1435,gobject,yes,yes,declared-only,dot_color,0,0
+gvbars,dot_radius,attribute,,,accessor,graph.js:1452,gobject,yes,yes,declared-only,dot_radius,0,0
+gvbars,graph,attribute,,,accessor,graph.js:1144,gobject,yes,yes,missing,graph,0,0
+gvbars,horizontal,attribute,,,constructor option,graph.js:1532,,yes,yes,missing,horizontal,0,0
+gvbars,label,attribute,,,accessor,graph.js:1273,gobject,yes,yes,wired,label,1,1
+gvbars,legend,attribute,,,accessor,graph.js:1293,gobject,yes,yes,wired,legend,0,0
+gvbars,marker_color,attribute,,,accessor,graph.js:1250,gobject,yes,yes,missing,marker_color,0,0
+gvbars,markers,attribute,,,accessor,graph.js:1198,gobject,yes,yes,declared-only,markers,0,0
+gvbars,orientation,attribute,,,accessor,graph.js:1409,gobject,yes,yes,missing,orientation,0,0
+gvbars,pos,attribute,,,constructor option,graph.js:1532,,yes,yes,declared-only,pos,0,0
+gvbars,radius,attribute,,,accessor,graph.js:1347,gobject,yes,yes,declared-only,radius,0,0
+gvbars,size,attribute,,,accessor,graph.js:1369,gobject,yes,yes,declared-only,size,0,0
+gvbars,type,attribute,,,constructor option,graph.js:1532,,yes,yes,missing,type,0,0
+gvbars,visible,attribute,,,accessor,graph.js:1467,gobject,yes,yes,wired,visible,0,0
+gvbars,width,attribute,,,accessor,graph.js:1324,gobject,yes,yes,declared-only,width,0,0
+helix,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,10,3
+helix,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+helix,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+helix,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+helix,ccw,attribute,true,,typed,primitives.js:2395,,yes,yes,wired,ccw,0,0
+helix,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+helix,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+helix,coils,attribute,5,,typed,primitives.js:2394,,yes,yes,wired,coils,0,0
+helix,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,3,3
+helix,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+helix,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+helix,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+helix,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+helix,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+helix,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
+helix,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+helix,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,3,2
+helix,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+helix,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+helix,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+helix,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+helix,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,6,3
+helix,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+helix,radius,attribute,,,accessor,primitives.js:866,cylinder,yes,yes,wired,radius,2,2
+helix,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+helix,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+helix,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+helix,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+helix,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+helix,size,attribute,"<1,2,2>",,vector,primitives.js:865,cylinder,yes,yes,field-only,size,2,1
+helix,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+helix,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+helix,thickness,attribute,0,,typed,primitives.js:2393,,yes,yes,wired,thickness,3,3
+helix,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+helix,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+helix,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+helix,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+helix,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
+helix,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
+helix,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+helix,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+helix,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+label,align,attribute,null,,typed,primitives.js:2595,,yes,yes,declared-only,align,0,0
+label,axis,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,wired,axis,0,0
+label,background,attribute,null,,typed,primitives.js:2589,,yes,yes,field-only,background,0,0
+label,border,attribute,5,,typed,primitives.js:2597,,yes,yes,field-only,border,0,0
+label,box,attribute,true,,typed,primitives.js:2596,,yes,yes,field-only,box,1,1
+label,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+label,color,attribute,null,,typed,primitives.js:2586,,yes,yes,wired,color,1,1
+label,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+label,font,attribute,"""Arial""",,typed,primitives.js:2592,,yes,yes,field-only,font,0,0
+label,group,attribute,,,constructor option,primitives.js:2573,,yes,yes,declared-only,group,0,0
+label,height,attribute,15,,typed,primitives.js:2593,,yes,yes,wired,height,1,1
+label,line,attribute,true,,typed,primitives.js:2587,,yes,yes,field-only,line,0,0
+label,linecolor,attribute,null,,typed,primitives.js:2588,,yes,yes,missing,linecolor,0,0
+label,linewidth,attribute,1,,typed,primitives.js:2598,,yes,yes,missing,linewidth,0,0
+label,make_trail,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,wired,make_trail,0,0
+label,opacity,attribute,0.66,,typed,primitives.js:2590,,yes,yes,wired,opacity,0,0
+label,pixel_pos,attribute,false,,typed,primitives.js:2603,,no,no,missing,pixel_pos,0,0
+label,pos,attribute,"<0,0,0>",,vector,primitives.js:2585,,yes,yes,wired,pos,3,2
+label,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+label,size,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,field-only,size,0,0
+label,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+label,space,attribute,0,,typed,primitives.js:2601,,yes,yes,missing,space,0,0
+label,text,attribute,"""""",,typed,primitives.js:2591,,yes,yes,field-only,text,3,3
+label,up,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,wired,up,0,0
+label,visible,attribute,false,,typed,primitives.js:2594,,yes,yes,wired,visible,1,1
+label,width,attribute,,,accessor,primitives.js:2605,,yes,yes,declared-only,width,0,0
+label,xoffset,attribute,0,,typed,primitives.js:2599,,yes,yes,wired,xoffset,1,1
+label,yoffset,attribute,0,,typed,primitives.js:2600,,yes,yes,wired,yoffset,1,1
+local_light,axis,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,color,attribute,"<1,1,1>",,vector,primitives.js:2518,,yes,yes,no-object,,0,0
+local_light,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,make_trail,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,pos,attribute,"<0,0,0>",,vector,primitives.js:2517,,yes,yes,no-object,,0,0
+local_light,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,size,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,up,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+local_light,visible,attribute,true,,,primitives.js:2519,,yes,yes,no-object,,0,0
+menu,aria_describedby,attribute,"""""",,constructor option,primitives.js:3632,,no,no,no-object,,0,0
+menu,aria_label,attribute,"""""",,constructor option,primitives.js:3632,,no,no,no-object,,0,0
+menu,aria_labelledby,attribute,"""""",,constructor option,primitives.js:3632,,no,no,no-object,,0,0
+menu,bind,attribute,,,constructor option,primitives.js:3632,,yes,yes,no-object,,2,2
+menu,choices,attribute,,,constructor option,primitives.js:3632,,yes,yes,no-object,,2,2
+menu,delete,method,,,,primitives.js:3632,,yes,yes,no-object,,0,0
+menu,disabled,attribute,false,,constructor option,primitives.js:3632,,yes,yes,no-object,,0,0
+menu,focus,method,,,,primitives.js:3632,,no,no,no-object,,0,0
+menu,index,attribute,,,accessor,primitives.js:3632,,yes,yes,no-object,,1,1
+menu,pos,attribute,cvs.caption_anchor,,constructor option,primitives.js:3632,,yes,yes,no-object,,0,0
+menu,selected,attribute,null,,constructor option,primitives.js:3632,,yes,yes,no-object,,1,1
+mouse,alt,attribute,false,,,canvas.js:806,,yes,yes,missing,alt,0,0
+mouse,canvas,attribute,null,,,canvas.js:782,,yes,yes,missing,canvas,0,0
+mouse,ctrl,attribute,false,,,canvas.js:807,,yes,yes,missing,ctrl,0,0
+mouse,pick,method,,,,canvas.js:787,,yes,yes,missing,pick,0,0
+mouse,pos,attribute,null,,,canvas.js:783,,yes,yes,missing,pos,0,0
+mouse,project,method,,,,canvas.js:790,,yes,yes,missing,project,0,0
+mouse,ray,attribute,null,,,canvas.js:784,,yes,yes,missing,ray,0,0
+mouse,shift,attribute,false,,,canvas.js:808,,yes,yes,missing,shift,0,0
+paths,arc,function,,,,shapespaths.js:1307,,yes,yes,missing,shapes::arc,3,2
+paths,circle,function,,,,shapespaths.js:1281,,yes,yes,wired,shapes::circle,0,0
+paths,convert,function,,,,shapespaths.js:1225,,yes,yes,missing,shapes::convert,0,0
+paths,cross,function,,,,shapespaths.js:1268,,yes,yes,wired,shapes::cross,1,1
+paths,ellipse,function,,,,shapespaths.js:1315,,yes,yes,wired,shapes::ellipse,0,0
+paths,hexagon,function,,,,shapespaths.js:1343,,yes,yes,wired,shapes::hexagon,0,0
+paths,line,function,,,,shapespaths.js:1288,,yes,yes,missing,shapes::line,0,0
+paths,ngon,function,,,,shapespaths.js:1322,,yes,yes,wired,shapes::ngon,0,0
+paths,octagon,function,,,,shapespaths.js:1350,,yes,yes,missing,shapes::octagon,0,0
+paths,pentagon,function,,,,shapespaths.js:1336,,yes,yes,wired,shapes::pentagon,0,0
+paths,rectangle,function,,,,shapespaths.js:1261,,yes,yes,wired,shapes::rectangle,1,1
+paths,setuppath,function,,,,shapespaths.js:1249,,no,no,missing,shapes::setuppath,0,0
+paths,star,function,,,,shapespaths.js:1357,,yes,yes,wired,shapes::star,0,0
+paths,trapezoid,function,,,,shapespaths.js:1274,,yes,yes,missing,shapes::trapezoid,0,0
+paths,triangle,function,,,,shapespaths.js:1329,,yes,yes,wired,shapes::triangle,0,0
+points,append,method,,,,primitives.js:2130,curve,yes,yes,wired,append,0,0
+points,axis,unsupported,,,getter throws,primitives.js:2349,,yes,yes,wired,axis,0,0
+points,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+points,canvas,attribute,,,constructor option,primitives.js:2294,,yes,yes,missing,canvas,0,0
+points,clear,method,,,,primitives.js:2166,curve,yes,yes,wired,clear_points,0,0
+points,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+points,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+points,color,attribute,,,accessor,primitives.js:2338,,yes,yes,wired,color,0,0
+points,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+points,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+points,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+points,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+points,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+points,length,attribute,,,constructor option,primitives.js:2294,,yes,yes,declared-only,length,0,0
+points,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+points,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+points,modify,method,,,,primitives.js:2200,curve,yes,yes,missing,modify,0,0
+points,npoints,attribute,,,accessor,primitives.js:1943,curve,yes,yes,missing,npoints,0,0
+points,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+points,origin,unsupported,,,getter throws,primitives.js:2334,,yes,yes,missing,origin,0,0
+points,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+points,point,method,,,,primitives.js:2162,curve,yes,yes,missing,point,0,0
+points,pop,method,,,,primitives.js:2136,curve,yes,yes,missing,pop,0,0
+points,pos,unsupported,,,getter throws,primitives.js:1925,curve,yes,yes,wired,pos,1,1
+points,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+points,push,method,,,,primitives.js:2123,curve,no,no,missing,push,0,0
+points,pypop,method,,,,primitives.js:2139,curve,no,no,missing,pypop,0,0
+points,radius,attribute,,,accessor,primitives.js:1929,curve,yes,yes,declared-only,radius,0,0
+points,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+points,retain,attribute,,,accessor,primitives.js:1936,curve,yes,yes,wired,retain,0,0
+points,rotate,unsupported,,yes,getter throws,primitives.js:2369,,yes,yes,missing,rotate,0,0
+points,shape,attribute,,,accessor,primitives.js:2372,,yes,yes,declared-only,shape,0,0
+points,shift,method,,,,primitives.js:2171,curve,yes,yes,missing,shift,0,0
+points,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+points,size,unsupported,,,getter throws,primitives.js:2353,,yes,yes,wired,size,0,0
+points,size_units,attribute,,,accessor,primitives.js:2361,,yes,yes,missing,size_units,1,1
+points,slice,method,,,,primitives.js:2212,curve,yes,yes,missing,slice,0,0
+points,splice,method,,,,primitives.js:2181,curve,yes,yes,missing,splice,0,0
+points,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+points,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+points,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+points,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+points,unshift,method,,,,primitives.js:2174,curve,yes,yes,missing,unshift,0,0
+points,up,unsupported,,,getter throws,primitives.js:2357,,yes,yes,wired,up,0,0
+points,visible,attribute,,,accessor,primitives.js:2376,,yes,yes,wired,visible,0,0
+points,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+points,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+points,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+pyramid,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,1,1
+pyramid,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+pyramid,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+pyramid,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+pyramid,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+pyramid,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+pyramid,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,2,2
+pyramid,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+pyramid,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+pyramid,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+pyramid,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+pyramid,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+pyramid,height,attribute,,,accessor,primitives.js:741,box,yes,yes,wired,height,0,0
+pyramid,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+pyramid,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,0,0
+pyramid,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+pyramid,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+pyramid,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+pyramid,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+pyramid,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,3,3
+pyramid,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+pyramid,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+pyramid,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+pyramid,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+pyramid,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+pyramid,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+pyramid,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,1,1
+pyramid,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,3,3
+pyramid,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+pyramid,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,2,2
+pyramid,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+pyramid,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+pyramid,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+pyramid,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+pyramid,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
+pyramid,width,attribute,,,accessor,primitives.js:748,box,yes,yes,wired,width,0,0
+pyramid,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+pyramid,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+pyramid,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+quad,axis,attribute,,,accessor,primitives.js:1584,,yes,yes,wired,axis,0,0
+quad,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+quad,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+quad,canvas,attribute,,,constructor option,primitives.js:1503,,yes,yes,missing,canvas,0,0
+quad,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+quad,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+quad,color,attribute,,,accessor,primitives.js:1576,,yes,yes,wired,color,0,0
+quad,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+quad,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+quad,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+quad,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+quad,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+quad,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
+quad,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+quad,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
+quad,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+quad,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+quad,opacity,attribute,,,accessor,primitives.js:1592,,yes,yes,wired,opacity,0,0
+quad,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+quad,pos,attribute,,,accessor,primitives.js:1572,,yes,yes,wired,pos,0,0
+quad,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+quad,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+quad,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+quad,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+quad,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+quad,rotate,method,,,,primitives.js:1607,,yes,yes,missing,rotate,0,0
+quad,shininess,attribute,,,accessor,primitives.js:1596,,yes,yes,wired,shininess,0,0
+quad,size,attribute,,,accessor,primitives.js:1580,,yes,yes,field-only,size,0,0
+quad,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+quad,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,1,1
+quad,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+quad,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+quad,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+quad,up,attribute,,,accessor,primitives.js:1588,,yes,yes,wired,up,0,0
+quad,v0,attribute,,,accessor,primitives.js:1528,,yes,yes,field-only,v0,0,0
+quad,v1,attribute,,,accessor,primitives.js:1536,,yes,yes,field-only,v1,0,0
+quad,v2,attribute,,,accessor,primitives.js:1544,,yes,yes,field-only,v2,0,0
+quad,v3,attribute,,,accessor,primitives.js:1552,,yes,yes,field-only,v3,0,0
+quad,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
+quad,vs,attribute,,,accessor,primitives.js:1560,,yes,yes,missing,vs,3,3
+quad,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
+quad,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+quad,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+quad,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+radio,aria_describedby,attribute,"""""",,constructor option,primitives.js:2905,,no,no,no-object,,0,0
+radio,aria_label,attribute,"""""",,constructor option,primitives.js:2905,,no,no,no-object,,0,0
+radio,aria_labelledby,attribute,"""""",,constructor option,primitives.js:2905,,no,no,no-object,,0,0
+radio,bind,attribute,,,constructor option,primitives.js:2905,,yes,yes,no-object,,2,1
+radio,checked,attribute,false,,constructor option,primitives.js:2905,,yes,yes,no-object,,5,1
+radio,delete,method,,,,primitives.js:2905,,yes,yes,no-object,,0,0
+radio,disabled,attribute,false,,constructor option,primitives.js:2905,,yes,yes,no-object,,0,0
+radio,focus,method,,,,primitives.js:2905,,no,no,no-object,,0,0
+radio,name,attribute,null,,constructor option,primitives.js:2905,,yes,yes,no-object,,2,1
+radio,pos,attribute,cvs.caption_anchor,,constructor option,primitives.js:2905,,yes,yes,no-object,,0,0
+radio,text,attribute,'',,constructor option,primitives.js:2905,,yes,yes,no-object,,2,1
+ring,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,3,3
+ring,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+ring,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+ring,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+ring,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+ring,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+ring,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,4,4
+ring,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+ring,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
+ring,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+ring,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+ring,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+ring,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
+ring,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+ring,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
+ring,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+ring,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+ring,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
+ring,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+ring,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,5,4
+ring,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+ring,radius,attribute,,,accessor,primitives.js:2484,,yes,yes,wired,radius,4,4
+ring,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+ring,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+ring,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+ring,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+ring,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
+ring,size,attribute,"<0.2,2.2,2.2>",,vector,primitives.js:2474,,yes,yes,field-only,size,1,1
+ring,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+ring,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+ring,thickness,attribute,,,accessor,primitives.js:2475,,yes,yes,wired,thickness,4,4
+ring,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+ring,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+ring,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+ring,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+ring,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
+ring,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
+ring,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+ring,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+ring,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+shapes,CrownOutline,function,,,,shapespaths.js:953,,no,no,missing,shapes::CrownOutline,0,0
+shapes,RackOutline,function,,,,shapespaths.js:831,,no,no,missing,shapes::RackOutline,0,0
+shapes,ToothOutline,function,,,,shapespaths.js:701,,no,no,missing,shapes::ToothOutline,0,0
+shapes,addpos,function,,,,shapespaths.js:119,,no,no,missing,shapes::addpos,0,0
+shapes,arc,function,,,,shapespaths.js:387,,yes,yes,missing,shapes::arc,0,0
+shapes,circframe,function,,,,shapespaths.js:295,,no,no,missing,shapes::circframe,0,0
+shapes,circle,function,,,,shapespaths.js:335,,yes,yes,wired,shapes::circle,16,5
+shapes,cross,function,,,,shapespaths.js:195,,yes,yes,wired,shapes::cross,1,1
+shapes,ellipse,function,,,,shapespaths.js:427,,yes,yes,wired,shapes::ellipse,0,0
+shapes,gear,function,,,,shapespaths.js:1086,,yes,yes,wired,shapes::gear,2,2
+shapes,hexagon,function,,,,shapespaths.js:572,,yes,yes,wired,shapes::hexagon,1,1
+shapes,line,function,,,,shapespaths.js:447,,yes,yes,missing,shapes::line,0,0
+shapes,nframe,function,,,,shapespaths.js:483,,no,no,missing,shapes::nframe,0,0
+shapes,ngon,function,,,,shapespaths.js:521,,yes,yes,wired,shapes::ngon,0,0
+shapes,octagon,function,,,,shapespaths.js:578,,yes,yes,missing,shapes::octagon,0,0
+shapes,pentagon,function,,,,shapespaths.js:565,,yes,yes,wired,shapes::pentagon,0,0
+shapes,points,function,,,,shapespaths.js:664,,yes,yes,missing,shapes::points,0,0
+shapes,rackgear,function,,,,shapespaths.js:1147,,no,no,missing,shapes::rackgear,0,0
+shapes,rectangle,function,,,,shapespaths.js:164,,yes,yes,wired,shapes::rectangle,5,2
+shapes,rframe,function,,,,shapespaths.js:129,,no,no,missing,shapes::rframe,0,0
+shapes,rotatecp,function,,,,shapespaths.js:93,,no,no,missing,shapes::rotatecp,0,0
+shapes,roundc,function,,,,shapespaths.js:23,,no,no,missing,shapes::roundc,0,0
+shapes,scale,function,,,,shapespaths.js:110,,yes,yes,missing,shapes::scale,0,0
+shapes,sframe,function,,,,shapespaths.js:585,,no,no,missing,shapes::sframe,0,0
+shapes,star,function,,,,shapespaths.js:624,,yes,yes,wired,shapes::star,0,0
+shapes,trapezoid,function,,,,shapespaths.js:263,,yes,yes,missing,shapes::trapezoid,2,1
+shapes,trframe,function,,,,shapespaths.js:219,,no,no,missing,shapes::trframe,0,0
+shapes,triangle,function,,,,shapespaths.js:558,,yes,yes,wired,shapes::triangle,2,1
+simple_sphere,axis,attribute,"<1,0,0>",,vector,primitives.js:897,,yes,yes,no-object,,0,0
+simple_sphere,bounding_box,method,,,,primitives.js:663,Primitive,no,no,no-object,,0,0
+simple_sphere,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+simple_sphere,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,no-object,,0,0
+simple_sphere,clone,method,,,,primitives.js:505,Primitive,yes,yes,no-object,,0,0
+simple_sphere,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,no-object,,0,0
+simple_sphere,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+simple_sphere,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,no-object,,0,0
+simple_sphere,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,no-object,,0,0
+simple_sphere,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,no-object,,0,0
+simple_sphere,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,no-object,,0,0
+simple_sphere,light_in_world,method,,,,primitives.js:702,Primitive,no,no,no-object,,0,0
+simple_sphere,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,no-object,,0,0
+simple_sphere,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,no-object,,0,0
+simple_sphere,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,no-object,,0,0
+simple_sphere,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,no-object,,0,0
+simple_sphere,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,no-object,,0,0
+simple_sphere,radius,attribute,,,accessor,primitives.js:885,sphere,yes,yes,no-object,,0,0
+simple_sphere,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,no-object,,0,0
+simple_sphere,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,no-object,,0,0
+simple_sphere,rotate,method,,,,primitives.js:618,Primitive,yes,yes,no-object,,0,0
+simple_sphere,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,no-object,,0,0
+simple_sphere,size,attribute,"<2,2,2>",,vector,primitives.js:898,,yes,yes,no-object,,0,0
+simple_sphere,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
+simple_sphere,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,no-object,,0,0
+simple_sphere,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,no-object,,0,0
+simple_sphere,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,no-object,,0,0
+simple_sphere,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,no-object,,0,0
+simple_sphere,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,no-object,,0,0
+simple_sphere,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,no-object,,0,0
+simple_sphere,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,no-object,,0,0
+simple_sphere,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,no-object,,0,0
+simple_sphere,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,no-object,,0,0
+slider,align,attribute,'none',,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,aria_describedby,attribute,"""""",,constructor option,primitives.js:3464,,no,no,no-object,,0,0
+slider,aria_label,attribute,"""""",,constructor option,primitives.js:3464,,no,no,no-object,,0,0
+slider,aria_labelledby,attribute,"""""",,constructor option,primitives.js:3464,,no,no,no-object,,0,0
+slider,bind,attribute,,,constructor option,primitives.js:3464,,yes,yes,no-object,,2,2
+slider,bottom,attribute,0,,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,change,method,,,,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,delete,method,,,,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,disabled,attribute,false,,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,focus,method,,,,primitives.js:3464,,no,no,no-object,,0,0
+slider,handle_color,attribute,"vec(0, 0x6c/0xff, 0xfa/0xff)",,constructor option,primitives.js:3464,,no,no,no-object,,0,0
+slider,left,attribute,0,,constructor option,primitives.js:3464,,yes,yes,no-object,,1,1
+slider,length,attribute,400,,constructor option,primitives.js:3464,,yes,yes,no-object,,2,2
+slider,max,attribute,1,,constructor option,primitives.js:3464,,yes,yes,no-object,,2,2
+slider,min,attribute,0,,constructor option,primitives.js:3464,,yes,yes,no-object,,2,2
+slider,on_focus,attribute,undefined,,constructor option,primitives.js:3464,,no,no,no-object,,0,0
+slider,pos,attribute,cvs.caption_anchor,,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,range_color,attribute,"vec(0,0,0)",,constructor option,primitives.js:3464,,no,no,no-object,,0,0
+slider,right,attribute,0,,constructor option,primitives.js:3464,,yes,yes,no-object,,1,1
+slider,slide,method,,,,primitives.js:3464,,no,no,no-object,,0,0
+slider,step,attribute,,,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,top,attribute,0,,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,value,attribute,,,constructor option,primitives.js:3464,,yes,yes,no-object,,3,1
+slider,vertical,attribute,false,,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+slider,width,attribute,10,,constructor option,primitives.js:3464,,yes,yes,no-object,,0,0
+sphere,axis,attribute,"<1,0,0>",,vector,primitives.js:883,,yes,yes,wired,axis,0,0
+sphere,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+sphere,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+sphere,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,1,1
+sphere,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,1,1
+sphere,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,49,24
+sphere,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+sphere,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,2,1
+sphere,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+sphere,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+sphere,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,2,1
+sphere,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+sphere,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,31,16
+sphere,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,3,2
+sphere,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+sphere,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,197,26
+sphere,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+sphere,radius,attribute,,,accessor,primitives.js:885,,yes,yes,wired,radius,49,22
+sphere,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+sphere,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,7,6
+sphere,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,2,2
+sphere,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,3,2
+sphere,size,attribute,"<2,2,2>",,vector,primitives.js:884,,yes,yes,field-only,size,8,4
+sphere,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+sphere,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+sphere,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,yes,wired,trail_color,2,2
+sphere,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,3,3
+sphere,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,10,5
+sphere,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+sphere,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,7,3
+sphere,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+sphere,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+sphere,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+text,align,attribute,,,accessor,primitives.js:1241,,yes,yes,field-only,align,8,4
+text,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,0,0
+text,billboard,attribute,,,accessor,primitives.js:1245,,yes,yes,declared-only,billboard,6,2
+text,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+text,canvas,attribute,,,constructor option,primitives.js:1067,,yes,yes,missing,canvas,0,0
+text,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+text,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+text,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,8,4
+text,depth,attribute,,,accessor,primitives.js:1188,,yes,yes,wired,thickness,5,4
+text,descender,attribute,,,accessor,primitives.js:1204,,yes,yes,missing,descender,0,0
+text,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+text,emissive,attribute,,,accessor,primitives.js:1222,,yes,yes,wired,emissive,6,2
+text,end,attribute,,,accessor,primitives.js:1269,,yes,yes,missing,end,0,0
+text,end_face_color,attribute,,,accessor,primitives.js:1261,,yes,yes,missing,end_face_color,1,1
+text,font,attribute,,,accessor,primitives.js:1237,,yes,yes,field-only,font,1,1
+text,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+text,group,attribute,,,constructor option,primitives.js:1067,,yes,yes,declared-only,group,1,1
+text,height,attribute,,,accessor,primitives.js:1181,,yes,yes,wired,height,8,4
+text,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+text,length,attribute,,,accessor,primitives.js:1173,,yes,yes,declared-only,length,0,0
+text,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+text,lines,attribute,,,accessor,primitives.js:1298,,yes,yes,missing,lines,0,0
+text,lower_left,attribute,,,accessor,primitives.js:1290,,no,no,missing,lower_left,0,0
+text,lower_right,attribute,,,accessor,primitives.js:1294,,no,no,missing,lower_right,0,0
+text,make_trail,attribute,,,constructor option,primitives.js:1067,,yes,yes,wired,make_trail,0,0
+text,newargs,attribute,,,constructor option,primitives.js:1067,,no,no,missing,newargs,0,0
+text,opacity,attribute,,,accessor,primitives.js:1208,,yes,yes,wired,opacity,0,0
+text,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+text,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,11,5
+text,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+text,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+text,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+text,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+text,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+text,shininess,attribute,,,accessor,primitives.js:1215,,yes,yes,wired,shininess,0,0
+text,show_end_face,attribute,,,accessor,primitives.js:1253,,yes,yes,declared-only,show_end_face,0,0
+text,show_start_face,attribute,,,accessor,primitives.js:1249,,yes,yes,declared-only,show_start_face,0,0
+text,size,unsupported,,,getter throws,primitives.js:1143,,yes,yes,field-only,size,0,0
+text,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+text,start,attribute,,,accessor,primitives.js:1265,,yes,yes,missing,start,2,1
+text,start_face_color,attribute,,,accessor,primitives.js:1257,,yes,yes,missing,start_face_color,1,1
+text,text,attribute,,,accessor,primitives.js:1233,,yes,yes,field-only,text,11,5
+text,texture,unsupported,,,getter throws,primitives.js:1229,,yes,yes,wired,texture,0,0
+text,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+text,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+text,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+text,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
+text,upper_left,attribute,,,accessor,primitives.js:1277,,no,no,missing,upper_left,0,0
+text,upper_right,attribute,,,accessor,primitives.js:1286,,no,no,missing,upper_right,0,0
+text,vertical_spacing,attribute,,,accessor,primitives.js:1273,,yes,yes,missing,vertical_spacing,0,0
+text,visible,attribute,,,accessor,primitives.js:1147,,yes,yes,wired,visible,0,0
+text,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+text,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+text,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+texture,bumpmap,attribute,,,texture sub-option,primitives.js:377,,yes,yes,no-object,,0,0
+texture,file,attribute,,,texture sub-option,primitives.js:377,,yes,yes,no-object,,0,0
+texture,flipx,attribute,,,texture sub-option,primitives.js:377,,yes,yes,no-object,,0,0
+texture,flipy,attribute,,,texture sub-option,primitives.js:377,,yes,yes,no-object,,0,0
+texture,place,attribute,,,texture sub-option,primitives.js:377,,yes,yes,no-object,,0,0
+texture,turn,attribute,,,texture sub-option,primitives.js:377,,yes,yes,no-object,,0,0
+textures,earth,constant,""":earth_texture.jpg""",,,primitives.js:228,,no,yes,missing,,1,1
+textures,flower,constant,""":flower_texture.jpg""",,,primitives.js:227,,yes,yes,missing,,3,3
+textures,granite,constant,""":granite_texture.jpg""",,,primitives.js:227,,yes,yes,missing,,2,2
+textures,gravel,constant,""":gravel_texture.jpg""",,,primitives.js:227,,yes,yes,missing,,1,1
+textures,metal,constant,""":metal_texture.jpg""",,,primitives.js:229,,yes,yes,missing,,10,5
+textures,rock,constant,""":rock_texture.jpg""",,,primitives.js:229,,yes,yes,missing,,2,2
+textures,rough,constant,""":rough_texture.jpg""",,,primitives.js:229,,no,yes,missing,,11,4
+textures,rug,constant,""":rug_texture.jpg""",,,primitives.js:230,,no,yes,missing,,3,3
+textures,stones,constant,""":stones_texture.jpg""",,,primitives.js:230,,yes,yes,missing,,2,2
+textures,stucco,constant,""":stucco_texture.jpg""",,,primitives.js:230,,yes,yes,missing,,1,1
+textures,wood,constant,""":wood_texture.jpg""",,,primitives.js:231,,yes,yes,missing,,5,3
+textures,wood_old,constant,""":wood_old_texture.jpg""",,,primitives.js:231,,yes,yes,missing,,3,3
+triangle,axis,attribute,,,accessor,primitives.js:1472,,yes,yes,wired,axis,0,0
+triangle,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
+triangle,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
+triangle,canvas,attribute,,,constructor option,primitives.js:1396,,yes,yes,missing,canvas,0,0
+triangle,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
+triangle,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
+triangle,color,attribute,,,accessor,primitives.js:1464,,yes,yes,wired,color,0,0
+triangle,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+triangle,emissive,attribute,,,accessor,primitives.js:1488,,yes,yes,wired,emissive,0,0
+triangle,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
+triangle,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
+triangle,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
+triangle,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
+triangle,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+triangle,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
+triangle,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
+triangle,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
+triangle,opacity,attribute,,,accessor,primitives.js:1480,,yes,yes,wired,opacity,0,0
+triangle,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+triangle,pos,attribute,,,accessor,primitives.js:1460,,yes,yes,wired,pos,0,0
+triangle,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
+triangle,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+triangle,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
+triangle,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
+triangle,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
+triangle,rotate,method,,,,primitives.js:1499,,yes,yes,missing,rotate,0,0
+triangle,shininess,attribute,,,accessor,primitives.js:1484,,yes,yes,wired,shininess,0,0
+triangle,size,attribute,,,accessor,primitives.js:1468,,yes,yes,field-only,size,0,0
+triangle,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+triangle,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
+triangle,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
+triangle,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
+triangle,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+triangle,up,attribute,,,accessor,primitives.js:1476,,yes,yes,wired,up,0,0
+triangle,v0,attribute,,,accessor,primitives.js:1425,,yes,yes,field-only,v0,0,0
+triangle,v1,attribute,,,accessor,primitives.js:1433,,yes,yes,field-only,v1,0,0
+triangle,v2,attribute,,,accessor,primitives.js:1441,,yes,yes,field-only,v2,0,0
+triangle,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
+triangle,vs,attribute,,,accessor,primitives.js:1449,,yes,yes,missing,vs,0,0
+triangle,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
+triangle,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
+triangle,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
+triangle,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
+vec,add,method,,,,vectors.js:440,,yes,yes,wired,operator+,0,0
+vec,comp,method,,,,vectors.js:529,,yes,yes,wired,comp,0,0
+vec,cross,method,,,,vectors.js:533,,yes,yes,wired,cross,0,0
+vec,diff_angle,method,,,,vectors.js:540,,yes,yes,wired,diff_angle,0,0
+vec,divide,method,,,,vectors.js:456,,yes,yes,wired,operator/,0,0
+vec,dot,method,,,,vectors.js:515,,yes,yes,wired,dot,0,0
+vec,equals,method,,,,vectors.js:519,,yes,yes,wired,operator==,0,0
+vec,hat,attribute,,,accessor,vectors.js:483,,yes,yes,wired,hat,1,1
+vec,mag,attribute,,,accessor,vectors.js:465,,yes,yes,wired,mag,0,0
+vec,mag2,attribute,,,accessor,vectors.js:474,,no,no,wired,mag2,0,0
+vec,multiply,method,,,,vectors.js:450,,yes,yes,wired,operator*,0,0
+vec,norm,method,,,,vectors.js:509,,yes,yes,wired,norm,0,0
+vec,proj,method,,,,vectors.js:524,,yes,yes,wired,proj,0,0
+vec,rotate,method,,,,vectors.js:547,,yes,yes,wired,rotate,1,1
+vec,sub,method,,,,vectors.js:445,,yes,yes,wired,operator-,0,0
+vec,toString,method,,,,vectors.js:424,,yes,yes,wired,std::formatter,0,0
+vertex,bumpaxis,attribute,"<1,0,0>",,vector,primitives.js:1366,,yes,yes,no-object,,0,0
+vertex,canvas,attribute,,,constructor option,primitives.js:1304,,yes,yes,no-object,,0,0
+vertex,color,attribute,"<1,1,1>",,vector,primitives.js:1349,,yes,yes,no-object,,5,2
+vertex,display,attribute,,,constructor option,primitives.js:1304,,yes,yes,no-object,,0,0
+vertex,emissive,attribute,false,,typed,primitives.js:1368,,yes,yes,no-object,,0,0
+vertex,normal,attribute,"<0,0,1>",,vector,primitives.js:1348,,yes,yes,no-object,,2,2
+vertex,opacity,attribute,,,accessor,primitives.js:1350,,yes,yes,no-object,,0,0
+vertex,pos,attribute,"<0,0,0>",,vector,primitives.js:1347,,yes,yes,no-object,,6,3
+vertex,rotate,method,,,,primitives.js:1378,,yes,yes,no-object,,0,0
+vertex,shininess,attribute,0.6,,typed,primitives.js:1367,,yes,yes,no-object,,1,1
+vertex,texpos,attribute,"<0,0,0>",,vector,primitives.js:1365,,yes,yes,no-object,,1,1
+winput,aria_describedby,attribute,"""""",,constructor option,primitives.js:3246,,no,no,no-object,,0,0
+winput,aria_label,attribute,"""""",,constructor option,primitives.js:3246,,no,no,no-object,,0,0
+winput,aria_labelledby,attribute,"""""",,constructor option,primitives.js:3246,,no,no,no-object,,0,0
+winput,bind,attribute,,,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,delete,method,,,,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,disabled,attribute,false,,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,focus,method,,,,primitives.js:3246,,no,no,no-object,,0,0
+winput,height,attribute,20,,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,number,attribute,null,,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,pos,attribute,cvs.caption_anchor,,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,prompt,attribute,'',,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,text,attribute,'',,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,type,attribute,'numeric',,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+winput,width,attribute,100,,constructor option,primitives.js:3246,,yes,yes,no-object,,0,0
+wtext,aria_hidden,attribute,false,,constructor option,primitives.js:3209,,no,no,no-object,,0,0
+wtext,aria_live,attribute,"""""",,constructor option,primitives.js:3209,,no,no,no-object,,0,0
+wtext,delete,method,,,,primitives.js:3209,,yes,yes,no-object,,0,0
+wtext,hidden,attribute,false,,constructor option,primitives.js:3209,,yes,yes,no-object,,0,0
+wtext,pos,attribute,cvs.caption_anchor,,constructor option,primitives.js:3209,,yes,yes,no-object,,2,1
+wtext,text,attribute,'',,constructor option,primitives.js:3209,,yes,yes,no-object,,10,3
