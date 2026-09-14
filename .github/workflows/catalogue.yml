@@ -1,0 +1,58 @@
+name: catalogue checks
+
+# Checks spec/vpython/ against GlowScript's source. GlowScript is third-party, so it is fetched
+# into the runner's temp directory at the pinned commit and never committed.
+on:
+  push:
+    branches: [main]
+    paths: ['spec/vpython/**', '.github/workflows/catalogue.yml']
+  pull_request:
+    paths: ['spec/vpython/**', '.github/workflows/catalogue.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GLOWSCRIPT_COMMIT: 744de985e42205989cc5d036c6b12b559cd55e4c
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch GlowScript at the pinned commit
+        run: |
+          echo "VPYTHON_REF=$RUNNER_TEMP/vpython-reference" >> "$GITHUB_ENV"
+          dest="$RUNNER_TEMP/vpython-reference/glowscript"
+          git init -q "$dest"
+          git -C "$dest" fetch -q --depth 1 https://github.com/vpython/glowscript "$GLOWSCRIPT_COMMIT"
+          git -C "$dest" checkout -q FETCH_HEAD
+          # Without the source, the citation checks cannot fail — so refuse to run rather than pass.
+          test -f "$dest/lib/glow/canvas.js"
+
+      - name: Check the committed tables (36 checks)
+        run: python3 spec/vpython/tools/check_catalog.py
+
+      - name: Convention-free invariants
+        run: python3 spec/vpython/tools/invariants.py
+
+      - name: Committed tables still match what the extractor produces
+        # Only the columns that are a pure function of GlowScript are compared. The corpus counts
+        # need private student labs, and the vcpp columns describe one vcpp commit by design.
+        run: |
+          git show HEAD:spec/vpython/catalog/members.csv > "$RUNNER_TEMP/committed.csv"
+          VCPP_SRC="$RUNNER_TEMP/none" python3 spec/vpython/tools/catalog_runtime.py > /dev/null
+          python3 - "$RUNNER_TEMP/committed.csv" spec/vpython/catalog/members.csv <<'PY'
+          import csv, sys
+          cols = ["owner", "member", "kind", "default", "read_only", "note",
+                  "runtime_source", "inherited_from", "documented"]
+          def load(p):
+              return {(r["owner"], r["member"]): [r[c] for c in cols] for r in csv.DictReader(open(p))}
+          old, new = load(sys.argv[1]), load(sys.argv[2])
+          bad = sorted(k for k in old.keys() | new.keys() if old.get(k) != new.get(k))
+          for k in bad[:20]:
+              print(f"{'.'.join(k)}: committed={old.get(k)} regenerated={new.get(k)}")
+          print(f"{len(new)} members regenerated, {len(bad)} differ")
+          sys.exit(1 if bad else 0)
+          PY
