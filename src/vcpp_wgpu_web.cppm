@@ -18,6 +18,7 @@ import std;
 export module vcpp.wgpu.web;
 
 import vcpp;
+import lam.linearalgebra; // clang-23 ADL: operators on fixed_vector not found via transitive import
 
 #ifdef __EMSCRIPTEN__
 
@@ -143,10 +144,18 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
   }
 
   // === Standard path (non-raindrop objects) ===
-  let ambient = 0.3;
+  // Hemisphere ambient: sky-facing surfaces brighter than ground-facing
+  let sky_amount = N.y * 0.5 + 0.5; // 0 = pointing down, 1 = pointing up
+  let ambient = mix(0.15, 0.4, sky_amount);
+
   let diffuse = max(dot(N, light_dir), 0.0) * 0.7;
   let spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0) * shininess * 0.5;
-  let lighting = ambient + diffuse + spec;
+
+  // Fresnel rim lighting: brightens silhouette edges
+  let NdotV = max(dot(N, view_dir), 0.0);
+  let rim = pow(1.0 - NdotV, 3.0) * 0.25;
+
+  let lighting = ambient + diffuse + spec + rim;
 
   return vec4<f32>(base_color.rgb * lighting, base_color.a);
 }

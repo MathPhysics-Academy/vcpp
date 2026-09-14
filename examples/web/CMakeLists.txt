@@ -1,30 +1,17 @@
 cmake_minimum_required(VERSION 3.31.6 FATAL_ERROR)
 
-set(CMAKE_CXX_STANDARD 23)
-
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0.3)
-  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
-elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0.0)
-  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
-elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 3.31.6)
-  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")
-else()
-  message(FATAL_ERROR "Version lower than 3.31.6 not supported")
-endif()
-
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_MODULE_STD ON)
-set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+# C++23 import-std UUID ladder + standard settings (must precede project())
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/LamCxxModuleStd.cmake)
 
 project(vcpp_web_example LANGUAGES CXX)
 
 # Emscripten needs manual __CMAKE::CXX23 target creation since CMake's
 # detection doesn't find the std modules in Emscripten's toolchain
 if(EMSCRIPTEN AND NOT TARGET "__CMAKE::CXX23")
-  set(_emscripten_std_modules "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/emscripten-std-modules")
-  set(_emscripten_libcxx_headers "/usr/local/Cellar/emscripten/5.0.0/libexec/cache/sysroot/include/c++/v1")
-  set(_emscripten_sysroot "/usr/local/Cellar/emscripten/5.0.0/libexec/cache/sysroot/include")
+  set(_emscripten_std_modules "${CMAKE_CURRENT_SOURCE_DIR}/../../lam/cmake/emscripten-std-modules")
+  execute_process(COMMAND em-config CACHE OUTPUT_VARIABLE _emscripten_cache OUTPUT_STRIP_TRAILING_WHITESPACE)
+  set(_emscripten_libcxx_headers "${_emscripten_cache}/sysroot/include/c++/v1")
+  set(_emscripten_sysroot "${_emscripten_cache}/sysroot/include")
   if(EXISTS "${_emscripten_std_modules}/std.cppm")
     add_library(__cmake_cxx23 STATIC)
     target_sources(__cmake_cxx23 INTERFACE "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,STATIC_LIBRARY>:$<TARGET_OBJECTS:__cmake_cxx23>>")
@@ -49,9 +36,13 @@ if(EMSCRIPTEN AND NOT TARGET "__CMAKE::CXX23")
   endif()
 endif()
 
-# Dependencies
-find_package(lam_symbols REQUIRED)
-find_package(lam_linearalgebra REQUIRED)
+# Dependencies — prefer installed lam, fall back to building from submodule
+find_package(lam_symbols QUIET)
+find_package(lam_linearalgebra QUIET)
+if(NOT lam_symbols_FOUND OR NOT lam_linearalgebra_FOUND)
+  message(STATUS "lam not found installed; building from submodule")
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../lam ${CMAKE_CURRENT_BINARY_DIR}/lam EXCLUDE_FROM_ALL)
+endif()
 
 # Emscripten settings
 if(EMSCRIPTEN)
@@ -67,13 +58,49 @@ if(EMSCRIPTEN)
     --shell-file=${CMAKE_CURRENT_SOURCE_DIR}/shell.html
   )
 
+  # EM_JS symbols from C++23 module interface units are marked live: 0 in the
+  # ThinLTO summary, so wasm-ld's DCE strips them before binaryen can extract
+  # JS wrappers. --undefined forces them into the LTO live-root set so they
+  # survive; --export then ensures they appear in the WASM export table where
+  # extract_metadata.py reads them as ExternType.GLOBAL entries.
+  add_link_options(
+    -Wl,--undefined=__em_js__js_create_graph
+    -Wl,--undefined=__em_js__js_create_plot
+    -Wl,--undefined=__em_js__js_add_point
+    -Wl,--undefined=__em_js__js_add_points_batch
+    -Wl,--undefined=__em_js__js_update_graph_bounds
+    -Wl,--undefined=__em_js__js_redraw_graph
+    -Wl,--undefined=__em_js__js_clear_plot
+    -Wl,--undefined=__em_js__js_remove_graph
+    -Wl,--undefined=__em_js__js_set_plot_visible
+    -Wl,--undefined=__em_js__js_init_label_canvas
+    -Wl,--undefined=__em_js__js_clear_labels
+    -Wl,--undefined=__em_js__js_draw_label
+    -Wl,--export=__em_js__js_create_graph
+    -Wl,--export=__em_js__js_create_plot
+    -Wl,--export=__em_js__js_add_point
+    -Wl,--export=__em_js__js_add_points_batch
+    -Wl,--export=__em_js__js_update_graph_bounds
+    -Wl,--export=__em_js__js_redraw_graph
+    -Wl,--export=__em_js__js_clear_plot
+    -Wl,--export=__em_js__js_remove_graph
+    -Wl,--export=__em_js__js_set_plot_visible
+    -Wl,--export=__em_js__js_init_label_canvas
+    -Wl,--export=__em_js__js_clear_labels
+    -Wl,--export=__em_js__js_draw_label
+  )
+
   # Release build: optimize and strip debug info for smaller/harder to reverse-engineer output
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-O3 -flto -DNDEBUG)
+    # Note: LTO (-flto) is intentionally omitted here. Clang's ThinLTO and Full
+    # LTO both DCE the __em_js__* data globals from C++23 module interface units
+    # (they appear as live:0 in the LTO summary despite being in @llvm.used).
+    # Without LTO, wasm-ld's regular GC-based DCE correctly keeps these symbols
+    # alive. Emscripten still runs binaryen wasm-opt at -O3 for output quality.
+    add_compile_options(-O3 -DNDEBUG)
     add_link_options(
       -O3
-      -flto
-      --closure 1
+      --closure 0
     )
     message(STATUS "Release build: optimizations and stripping enabled")
   endif()

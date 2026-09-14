@@ -1,0 +1,33 @@
+# LamCxxModuleStd.cmake
+# C++23 module support: experimental import std UUID + standard settings.
+#
+# Must be included BEFORE project() — CMAKE_EXPERIMENTAL_CXX_IMPORT_STD has to
+# be set before CXX is enabled or toolchain detection skips import std support.
+#
+# Vendored from the lam workspace copy; keep in sync with
+# <lam-workspace>/cmake/LamCxxModuleStd.cmake.
+
+if(_LAM_CXX_MODULE_STD_INCLUDED)
+  return()
+endif()
+set(_LAM_CXX_MODULE_STD_INCLUDED TRUE)
+
+# Experimental import std UUID (required until CMake stabilizes this).
+# CMake rotates this token per release; a stale value fails configure outright.
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.4.0)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d")
+elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 4.3.0)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
+elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0.3)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444")
+elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 4.0.0)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "a9e1cf81-9932-4810-974b-6eccaf14e457")
+elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 3.31.6)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "0e5b6991-d74f-4b3d-a41c-cf096e0b2508")
+endif()
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_MODULE_STD ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)

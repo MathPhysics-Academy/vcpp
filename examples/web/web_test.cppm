@@ -10,6 +10,7 @@ export module web_test;
 
 import vcpp;
 import vcpp.wgpu.web;
+import lam.linearalgebra; // clang-23 ADL: operators on fixed_vector not found via transitive import
 
 namespace
 {

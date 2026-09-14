@@ -11,23 +11,18 @@ module;
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
-#endif
-
-import std;
-
-export module vcpp:label_bridge;
-
-import :vec;
-import :render_types;
-
-export namespace vcpp::label_bridge
-{
-
-#ifdef __EMSCRIPTEN__
 
 // ============================================================================
 // JavaScript functions for label rendering
+// Must be in global module fragment so __em_js__* symbols are emitted as
+// translation-unit-scope globals and survive LTO dead-code elimination.
+//
+// #pragma GCC visibility push(default) is required: Clang compiles module
+// interface units with hidden visibility, causing wasm-ld to strip __em_js__*
+// symbols during LTO. Default visibility forces them to survive into the WASM.
 // ============================================================================
+
+#pragma GCC visibility push(default)
 
 EM_JS(void, js_init_label_canvas, (), {
   // Create overlay canvas for labels if it doesn't exist
@@ -126,6 +121,22 @@ EM_JS(void, js_draw_label,
 
         ctx.restore();
       });
+
+#pragma GCC visibility pop
+
+#endif // __EMSCRIPTEN__
+
+import std;
+
+export module vcpp:label_bridge;
+
+import :vec;
+import :render_types;
+
+export namespace vcpp::label_bridge
+{
+
+#ifdef __EMSCRIPTEN__
 
 // ============================================================================
 // Project 3D position to 2D screen coordinates

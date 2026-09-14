@@ -12,21 +12,20 @@ module;
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #include <emscripten/val.h>
-#endif
-
-import std;
-
-export module vcpp:graph_bridge;
-
-import :vec;
-import :graph_base;
-import :graph_objects;
-
-#ifdef __EMSCRIPTEN__
 
 // ============================================================================
 // JavaScript interface functions (EM_JS)
+// Must be in global module fragment so __em_js__* symbols are emitted as
+// translation-unit-scope globals and survive LTO dead-code elimination.
+//
+// #pragma GCC visibility push(default) is required: Clang compiles module
+// interface units with hidden visibility by default, which causes wasm-ld to
+// strip __em_js__* data symbols during LTO even when marked __attribute__((used)).
+// Forcing default visibility ensures these symbols survive into the linked WASM
+// where binaryen's post-processor can extract them to generate the JS wrappers.
 // ============================================================================
+
+#pragma GCC visibility push(default)
 
 EM_JS(void, js_create_graph, (
     int id, int width, int height,
@@ -102,7 +101,17 @@ EM_JS(void, js_set_plot_visible, (int graph_id, int plot_id, bool visible), {
     }
 });
 
+#pragma GCC visibility pop
+
 #endif // __EMSCRIPTEN__
+
+import std;
+
+export module vcpp:graph_bridge;
+
+import :vec;
+import :graph_base;
+import :graph_objects;
 
 export namespace vcpp::graph_bridge
 {

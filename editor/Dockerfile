@@ -71,8 +71,10 @@ COPY --from=gobuilder /vcpp-editor-server /app/vcpp-editor-server
 # Copy frontend
 COPY vcpp/editor/frontend/ /app/frontend/
 
-# Copy templates
+# Copy templates (HTML shells + graph JS needed for session serving)
 COPY vcpp/editor/templates/ /app/templates/
+COPY vcpp/examples/web/graph_instance.js /app/templates/
+COPY vcpp/examples/web/graph_manager.js /app/templates/
 
 # Create session directory
 RUN mkdir -p /tmp/sessions
