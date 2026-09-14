@@ -34,3 +34,10 @@ _deps/
 .idea/
 *.swp
 *.swo
+
+# Machine-local working notes and evidence, deliberately not committed
+.agent/
+
+# Regenerated on every extractor run; the CSVs are the committed output
+spec/vpython/catalog/diagnostics.txt
+spec/vpython/**/__pycache__/
