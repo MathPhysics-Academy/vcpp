@@ -36,6 +36,15 @@ if(EMSCRIPTEN AND NOT TARGET "__CMAKE::CXX23")
   endif()
 endif()
 
+# WebGPU port flag must reach every target, lam included: CMake 4.4 builds a separate std module
+# per flag set, and a mismatch leaves two of them. emscan-deps (6.0.9) doesn't expand --use-port,
+# so add its include explicitly.
+if(EMSCRIPTEN)
+  add_compile_options(--use-port=emdawnwebgpu)
+  execute_process(COMMAND em-config CACHE OUTPUT_VARIABLE _em_cache OUTPUT_STRIP_TRAILING_WHITESPACE)
+  include_directories(SYSTEM "${_em_cache}/ports/emdawnwebgpu/emdawnwebgpu_pkg/webgpu/include")
+endif()
+
 # Dependencies — prefer installed lam, fall back to building from submodule
 find_package(lam_symbols QUIET)
 find_package(lam_linearalgebra QUIET)
@@ -48,8 +57,7 @@ endif()
 if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".js")
 
-  # WebGPU via emdawnwebgpu port (replaces old -sUSE_WEBGPU=1)
-  add_compile_options(--use-port=emdawnwebgpu)
+  # WebGPU via emdawnwebgpu port (replaces old -sUSE_WEBGPU=1); compile flag set above
   add_link_options(
     --use-port=emdawnwebgpu
     -sASYNCIFY
