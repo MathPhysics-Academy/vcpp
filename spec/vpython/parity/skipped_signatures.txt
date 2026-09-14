@@ -1,0 +1,23 @@
+# Method signatures whose receiver could not be resolved from evidence (METHOD.md rule 2).
+# Page and callee only: the documented signature text is third-party and not copied here.
+# Review by hand; add a rule only with evidence from the pages.
+clone.html	myobject.clone
+color.html	color.rgb_to_hsv
+color.html	color.hsv_to_rgb
+rotation.html	myobject.rotate
+shapes_and_paths.html	shapes.rectangle
+shapes_and_paths.html	shapes.rectangle
+shapes_and_paths.html	shapes.circle
+shapes_and_paths.html	shapes.ellipse
+shapes_and_paths.html	shapes.arc
+shapes_and_paths.html	shapes.line
+shapes_and_paths.html	shapes.triangle
+shapes_and_paths.html	shapes.pentagon
+shapes_and_paths.html	shapes.hexagon
+shapes_and_paths.html	shapes.octagon
+shapes_and_paths.html	shapes.ngon
+shapes_and_paths.html	shapes.star
+shapes_and_paths.html	shapes.trapezoid
+shapes_and_paths.html	shapes.cross
+shapes_and_paths.html	shapes.points
+shapes_and_paths.html	shapes.gear

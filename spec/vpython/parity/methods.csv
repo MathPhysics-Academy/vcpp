@@ -1,0 +1,18 @@
+object,method,params,doc_page,doc_sig
+button,delete,,button.html,delete()
+canvas,bind,firstargument secondargument firstargument secondargument,mouse.html,"scene.bind('click', newcolor)"
+canvas,get_selected,,canvas.html,current = canvas.get_selected()
+canvas,mouse,pos pick ray alt ctrl shift normal point d,mouse.html,mickey = scene.mouse()
+canvas,pause,,mouse.html,myevt = scene.pause()
+canvas,select,,canvas.html,mycanvas.select()
+canvas,waitfor,argument,canvas.html,evt = scene.waitfor('redraw')
+checkbox,delete,,checkbox.html,delete()
+gcurve,delete,,graph.html,gc.delete()
+gcurve,plot,firstargument secondargument,graph.html,"gc.plot(x, y)"
+graph,delete,,graph.html,mygraph.delete()
+graph,get_selected,,graph.html,current = graph.get_selected()
+graph,select,,graph.html,mygraph.select()
+menu,delete,,menu.html,delete()
+radio,delete,,radiobutton.html,delete()
+slider,delete,,slider.html,delete()
+winput,delete,,textinput.html,delete()
