@@ -60,11 +60,13 @@ struct graph_object : graph_base
   }
 };
 
-// Parameter specs for graph_object (numeric types only - strings handled separately)
 template<>
 struct object_params<graph_object>
 {
   static constexpr auto value = std::tuple{
+    param_spec<&graph_base::m_title, decltype(title)>{},
+    param_spec<&graph_base::m_xtitle, decltype(xtitle)>{},
+    param_spec<&graph_base::m_ytitle, decltype(ytitle)>{},
     param_spec<&graph_base::m_width, decltype(width)>{},
     param_spec<&graph_base::m_height, decltype(height)>{},
     param_spec<&graph_base::m_background, decltype(background)>{},
@@ -82,23 +84,37 @@ struct object_params<graph_object>
 template<typename... Binders>
 graph_object graph(Binders... binders)
 {
-  auto params = substitution(binders...);
   graph_object obj{};
   obj.m_id = detail::next_graph_id++;
-
-  // Apply numeric parameters
-  apply_params(obj, params, object_params<graph_object>::value);
-
-  // Handle string parameters manually (std::string can't be NTTP)
-  if constexpr (is_bound<decltype(title), decltype(params)>)
-    obj.m_title = title(params);
-  if constexpr (is_bound<decltype(xtitle), decltype(params)>)
-    obj.m_xtitle = xtitle(params);
-  if constexpr (is_bound<decltype(ytitle), decltype(params)>)
-    obj.m_ytitle = ytitle(params);
-
+  if constexpr (sizeof...(Binders) > 0)
+  {
+    (check_named_param<Binders, decltype(object_params<graph_object>::value)>(), ...);
+    apply_params(obj, substitution(binders...), object_params<graph_object>::value);
+  }
   return obj;
 }
+
+namespace detail
+{
+template<typename Plot>
+void set_graph_ref(Plot& p, const graph_object& g)
+{
+  p.m_graph_id = g.m_id;
+}
+
+template<typename Plot, typename... Binders>
+Plot make_plot(Binders... binders)
+{
+  Plot obj{};
+  obj.m_plot_id = next_plot_id++;
+  if constexpr (sizeof...(Binders) > 0)
+  {
+    (check_named_param<Binders, decltype(object_params<Plot>::value)>(), ...);
+    apply_params(obj, substitution(binders...), object_params<Plot>::value);
+  }
+  return obj;
+}
+} // namespace detail
 
 // ============================================================================
 // gcurve_object - Connected line plot
@@ -132,11 +148,12 @@ struct gcurve_object : plot_base
   }
 };
 
-// Parameter specs for gcurve_object (numeric types only - strings handled separately)
 template<>
 struct object_params<gcurve_object>
 {
   static constexpr auto value = std::tuple{
+    param_spec<&plot_base::m_label, decltype(prop::label)>{},
+    param_spec<&detail::set_graph_ref<gcurve_object>, decltype(graph_ref)>{},
     param_spec<&plot_base::m_color, decltype(color)>{},
     param_spec<&plot_base::m_visible, decltype(visible)>{},
     param_spec<&plot_base::m_legend, decltype(legend)>{},
@@ -153,25 +170,7 @@ struct object_params<gcurve_object>
 template<typename... Binders>
 gcurve_object gcurve(Binders... binders)
 {
-  auto params = substitution(binders...);
-  gcurve_object obj{};
-  obj.m_plot_id = detail::next_plot_id++;
-
-  // Apply numeric parameters
-  apply_params(obj, params, object_params<gcurve_object>::value);
-
-  // Handle string parameters manually
-  if constexpr (is_bound<decltype(prop::label), decltype(params)>)
-    obj.m_label = prop::label(params);
-
-  // Extract graph reference if provided
-  if constexpr (is_bound<decltype(graph_ref), decltype(params)>)
-  {
-    auto& g = graph_ref(params);
-    obj.m_graph_id = g.m_id;
-  }
-
-  return obj;
+  return detail::make_plot<gcurve_object>(binders...);
 }
 
 // ============================================================================
@@ -191,11 +190,12 @@ struct gdots_object : plot_base
   }
 };
 
-// Parameter specs for gdots_object (numeric types only)
 template<>
 struct object_params<gdots_object>
 {
   static constexpr auto value = std::tuple{
+    param_spec<&plot_base::m_label, decltype(prop::label)>{},
+    param_spec<&detail::set_graph_ref<gdots_object>, decltype(graph_ref)>{},
     param_spec<&plot_base::m_color, decltype(color)>{},
     param_spec<&plot_base::m_visible, decltype(visible)>{},
     param_spec<&plot_base::m_legend, decltype(legend)>{},
@@ -207,25 +207,7 @@ struct object_params<gdots_object>
 template<typename... Binders>
 gdots_object gdots(Binders... binders)
 {
-  auto params = substitution(binders...);
-  gdots_object obj{};
-  obj.m_plot_id = detail::next_plot_id++;
-
-  // Apply numeric parameters
-  apply_params(obj, params, object_params<gdots_object>::value);
-
-  // Handle string parameters manually
-  if constexpr (is_bound<decltype(prop::label), decltype(params)>)
-    obj.m_label = prop::label(params);
-
-  // Extract graph reference if provided
-  if constexpr (is_bound<decltype(graph_ref), decltype(params)>)
-  {
-    auto& g = graph_ref(params);
-    obj.m_graph_id = g.m_id;
-  }
-
-  return obj;
+  return detail::make_plot<gdots_object>(binders...);
 }
 
 // ============================================================================
@@ -245,11 +227,12 @@ struct gvbars_object : plot_base
   }
 };
 
-// Parameter specs for gvbars_object (numeric types only)
 template<>
 struct object_params<gvbars_object>
 {
   static constexpr auto value = std::tuple{
+    param_spec<&plot_base::m_label, decltype(prop::label)>{},
+    param_spec<&detail::set_graph_ref<gvbars_object>, decltype(graph_ref)>{},
     param_spec<&plot_base::m_color, decltype(color)>{},
     param_spec<&plot_base::m_visible, decltype(visible)>{},
     param_spec<&plot_base::m_legend, decltype(legend)>{},
@@ -261,25 +244,7 @@ struct object_params<gvbars_object>
 template<typename... Binders>
 gvbars_object gvbars(Binders... binders)
 {
-  auto params = substitution(binders...);
-  gvbars_object obj{};
-  obj.m_plot_id = detail::next_plot_id++;
-
-  // Apply numeric parameters
-  apply_params(obj, params, object_params<gvbars_object>::value);
-
-  // Handle string parameters manually
-  if constexpr (is_bound<decltype(prop::label), decltype(params)>)
-    obj.m_label = prop::label(params);
-
-  // Extract graph reference if provided
-  if constexpr (is_bound<decltype(graph_ref), decltype(params)>)
-  {
-    auto& g = graph_ref(params);
-    obj.m_graph_id = g.m_id;
-  }
-
-  return obj;
+  return detail::make_plot<gvbars_object>(binders...);
 }
 
 // ============================================================================

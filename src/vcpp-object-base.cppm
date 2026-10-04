@@ -112,15 +112,6 @@ inline constexpr auto common_params =
 //   auto s = make<sphere_object>(pos = vec(0,0,0), radius = 2);
 // ============================================================================
 
-// A named parameter no spec maps would be silently ignored; reject it instead.
-template<typename ObjectType, typename Binder>
-constexpr void check_named_param()
-{
-  using Symbol = typename Binder::symbol_type;
-  static_assert(accepts_symbol<Symbol>(common_params) || accepts_symbol<Symbol>(object_params<ObjectType>::value),
-                "vcpp: this object does not take one of the named parameters passed to it");
-}
-
 template<typename ObjectType, typename... Binders>
 constexpr ObjectType make(Binders... binders)
 {
@@ -129,7 +120,7 @@ constexpr ObjectType make(Binders... binders)
   // lam's substitution can't be queried when empty, and box() means all defaults anyway.
   if constexpr (sizeof...(Binders) > 0)
   {
-    (check_named_param<ObjectType, Binders>(), ...);
+    (check_named_param<Binders, decltype(common_params), decltype(object_params<ObjectType>::value)>(), ...);
 
     auto params = substitution(binders...);
     using params_t = decltype(params);

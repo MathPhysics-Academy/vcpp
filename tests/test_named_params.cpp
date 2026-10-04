@@ -93,6 +93,15 @@ bool test_extrusion_params()
   return e.m_path.size() == 2 && e.m_shape.size() == 3 && near(e.m_twist, 0.5) && near(e.m_scale, 0.25);
 }
 
+bool test_graph_params()
+{
+  auto g = graph(title = std::string{"Energy"}, xtitle = std::string{"t (s)"}, width = 500);
+  auto c = gcurve(graph_ref = g, prop::label = std::string{"KE"}, color = vec3{1, 0, 0});
+  auto empty = graph();
+  return g.m_title == "Energy" && g.m_xtitle == "t (s)" && g.m_width == 500 && c.m_graph_id == g.m_id &&
+         c.m_label == "KE" && near(c.m_color, vec3{1, 0, 0}) && empty.m_id != g.m_id;
+}
+
 // Untouched objects keep their defaults, including length == mag(axis)
 bool test_defaults_unchanged()
 {
@@ -135,6 +144,7 @@ int main()
   run_test("label params", test_label_params);
   run_test("text3d params", test_text3d_params);
   run_test("extrusion params", test_extrusion_params);
+  run_test("graph params", test_graph_params);
   run_test("defaults unchanged", test_defaults_unchanged);
 
   std::println("==========================");

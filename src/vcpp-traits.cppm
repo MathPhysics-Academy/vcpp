@@ -103,6 +103,14 @@ constexpr bool accepts_symbol(std::tuple<ParamSpecs...>)
   return (std::same_as<std::remove_cvref_t<Symbol>, std::remove_cvref_t<typename ParamSpecs::symbol_type>> || ...);
 }
 
+// A named parameter no spec maps would be silently ignored; reject it instead.
+template<typename Binder, typename... SpecTuples>
+constexpr void check_named_param()
+{
+  static_assert((accepts_symbol<typename Binder::symbol_type>(std::remove_cv_t<SpecTuples>{}) || ...),
+                "vcpp: this object does not take one of the named parameters passed to it");
+}
+
 // ============================================================================
 // length_follows_axis - GlowScript's box family keeps length == mag(axis)
 //
