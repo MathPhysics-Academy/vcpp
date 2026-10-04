@@ -117,6 +117,31 @@ endif()
 # VCpp sources (included directly for Emscripten build)
 set(VCPP_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 
+set(VCPP_MODULE_FILES
+  ${VCPP_SRC_DIR}/vcpp.cppm
+  ${VCPP_SRC_DIR}/vcpp-vec.cppm
+  ${VCPP_SRC_DIR}/vcpp-color.cppm
+  ${VCPP_SRC_DIR}/vcpp-props.cppm
+  ${VCPP_SRC_DIR}/vcpp-traits.cppm
+  ${VCPP_SRC_DIR}/vcpp-render-types.cppm
+  ${VCPP_SRC_DIR}/vcpp-render-resources.cppm
+  ${VCPP_SRC_DIR}/vcpp-mesh.cppm
+  ${VCPP_SRC_DIR}/vcpp-render-interface.cppm
+  ${VCPP_SRC_DIR}/vcpp-object-base.cppm
+  ${VCPP_SRC_DIR}/vcpp-objects.cppm
+  ${VCPP_SRC_DIR}/vcpp-shapes.cppm
+  ${VCPP_SRC_DIR}/vcpp-text-glyphs.cppm
+  ${VCPP_SRC_DIR}/vcpp-label-bridge.cppm
+  ${VCPP_SRC_DIR}/vcpp-scene.cppm
+  ${VCPP_SRC_DIR}/vcpp-loop.cppm
+  ${VCPP_SRC_DIR}/vcpp-coro.cppm
+  ${VCPP_SRC_DIR}/vcpp-input.cppm
+  ${VCPP_SRC_DIR}/vcpp-graph-base.cppm
+  ${VCPP_SRC_DIR}/vcpp-graph-objects.cppm
+  ${VCPP_SRC_DIR}/vcpp-graph-bridge.cppm
+  ${VCPP_SRC_DIR}/vcpp_wgpu_web.cppm
+)
+
 add_executable(vcpp_web_test)
 
 target_sources(vcpp_web_test
@@ -124,28 +149,7 @@ target_sources(vcpp_web_test
     FILE_SET CXX_MODULES
     BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${VCPP_SRC_DIR}
     FILES
-      ${VCPP_SRC_DIR}/vcpp.cppm
-      ${VCPP_SRC_DIR}/vcpp-vec.cppm
-      ${VCPP_SRC_DIR}/vcpp-color.cppm
-      ${VCPP_SRC_DIR}/vcpp-props.cppm
-      ${VCPP_SRC_DIR}/vcpp-traits.cppm
-      ${VCPP_SRC_DIR}/vcpp-render-types.cppm
-      ${VCPP_SRC_DIR}/vcpp-render-resources.cppm
-      ${VCPP_SRC_DIR}/vcpp-mesh.cppm
-      ${VCPP_SRC_DIR}/vcpp-render-interface.cppm
-      ${VCPP_SRC_DIR}/vcpp-object-base.cppm
-      ${VCPP_SRC_DIR}/vcpp-objects.cppm
-      ${VCPP_SRC_DIR}/vcpp-shapes.cppm
-      ${VCPP_SRC_DIR}/vcpp-text-glyphs.cppm
-      ${VCPP_SRC_DIR}/vcpp-label-bridge.cppm
-      ${VCPP_SRC_DIR}/vcpp-scene.cppm
-      ${VCPP_SRC_DIR}/vcpp-loop.cppm
-      ${VCPP_SRC_DIR}/vcpp-coro.cppm
-      ${VCPP_SRC_DIR}/vcpp-input.cppm
-      ${VCPP_SRC_DIR}/vcpp-graph-base.cppm
-      ${VCPP_SRC_DIR}/vcpp-graph-objects.cppm
-      ${VCPP_SRC_DIR}/vcpp-graph-bridge.cppm
-      ${VCPP_SRC_DIR}/vcpp_wgpu_web.cppm
+      ${VCPP_MODULE_FILES}
       web_test.cppm
   PRIVATE
     main.cpp
@@ -162,3 +166,24 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/graph_manager.js
                ${CMAKE_CURRENT_BINARY_DIR}/graph_manager.js COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../../LICENSE
                ${CMAKE_CURRENT_BINARY_DIR}/LICENSE COPYONLY)
+
+# Optional: build one VPython-style program, a .cpp defining `vcpp::task<void> vpython_program()`.
+# It may live outside this repo. Output: <name>.html/.js/.wasm next to the demo.
+set(VCPP_PROGRAM "" CACHE FILEPATH "Program to build alongside the demo")
+if(VCPP_PROGRAM)
+  get_filename_component(_prog ${VCPP_PROGRAM} NAME_WE)
+  add_executable(${_prog})
+  target_sources(${_prog}
+    PUBLIC
+      FILE_SET CXX_MODULES
+      BASE_DIRS ${VCPP_SRC_DIR}
+      FILES ${VCPP_MODULE_FILES}
+    PRIVATE
+      program_main.cpp
+      ${VCPP_PROGRAM}
+  )
+  target_link_libraries(${_prog} PRIVATE lam::symbols lam::linearalgebra)
+  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/index.html _html)
+  string(REPLACE "vcpp_web_test.js" "${_prog}.js" _html "${_html}")
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${_prog}.html "${_html}")
+endif()

@@ -5,6 +5,9 @@
  *  - generator<T>: Lazy sequence generator (range-for compatible)
  *  - frames(fps): Generator yielding dt each frame
  *  - animate(duration, fps): Time-bounded animation generator
+ *  - task<T>: eager coroutine; co_await one task from another
+ *  - next_frame, wait_for(seconds): awaitables resumed by tick_coroutines()
+ *  - rate, sleep: GlowScript's timing, ported
  */
 
 module;
@@ -283,16 +286,31 @@ public:
   void tick(double dt)
   {
     m_current_dt = dt;
-    
-    // Process all pending coroutines (swap to allow new ones during iteration)
-    auto pending = std::move(m_pending);
+
+    // Resume this frame's batch; ones scheduled meanwhile wait for the next tick. cancel() can
+    // null out entries of the batch, when a resumed coroutine destroys a task waiting in it.
+    m_batch = std::move(m_pending);
     m_pending.clear();
-    
-    for (auto& handle : pending)
+    for (std::size_t i = 0; i < m_batch.size(); ++i)
     {
-      if (handle && !handle.done())
-        handle.resume();
+      if (auto h = std::exchange(m_batch[i], nullptr); h && !h.done())
+        h.resume();
     }
+    m_batch.clear();
+
+    // Timers run in deadline order, each seeing now() == its own deadline, so a coroutine that
+    // sleeps 10 ms runs ~100 times a second even though frames come every ~16 ms. A coroutine
+    // more than max_lag behind is moved up to the wall clock instead of catching up.
+    const double wall = wall_seconds();
+    while (!m_timers.empty() && m_timers.front().due <= wall)
+    {
+      std::pop_heap(m_timers.begin(), m_timers.end(), timer::later);
+      timer t = m_timers.back();
+      m_timers.pop_back();
+      m_virtual_now = std::max(t.due, wall - max_lag);
+      t.handle.resume();
+    }
+    m_virtual_now.reset();
   }
   
   // Called by next_frame awaitable to schedule resumption
@@ -300,13 +318,50 @@ public:
   {
     m_pending.push_back(h);
   }
-  
+
+  // Called by wait_for to resume h once now() reaches due
+  void schedule_at(double due, std::coroutine_handle<> h)
+  {
+    m_timers.push_back({due, m_next_seq++, h});
+    std::push_heap(m_timers.begin(), m_timers.end(), timer::later);
+  }
+
+  // Forget h: its coroutine is being destroyed and must not be resumed
+  void cancel(std::coroutine_handle<> h)
+  {
+    std::erase(m_pending, h);
+    std::ranges::replace(m_batch, h, std::coroutine_handle<>{});
+    if (std::erase_if(m_timers, [h](const timer& t) { return t.handle == h; }))
+      std::make_heap(m_timers.begin(), m_timers.end(), timer::later);
+  }
+
+  // Seconds on a steady clock; inside a timer's resumption, that timer's deadline
+  double now() const { return m_virtual_now ? *m_virtual_now : wall_seconds(); }
+
   double current_dt() const noexcept { return m_current_dt; }
-  
-  std::size_t pending_count() const noexcept { return m_pending.size(); }
+
+  std::size_t pending_count() const noexcept { return m_pending.size() + m_timers.size(); }
 
 private:
+  struct timer
+  {
+    double due;
+    std::uint64_t seq; // FIFO among equal deadlines
+    std::coroutine_handle<> handle;
+    static bool later(const timer& a, const timer& b) noexcept
+    { return a.due != b.due ? a.due > b.due : a.seq > b.seq; }
+  };
+
+  static double wall_seconds()
+  { return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
+
+  static constexpr double max_lag = 0.25;
+
   std::vector<std::coroutine_handle<>> m_pending;
+  std::vector<std::coroutine_handle<>> m_batch; // being resumed by tick()
+  std::vector<timer> m_timers;                  // min-heap on (due, seq)
+  std::optional<double> m_virtual_now;
+  std::uint64_t m_next_seq = 0;
   double m_current_dt = 0.016;
 };
 
@@ -341,6 +396,26 @@ struct next_frame
 };
 
 // ============================================================================
+// wait_for - Awaitable that suspends for a duration
+//
+// Resumed by tick_coroutines(), so the wait is at least `seconds` and ends on a frame. Waits
+// shorter than 4 ms count as 4 ms, as browsers clamp setTimeout; without a floor, a loop of
+// zero-length waits would never leave tick().
+//
+//   co_await wait_for(0.5);
+// ============================================================================
+
+struct [[nodiscard]] wait_for
+{
+  double seconds;
+
+  bool await_ready() const noexcept { return false; }
+  void await_suspend(std::coroutine_handle<> h) const
+  { g_scheduler.schedule_at(g_scheduler.now() + std::max(seconds, 0.004), h); }
+  void await_resume() const noexcept {}
+};
+
+// ============================================================================
 // task<T> - Async task for coroutine chaining
 //
 // A simple task type that can co_await other awaitables and return a value.
@@ -362,6 +437,23 @@ struct next_frame
 //   }
 // ============================================================================
 
+namespace detail
+{
+// A finished task hands control back to whoever co_awaited it (symmetric transfer).
+struct resume_continuation
+{
+  bool await_ready() const noexcept { return false; }
+  template<typename Promise>
+  std::coroutine_handle<> await_suspend(std::coroutine_handle<Promise> h) const noexcept
+  {
+    if (auto c = h.promise().continuation)
+      return c;
+    return std::noop_coroutine();
+  }
+  void await_resume() const noexcept {}
+};
+} // namespace detail
+
 template <typename T = void>
 class task;
 
@@ -373,15 +465,16 @@ public:
   struct promise_type
   {
     std::exception_ptr exception;
-    
+    std::coroutine_handle<> continuation; // the coroutine co_awaiting this one, if any
+
     task get_return_object()
     {
       return task{std::coroutine_handle<promise_type>::from_promise(*this)};
     }
     
     std::suspend_never initial_suspend() noexcept { return {}; } // Eager start
-    std::suspend_always final_suspend() noexcept { return {}; }
-    
+    detail::resume_continuation final_suspend() noexcept { return {}; }
+
     void return_void() noexcept {}
     
     void unhandled_exception()
@@ -403,20 +496,15 @@ public:
   {
     if (this != &other)
     {
-      if (m_handle)
-        m_handle.destroy();
+      destroy();
       m_handle = other.m_handle;
       other.m_handle = nullptr;
     }
     return *this;
   }
-  
-  ~task()
-  {
-    if (m_handle)
-      m_handle.destroy();
-  }
-  
+
+  ~task() { destroy(); }
+
   task(task const&) = delete;
   task& operator=(task const&) = delete;
   
@@ -427,8 +515,41 @@ public:
   // Detach: release ownership so coroutine lives independently
   void detach() noexcept { m_handle = nullptr; }
 
+  // An exception that ended the task, rethrown; nothing if none
+  void rethrow_if_exception() const
+  {
+    if (m_handle && m_handle.promise().exception)
+      std::rethrow_exception(m_handle.promise().exception);
+  }
+
+  auto operator co_await() const noexcept
+  {
+    struct awaiter
+    {
+      handle_type h;
+      bool await_ready() const noexcept { return !h || h.done(); }
+      void await_suspend(std::coroutine_handle<> c) const noexcept { h.promise().continuation = c; }
+      void await_resume() const
+      {
+        if (h && h.promise().exception)
+          std::rethrow_exception(h.promise().exception);
+      }
+    };
+    return awaiter{m_handle};
+  }
+
 private:
   explicit task(handle_type h) noexcept : m_handle(h) {}
+
+  void destroy()
+  {
+    if (m_handle)
+    {
+      g_scheduler.cancel(m_handle);
+      m_handle.destroy();
+    }
+  }
+
   handle_type m_handle;
 };
 
@@ -441,15 +562,16 @@ public:
   {
     T result;
     std::exception_ptr exception;
-    
+    std::coroutine_handle<> continuation;
+
     task get_return_object()
     {
       return task{std::coroutine_handle<promise_type>::from_promise(*this)};
     }
     
     std::suspend_never initial_suspend() noexcept { return {}; }
-    std::suspend_always final_suspend() noexcept { return {}; }
-    
+    detail::resume_continuation final_suspend() noexcept { return {}; }
+
     void return_value(T value)
     {
       result = std::move(value);
@@ -474,20 +596,15 @@ public:
   {
     if (this != &other)
     {
-      if (m_handle)
-        m_handle.destroy();
+      destroy();
       m_handle = other.m_handle;
       other.m_handle = nullptr;
     }
     return *this;
   }
-  
-  ~task()
-  {
-    if (m_handle)
-      m_handle.destroy();
-  }
-  
+
+  ~task() { destroy(); }
+
   task(task const&) = delete;
   task& operator=(task const&) = delete;
   
@@ -504,8 +621,35 @@ public:
   
   void detach() noexcept { m_handle = nullptr; }
 
+  auto operator co_await() const noexcept
+  {
+    struct awaiter
+    {
+      handle_type h;
+      bool await_ready() const noexcept { return h.done(); }
+      void await_suspend(std::coroutine_handle<> c) const noexcept { h.promise().continuation = c; }
+      T await_resume() const
+      {
+        if (h.promise().exception)
+          std::rethrow_exception(h.promise().exception);
+        return std::move(h.promise().result);
+      }
+    };
+    return awaiter{m_handle};
+  }
+
 private:
   explicit task(handle_type h) noexcept : m_handle(h) {}
+
+  void destroy()
+  {
+    if (m_handle)
+    {
+      g_scheduler.cancel(m_handle);
+      m_handle.destroy();
+    }
+  }
+
   handle_type m_handle;
 };
 
@@ -522,6 +666,59 @@ private:
 inline void tick_coroutines(double dt = 0.016)
 {
   g_scheduler.tick(dt);
+}
+
+// ============================================================================
+// rate, sleep - GlowScript's timing functions, with GlowScript's semantics
+// ============================================================================
+
+
+// sleep(dt): wait dt seconds (GlowScript's sleep is a setTimeout)
+inline wait_for sleep(double seconds) { return wait_for{seconds}; }
+
+// The result of rate(): either continue at once or wait.
+struct [[nodiscard]] rate_wait
+{
+  std::optional<double> seconds;
+
+  bool await_ready() const noexcept { return !seconds; }
+  void await_suspend(std::coroutine_handle<> h) const { wait_for{*seconds}.await_suspend(h); }
+  void await_resume() const noexcept {}
+};
+
+namespace detail
+{
+inline constexpr double rate_desired_fps = 60;
+inline int rate_iters_left = 0; // GlowScript's N, shared by every caller as in GlowScript
+inline double rate_end_ms = 0;  // GlowScript's enditers
+inline double rate_msclock() { return 1000.0 * g_scheduler.now(); }
+} // namespace detail
+
+// rate(iters): GlowScript's rate() without the callback form (WebGLRenderer.js, rate()).
+// At most 120 it waits ceil(1000/iters) ms. Above that it runs ceil(iters/60) iterations back to
+// back, then waits out the rest of that 1/60 s.
+inline rate_wait rate(double iters)
+{
+  using namespace detail;
+  if (rate_iters_left > 0)
+  {
+    --rate_iters_left;
+    const double timer = rate_msclock();
+    if (timer > rate_end_ms)
+      rate_iters_left = 1; // truncate the iterations to permit renders to occur
+    if (rate_iters_left > 1)
+      return {};
+    rate_iters_left = 0;
+    double dt = rate_end_ms - std::ceil(timer);
+    if (dt < 5)
+      dt = 0;
+    return {dt / 1000};
+  }
+  if (iters <= 120)
+    return {std::ceil(1000 / iters) / 1000};
+  rate_iters_left = static_cast<int>(std::ceil(iters / rate_desired_fps));
+  rate_end_ms = rate_msclock() + std::ceil(1000 / rate_desired_fps);
+  return {};
 }
 
 } // namespace vcpp

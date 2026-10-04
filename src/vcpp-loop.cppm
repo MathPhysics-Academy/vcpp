@@ -2,7 +2,6 @@
  *  vcpp:loop - Animation loop and timing
  *
  *  Provides:
- *  - rate(): VPython-style frame rate limiter
  *  - loop(): main animation loop
  *  - frame_timer: precise timing control
  */
@@ -95,25 +94,6 @@ public:
 // ============================================================================
 
 inline frame_timer global_timer{};
-
-// ============================================================================
-// rate() - VPython-style frame rate limiter
-//
-// Call once per iteration in your animation loop.
-// Returns the actual time elapsed since last call.
-//
-// Usage:
-//   while (running) {
-//     rate(60);  // max 60 fps
-//     // update physics, etc.
-//   }
-// ============================================================================
-
-inline double rate(double fps) noexcept
-{
-  global_timer.set_rate(fps);
-  return global_timer.wait();
-}
 
 // ============================================================================
 // Render Callbacks (to be implemented by backend)

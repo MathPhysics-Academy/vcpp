@@ -1550,6 +1550,41 @@ export inline void run(void (*update_fn)())
 
 export inline void shutdown() { g_renderer.should_close = true; }
 
+// A VPython-style program: one task, started after init and driven once per frame.
+inline vcpp::task<void> g_program;
+inline double g_program_last_time = 0;
+
+inline void program_update()
+{
+  const double now = get_current_time();
+  vcpp::tick_coroutines(now - g_program_last_time);
+  g_program_last_time = now;
+
+  static bool reported = false;
+  if (g_program.done() && !reported)
+  {
+    reported = true;
+    try
+    {
+      g_program.rethrow_if_exception();
+    }
+    catch (const std::exception& e)
+    {
+      std::println("program ended with an exception: {}", e.what());
+    }
+  }
+}
+
+export inline int run_program(vcpp::task<void> (*program)(), canvas& c = scene)
+{
+  if (!init(c, "#canvas"))
+    return 1;
+  g_program_last_time = get_current_time();
+  g_program = program();
+  run(program_update);
+  return 0;
+}
+
 } // namespace vcpp::wgpu::web
 
 #else
@@ -1559,5 +1594,6 @@ namespace vcpp::wgpu::web
 export inline bool init(canvas&, const char* = "#canvas") { return false; }
 export inline void run(void (*)()) {}
 export inline void shutdown() {}
+export inline int run_program(vcpp::task<void> (*)(), canvas& = scene) { return 1; }
 } // namespace vcpp::wgpu::web
 #endif
