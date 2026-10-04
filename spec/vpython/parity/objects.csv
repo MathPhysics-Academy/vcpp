@@ -39,7 +39,7 @@ box,pos,vector,"<0,0,0>",box.html,,box_object,pos,wired,46,3,19,14
 box,pps,scalar,,trail.html,,box_object,pps,missing,0,0,0,0
 box,retain,scalar,to retain all,trail.html,,box_object,retain,wired,0,0,0,0
 box,shininess,scalar,0.6,box.html,,box_object,shininess,wired,1,0,0,1
-box,size,vector,,box.html,,box_object,size,field-only,40,0,0,11
+box,size,vector,,box.html,,box_object,size,wired,40,0,0,11
 box,texture,dictionary,,texture.html,,box_object,texture,wired,9,0,0,6
 box,trail_radius,scalar,0 (thin curve) for curve,trail.html,,box_object,trail_radius,declared-only,0,0,0,0
 box,trail_type,string,,trail.html,,box_object,trail_type,missing,0,0,0,0
@@ -98,7 +98,7 @@ cone,pps,scalar,,trail.html,,cone_object,pps,missing,0,0,0,0
 cone,radius,scalar,1,cone.html,,cone_object,radius,wired,2,0,0,2
 cone,retain,scalar,to retain all,trail.html,,cone_object,retain,wired,0,0,0,0
 cone,shininess,scalar,0.6,cone.html,,cone_object,shininess,wired,0,0,0,0
-cone,size,vector,"<1,2,2>",cone.html,,cone_object,size,field-only,4,0,0,3
+cone,size,vector,"<1,2,2>",cone.html,,cone_object,size,wired,4,0,0,3
 cone,texture,class element or path,None,cone.html,,cone_object,texture,wired,1,0,0,1
 cone,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cone_object,trail_radius,declared-only,0,0,0,0
 cone,trail_type,string,,trail.html,,cone_object,trail_type,missing,0,0,0,0
@@ -130,7 +130,7 @@ cylinder,pps,scalar,,trail.html,,cylinder_object,pps,missing,0,0,0,0
 cylinder,radius,,1,cylinder.html,,cylinder_object,radius,wired,13,0,3,8
 cylinder,retain,scalar,to retain all,trail.html,,cylinder_object,retain,wired,0,0,0,0
 cylinder,shininess,scalar,0.6,cylinder.html,,cylinder_object,shininess,wired,0,0,0,0
-cylinder,size,vector,"<1,1,1>",cylinder.html,,cylinder_object,size,field-only,10,0,3,3
+cylinder,size,vector,"<1,1,1>",cylinder.html,,cylinder_object,size,wired,10,0,3,3
 cylinder,texture,class element or path,None,cylinder.html,,cylinder_object,texture,wired,2,0,0,2
 cylinder,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cylinder_object,trail_radius,declared-only,0,0,0,0
 cylinder,trail_type,string,,trail.html,,cylinder_object,trail_type,missing,0,0,0,0
@@ -152,7 +152,7 @@ ellipsoid,pos,vector,"<0,0,0>",ellipsoid.html,,ellipsoid_object,pos,wired,1,0,0,
 ellipsoid,pps,scalar,,trail.html,,ellipsoid_object,pps,missing,0,0,0,0
 ellipsoid,retain,scalar,to retain all,trail.html,,ellipsoid_object,retain,wired,0,0,0,0
 ellipsoid,shininess,scalar,0.6,ellipsoid.html,,ellipsoid_object,shininess,wired,0,0,0,0
-ellipsoid,size,vector,"<1,1,1> (a sphere)",ellipsoid.html,,ellipsoid_object,size,field-only,1,0,0,1
+ellipsoid,size,vector,"<1,1,1> (a sphere)",ellipsoid.html,,ellipsoid_object,size,wired,1,0,0,1
 ellipsoid,texture,class element or path,None,ellipsoid.html,,ellipsoid_object,texture,wired,0,0,0,0
 ellipsoid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,ellipsoid_object,trail_radius,declared-only,0,0,0,0
 ellipsoid,trail_type,string,,trail.html,,ellipsoid_object,trail_type,missing,0,0,0,0
@@ -162,16 +162,16 @@ ellipsoid,width,scalar,,ellipsoid.html,,ellipsoid_object,width,wired,0,0,0,0
 extrusion,color,vector,color.white,extrusion.html,,extrusion_object,color,wired,25,0,0,5
 extrusion,end_normal,vector,,extrusion.html,,extrusion_object,end_normal,missing,0,0,0,0
 extrusion,group,object,,extrusion.html,,extrusion_object,group,declared-only,0,0,0,0
-extrusion,path,list,,extrusion.html,,extrusion_object,path,field-only,30,0,0,5
+extrusion,path,list,,extrusion.html,,extrusion_object,path,wired,30,0,0,5
 extrusion,scale,scalar or list,,extrusion.html,,extrusion_object,scale,field-only,1,0,0,1
-extrusion,shape,list,,extrusion.html,,extrusion_object,shape,field-only,30,0,0,5
+extrusion,shape,list,,extrusion.html,,extrusion_object,shape,wired,30,0,0,5
 extrusion,sharp_joints,list,,extrusion.html,,extrusion_object,sharp_joints,missing,0,0,0,0
 extrusion,show_end_face,boolean,,extrusion.html,,extrusion_object,show_end_face,field-only,0,0,0,0
 extrusion,show_start_face,boolean,True,extrusion.html,,extrusion_object,show_start_face,field-only,0,0,0,0
 extrusion,smooth,scalar,: 0.95 (an angle of 18 degrees),extrusion.html,,extrusion_object,smooth,missing,0,0,0,0
 extrusion,smooth_joints,list,,extrusion.html,,extrusion_object,smooth_joints,missing,0,0,0,0
 extrusion,start_normal,vector,,extrusion.html,,extrusion_object,start_normal,missing,0,0,0,0
-extrusion,twist,scalar or list,,extrusion.html,,extrusion_object,twist,field-only,2,0,0,1
+extrusion,twist,scalar or list,,extrusion.html,,extrusion_object,twist,wired,2,0,0,1
 extrusion,xscale,scalar or list,,extrusion.html,,extrusion_object,xscale,missing,0,0,0,0
 extrusion,yscale,scalar or list,,extrusion.html,,extrusion_object,yscale,missing,0,0,0,0
 gcurve,color,vector,color.black,graph.html,,gcurve_object,color,wired,130,0,0,13
@@ -233,14 +233,14 @@ helix,make_trail,boolean,,helix.html,,helix_object,make_trail,wired,0,0,0,0
 helix,pos,vector,"<0,0,0>",helix.html,,helix_object,pos,wired,2,2,2,3
 helix,radius,vector,1,helix.html,,helix_object,radius,wired,1,1,0,2
 helix,shininess,scalar,0.6,helix.html,,helix_object,shininess,wired,0,0,0,0
-helix,size,vector,"<1,1,1>",helix.html,,helix_object,size,field-only,1,0,1,1
+helix,size,vector,"<1,1,1>",helix.html,,helix_object,size,wired,1,0,1,1
 helix,thickness,scalar,radius/20,helix.html,,helix_object,thickness,wired,2,1,0,3
 helix,up,vector,,helix.html,,helix_object,up,wired,0,0,0,0
 helix,visible,boolean,: True,helix.html,,helix_object,visible,wired,0,1,0,1
 label,align,string,‘center’,label.html,,label_object,align,declared-only,0,0,0,0
 label,background,,scene.background,label.html,,label_object,background,field-only,0,0,0,0
 label,border,scalar,5 pixels,label.html,,label_object,border,field-only,0,0,0,0
-label,box,boolean,True,label.html,,label_object,box,field-only,1,0,0,1
+label,box,boolean,True,label.html,,label_object,box,wired,1,0,0,1
 label,canvas,object,scene,label.html,,label_object,canvas,missing,0,0,0,0
 label,color,vector,color.white,label.html,,label_object,color,wired,1,0,0,1
 label,font,string,‘sans’,label.html,,label_object,font,field-only,0,0,0,0
@@ -251,7 +251,7 @@ label,linewidth,scalar,1 pixel,label.html,,label_object,linewidth,missing,0,0,0,
 label,opacity,scalar,1.0,label.html,,label_object,opacity,wired,0,0,0,0
 label,pos,vector,"<0,0,0>",label.html,,label_object,pos,wired,2,0,1,2
 label,space,scalar,,label.html,,label_object,space,missing,0,0,0,0
-label,text,string or numerical expression,,label.html,,label_object,text,field-only,3,0,0,3
+label,text,string or numerical expression,,label.html,,label_object,text,wired,3,0,0,3
 label,visible,boolean,: True,label.html,,label_object,visible,wired,0,1,0,1
 label,xoffset,scalar,,label.html,,label_object,xoffset,wired,1,0,0,1
 label,yoffset,scalar,,label.html,,label_object,yoffset,wired,0,1,0,1
@@ -285,7 +285,7 @@ pyramid,pos,vector,"<0,0,0>",pyramid.html,,pyramid_object,pos,wired,3,0,0,3
 pyramid,pps,scalar,,trail.html,,pyramid_object,pps,missing,0,0,0,0
 pyramid,retain,scalar,to retain all,trail.html,,pyramid_object,retain,wired,0,0,0,0
 pyramid,shininess,scalar,0.6,pyramid.html,,pyramid_object,shininess,wired,0,1,0,1
-pyramid,size,vector,"<1,1,1>",pyramid.html,,pyramid_object,size,field-only,3,0,0,3
+pyramid,size,vector,"<1,1,1>",pyramid.html,,pyramid_object,size,wired,3,0,0,3
 pyramid,texture,class element or path,None,pyramid.html,,pyramid_object,texture,wired,1,1,0,2
 pyramid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,pyramid_object,trail_radius,declared-only,0,0,0,0
 pyramid,trail_type,string,,trail.html,,pyramid_object,trail_type,missing,0,0,0,0
@@ -357,13 +357,13 @@ sphere,pps,scalar,,trail.html,,sphere_object,pps,missing,0,0,0,0
 sphere,radius,scalar,1,sphere.html,,sphere_object,radius,wired,44,2,3,22
 sphere,retain,scalar,to retain all,trail.html,,sphere_object,retain,wired,7,0,0,6
 sphere,shininess,scalar,0.6,sphere.html,,sphere_object,shininess,wired,3,0,0,2
-sphere,size,vector,"<2,2,2>",sphere.html,,sphere_object,size,field-only,8,0,0,4
+sphere,size,vector,"<2,2,2>",sphere.html,,sphere_object,size,wired,8,0,0,4
 sphere,texture,class element or path,None,sphere.html,,sphere_object,texture,wired,0,0,0,0
 sphere,trail_radius,scalar,0 (thin curve) for curve,trail.html,,sphere_object,trail_radius,declared-only,2,1,0,3
 sphere,trail_type,string,,trail.html,,sphere_object,trail_type,missing,10,0,0,5
 sphere,up,vector,,sphere.html,,sphere_object,up,wired,0,0,0,0
 sphere,visible,boolean,: True,sphere.html,,sphere_object,visible,wired,2,3,2,3
-text,align,string,‘left’,text.html,,text3d_object,align,field-only,8,0,0,4
+text,align,string,‘left’,text.html,,text3d_object,align,wired,8,0,0,4
 text,axis,vector,"<1,0,0>",text.html,,text3d_object,axis,wired,0,0,0,0
 text,billboard,boolean,False,text.html,,text3d_object,billboard,declared-only,6,0,0,2
 text,canvas,object,scene,text.html,,text3d_object,canvas,missing,0,0,0,0
@@ -373,7 +373,7 @@ text,descender,scalar,,text.html,yes,text3d_object,descender,missing,0,0,0,0
 text,emissive,boolean,False,text.html,,text3d_object,emissive,wired,6,0,0,2
 text,end,,,text.html,yes,text3d_object,end,missing,0,0,0,0
 text,end_face_color,vector,same as text color,text.html,,text3d_object,end_face_color,missing,1,0,0,1
-text,font,string,‘sans’,text.html,,text3d_object,font,field-only,1,0,0,1
+text,font,string,‘sans’,text.html,,text3d_object,font,wired,1,0,0,1
 text,group,object,,text.html,,text3d_object,group,declared-only,1,0,0,1
 text,height,scalar,1,text.html,,text3d_object,height,wired,8,0,0,4
 text,length,scalar,,text.html,,text3d_object,length,declared-only,0,0,0,0
@@ -382,7 +382,7 @@ text,pos,vector,"<0,0,0>",text.html,,text3d_object,pos,wired,11,0,0,5
 text,shininess,scalar,0.6,text.html,,text3d_object,shininess,wired,0,0,0,0
 text,start,scalar,,text.html,yes,text3d_object,start,missing,0,0,2,1
 text,start_face_color,vector,same as text color,text.html,,text3d_object,start_face_color,missing,1,0,0,1
-text,text,unicode string,,text.html,,text3d_object,text,field-only,11,0,0,5
+text,text,unicode string,,text.html,,text3d_object,text,wired,11,0,0,5
 text,up,vector,,text.html,,text3d_object,up,wired,0,0,0,0
 text,vertical_spacing,scalar,,text.html,yes,text3d_object,vertical_spacing,missing,0,0,0,0
 text,visible,boolean,: True,text.html,,text3d_object,visible,wired,0,0,0,0

@@ -145,14 +145,16 @@ implementing to the docs, you will disagree with this table on purpose.
 
 ## 6. Practical implementation challenges
 
-What the numbers imply for actually building this in vcpp. Current state: **297 of 1,061 user-facing
-members wired (28%)**; of the 237 members real programs use, **128 wired (54%)**.
+What the numbers imply for actually building this in vcpp. Current state: **312 of 1,061 user-facing
+members wired (29%)**; of the 237 members real programs use, **143 wired (60%)**.
 
 ### 6.1 The silent-no-op trap — the most dangerous category
-48 members are **field-only**: vcpp *has* the field, but the constructor ignores the keyword. So
-`box(size=vec(2,1,1))` compiles, runs, and silently does nothing. This fails the worst way possible —
-it looks like it works. `box.size` alone appears 11 programs / 40 uses. Any parity metric that counts
-"has a field" as support will overstate readiness.
+Some members are **field-only**: vcpp *has* the field, but the constructor doesn't take the keyword.
+For objects built by `make<T>()`, passing such a keyword is a compile error. The graph factories
+(`graph`, `gcurve`, `gdots`, `gvbars`) don't check yet, so there a field-only keyword is still a
+silent no-op — the worst way to fail, because it looks like it works. Any parity metric that counts
+"has a field" as support overstates readiness, and "wired" means settable by name, not drawn: rings
+and pyramids have no web draw path.
 
 ### 6.2 Viral async
 `rate()`, `sleep()`, `scene.pause()`, `scene.waitfor()`, `scene.capture()`, `input()`, `winput()`,

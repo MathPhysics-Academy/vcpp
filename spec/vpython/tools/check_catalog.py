@@ -104,8 +104,8 @@ check("shapes.roundc user_facing=no", r and r["user_facing"] == "no", r and r["u
 r = row("vec", "add")
 check("vec.add vcpp_name=operator+", r and r["vcpp_name"] == "operator+", r and r["vcpp_name"])
 
-r = row("box", "size")
-check("box.size vcpp_status=field-only", r and r["vcpp_status"] == "field-only", r and r["vcpp_status"])
+r = row("gcurve", "data")
+check("gcurve.data vcpp_status=field-only", r and r["vcpp_status"] == "field-only", r and r["vcpp_status"])
 
 r = row("gcurve", "graph")
 check("gcurve.graph vcpp_name=graph_ref", r and r["vcpp_name"] == "graph_ref", r and r["vcpp_name"])

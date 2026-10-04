@@ -276,7 +276,7 @@ python3 tools/catalog_runtime.py && python3 tools/check_catalog.py
 | `fieldset`, `aria_div`, `ghistogram` | not in globals.csv |
 | `shapes.roundc` | user_facing=no |
 | `vec.add` | vcpp_name=`operator+` |
-| `box.size` | field-only |
+| `gcurve.data` | field-only |
 | `gcurve.graph` | vcpp_name=`graph_ref` |
 
 Plus the cross-check against the docs table: **409 of its 411 pairs are covered**, the two exceptions

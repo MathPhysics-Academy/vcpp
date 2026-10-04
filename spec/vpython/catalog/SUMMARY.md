@@ -15,38 +15,28 @@ All counts below cover the user-facing members only.
 ## vcpp coverage
 
 - missing: 405
-- wired: 297
+- wired: 312
 - no-object: 215
 - declared-only: 96
-- field-only: 48
+- field-only: 33
 
-Corpus uses 237 members; 128 are wired.
+Corpus uses 237 members; 143 are wired.
 
 ## Gaps ranked by real usage
 
 | owner | member | kind | vcpp | programs | uses |
 |---|---|---|---|---|---|
 | color | gray | function | missing | 14 | 30 |
-| box | size | attribute | field-only | 11 | 40 |
 | button | text | attribute | no-object | 6 | 10 |
 | button | bind | attribute | no-object | 6 | 8 |
-| extrusion | path | attribute | field-only | 5 | 30 |
-| extrusion | shape | attribute | field-only | 5 | 30 |
-| text | text | attribute | field-only | 5 | 11 |
 | sphere | trail_type | attribute | missing | 5 | 10 |
 | textures | metal | constant | missing | 5 | 10 |
 | textures | rough | constant | missing | 4 | 11 |
 | extrusion | rotate | method | missing | 4 | 8 |
-| sphere | size | attribute | field-only | 4 | 8 |
-| text | align | attribute | field-only | 4 | 8 |
-| cylinder | size | attribute | field-only | 3 | 13 |
 | wtext | text | attribute | no-object | 3 | 10 |
 | vertex | pos | attribute | no-object | 3 | 6 |
 | textures | wood | constant | missing | 3 | 5 |
-| cone | size | attribute | field-only | 3 | 4 |
 | compound | rotate | method | missing | 3 | 3 |
-| label | text | attribute | field-only | 3 | 3 |
-| pyramid | size | attribute | field-only | 3 | 3 |
 | quad | vs | attribute | missing | 3 | 3 |
 | sphere | trail_radius | attribute | declared-only | 3 | 3 |
 | textures | flower | constant | missing | 3 | 3 |
@@ -71,6 +61,16 @@ Corpus uses 237 members; 128 are wired.
 | slider | min | attribute | no-object | 2 | 2 |
 | sphere | rotate | method | missing | 2 | 2 |
 | textures | granite | constant | missing | 2 | 2 |
+| textures | rock | constant | missing | 2 | 2 |
+| textures | stones | constant | missing | 2 | 2 |
+| vertex | normal | attribute | no-object | 2 | 2 |
+| radio | checked | attribute | no-object | 1 | 5 |
+| compound | clone | method | missing | 1 | 4 |
+| gcurve | data | attribute | field-only | 1 | 4 |
+| button | background | attribute | no-object | 1 | 3 |
+| button | color | attribute | no-object | 1 | 3 |
+| slider | value | attribute | no-object | 1 | 3 |
+| box | group | attribute | declared-only | 1 | 2 |
 
 ## Per-owner coverage (user-facing members)
 
@@ -80,7 +80,7 @@ Corpus uses 237 members; 128 are wired.
 | attach_arrow | 5 | 0 | 0 | 0 |
 | attach_light | 5 | 0 | 0 | 0 |
 | attach_trail | 9 | 0 | 0 | 0 |
-| box | 35 | 14 | 14 | 11 |
+| box | 35 | 15 | 14 | 12 |
 | bumpmaps | 5 | 0 | 1 | 0 |
 | button | 7 | 0 | 5 | 0 |
 | camera | 4 | 0 | 0 | 0 |
@@ -88,35 +88,35 @@ Corpus uses 237 members; 128 are wired.
 | checkbox | 6 | 0 | 3 | 0 |
 | color | 14 | 10 | 13 | 10 |
 | compound | 38 | 11 | 7 | 4 |
-| cone | 35 | 13 | 10 | 8 |
+| cone | 35 | 14 | 10 | 9 |
 | curve | 41 | 14 | 5 | 4 |
-| cylinder | 35 | 13 | 10 | 7 |
+| cylinder | 35 | 14 | 10 | 8 |
 | distant_light | 11 | 0 | 2 | 0 |
-| ellipsoid | 35 | 14 | 3 | 2 |
+| ellipsoid | 35 | 15 | 3 | 3 |
 | event | 13 | 0 | 0 | 0 |
-| extrusion | 53 | 11 | 15 | 7 |
+| extrusion | 53 | 14 | 15 | 10 |
 | gcurve | 19 | 10 | 7 | 5 |
 | gdots | 19 | 5 | 3 | 2 |
 | ghbars | 19 | 0 | 0 | 0 |
 | graph | 21 | 12 | 11 | 9 |
 | group | 38 | 0 | 1 | 0 |
 | gvbars | 19 | 5 | 4 | 3 |
-| helix | 38 | 16 | 8 | 7 |
-| label | 27 | 10 | 8 | 6 |
+| helix | 38 | 17 | 8 | 8 |
+| label | 27 | 12 | 8 | 8 |
 | local_light | 11 | 0 | 0 | 0 |
 | menu | 7 | 0 | 4 | 0 |
 | mouse | 8 | 0 | 0 | 0 |
 | paths | 14 | 9 | 3 | 2 |
 | points | 42 | 14 | 2 | 1 |
-| pyramid | 35 | 14 | 7 | 6 |
+| pyramid | 35 | 15 | 7 | 7 |
 | quad | 40 | 11 | 2 | 1 |
 | radio | 7 | 0 | 4 | 0 |
 | ring | 36 | 13 | 6 | 5 |
 | shapes | 16 | 10 | 7 | 6 |
 | simple_sphere | 29 | 0 | 0 | 0 |
 | slider | 17 | 0 | 7 | 0 |
-| sphere | 30 | 13 | 17 | 10 |
-| text | 45 | 13 | 14 | 5 |
+| sphere | 30 | 14 | 17 | 11 |
+| text | 45 | 16 | 14 | 8 |
 | texture | 6 | 0 | 0 | 0 |
 | textures | 12 | 0 | 12 | 0 |
 | triangle | 39 | 11 | 0 | 0 |

@@ -6,32 +6,22 @@ Status: **wired** settable by name Â· **field-only** member exists, `obj(name=â€
 
 ## Totals (411 object/attribute pairs)
 
-- wired: 199
-- field-only: 35
+- wired: 214
+- field-only: 20
 - declared-only: 25
 - missing: 69
 - no-object: 83
 
-The corpus uses 169 of these pairs; 99 are wired.
+The corpus uses 169 of these pairs; 114 are wired.
 
 ## Gaps ranked by real usage
 
 | object | attribute | vcpp status | programs | ctor kwargs | assigns | reads |
 |---|---|---|---|---|---|---|
-| box | size | field-only | 11 | 40 | 0 | 0 |
 | button | text | no-object | 6 | 8 | 2 | 0 |
 | button | bind | no-object | 6 | 8 | 0 | 0 |
-| extrusion | path | field-only | 5 | 30 | 0 | 0 |
-| extrusion | shape | field-only | 5 | 30 | 0 | 0 |
-| text | text | field-only | 5 | 11 | 0 | 0 |
 | sphere | trail_type | missing | 5 | 10 | 0 | 0 |
-| sphere | size | field-only | 4 | 8 | 0 | 0 |
-| text | align | field-only | 4 | 8 | 0 | 0 |
-| cylinder | size | field-only | 3 | 10 | 0 | 3 |
 | vertex | pos | no-object | 3 | 6 | 0 | 0 |
-| cone | size | field-only | 3 | 4 | 0 | 0 |
-| label | text | field-only | 3 | 3 | 0 | 0 |
-| pyramid | size | field-only | 3 | 3 | 0 | 0 |
 | quad | vs | missing | 3 | 3 | 0 | 0 |
 | sphere | trail_radius | declared-only | 3 | 2 | 1 | 0 |
 | text | billboard | declared-only | 2 | 6 | 0 | 0 |
@@ -53,11 +43,21 @@ The corpus uses 169 of these pairs; 99 are wired.
 | slider | value | no-object | 1 | 1 | 0 | 2 |
 | box | group | declared-only | 1 | 2 | 0 | 0 |
 | button | pos | no-object | 1 | 2 | 0 | 0 |
-| extrusion | twist | field-only | 1 | 2 | 0 | 0 |
 | group | pos | no-object | 1 | 0 | 1 | 1 |
-| helix | size | field-only | 1 | 1 | 0 | 1 |
 | radio | bind | no-object | 1 | 2 | 0 | 0 |
 | radio | name | no-object | 1 | 2 | 0 | 0 |
+| radio | text | no-object | 1 | 2 | 0 | 0 |
+| sphere | interval | missing | 1 | 2 | 0 | 0 |
+| text | start | missing | 1 | 0 | 0 | 2 |
+| canvas | align | no-object | 1 | 1 | 0 | 0 |
+| canvas | caption | no-object | 1 | 0 | 1 | 0 |
+| canvas | height | no-object | 1 | 1 | 0 | 0 |
+| canvas | title | no-object | 1 | 0 | 1 | 0 |
+| canvas | width | no-object | 1 | 1 | 0 | 0 |
+| checkbox | checked | no-object | 1 | 1 | 0 | 0 |
+| distant_light | color | no-object | 1 | 1 | 0 | 0 |
+| extrusion | scale | field-only | 1 | 1 | 0 | 0 |
+| gcurve | marker_color | missing | 1 | 1 | 0 | 0 |
 
 ## Per-object coverage
 
@@ -66,35 +66,35 @@ The corpus uses 169 of these pairs; 99 are wired.
 | arrow | 21 | 15 | 5 | 5 |
 | attach_arrow | 3 | 0 | 0 | 0 |
 | attach_light | 2 | 0 | 0 | 0 |
-| box | 21 | 14 | 13 | 11 |
+| box | 21 | 15 | 13 | 12 |
 | button | 6 | 0 | 5 | 0 |
 | canvas | 9 | 0 | 5 | 0 |
 | checkbox | 5 | 0 | 3 | 0 |
 | compound | 18 | 11 | 4 | 4 |
-| cone | 20 | 13 | 9 | 8 |
+| cone | 20 | 14 | 9 | 9 |
 | curve | 12 | 9 | 3 | 3 |
-| cylinder | 20 | 13 | 8 | 7 |
+| cylinder | 20 | 14 | 8 | 8 |
 | distant_light | 2 | 0 | 2 | 0 |
-| ellipsoid | 21 | 14 | 3 | 2 |
-| extrusion | 15 | 1 | 5 | 1 |
+| ellipsoid | 21 | 15 | 3 | 3 |
+| extrusion | 15 | 4 | 5 | 4 |
 | gcurve | 12 | 10 | 7 | 5 |
 | gdots | 8 | 5 | 3 | 2 |
 | graph | 16 | 12 | 11 | 9 |
 | group | 5 | 0 | 1 | 0 |
 | gvbars | 7 | 5 | 4 | 3 |
-| helix | 15 | 13 | 8 | 7 |
-| label | 18 | 7 | 8 | 6 |
+| helix | 15 | 14 | 8 | 8 |
+| label | 18 | 9 | 8 | 8 |
 | local_light | 2 | 0 | 0 | 0 |
 | menu | 5 | 0 | 4 | 0 |
 | points | 9 | 6 | 2 | 1 |
-| pyramid | 21 | 14 | 7 | 6 |
+| pyramid | 21 | 15 | 7 | 7 |
 | quad | 5 | 0 | 1 | 0 |
 | radio | 6 | 0 | 4 | 0 |
 | ring | 20 | 13 | 6 | 5 |
 | simple_sphere | 6 | 0 | 0 | 0 |
 | slider | 15 | 0 | 7 | 0 |
-| sphere | 19 | 12 | 13 | 9 |
-| text | 23 | 10 | 13 | 5 |
+| sphere | 19 | 13 | 13 | 10 |
+| text | 23 | 13 | 13 | 8 |
 | triangle | 7 | 2 | 0 | 0 |
 | vertex | 8 | 0 | 5 | 0 |
 | winput | 9 | 0 | 0 | 0 |

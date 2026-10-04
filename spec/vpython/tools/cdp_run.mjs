@@ -84,6 +84,7 @@ if (loaded) {
     const got = events.slice(before).map((e) => `${e.kind === 'log' ? '' : e.kind + ': '}${e.text}`).join(' | ');
     log('key', `${code} -> ${got || '(no output)'}`);
     if (code === 'Digit9') await shot(`cdp_${label}_labels`);
+    if (code === 'Equal') await shot(`cdp_${label}_compound`); // rotates, so compare by eye, not bytes
     if (code === 'BracketLeft') await shot(`cdp_${label}_text3d`);
   }
 }
