@@ -65,16 +65,16 @@ template<>
 struct object_params<graph_object>
 {
   static constexpr auto value = std::tuple{
-    param_spec<&graph_base::m_width, decltype(width), 640>{},
-    param_spec<&graph_base::m_height, decltype(height), 400>{},
-    param_spec<&graph_base::m_background, decltype(background), vec3{0.1, 0.1, 0.15}>{},
-    param_spec<&graph_base::m_foreground, decltype(foreground), vec3{0.9, 0.9, 0.9}>{},
-    param_spec<&graph_base::m_xmin, decltype(xmin), 0.0>{},
-    param_spec<&graph_base::m_xmax, decltype(xmax), 0.0>{},
-    param_spec<&graph_base::m_ymin, decltype(ymin), 0.0>{},
-    param_spec<&graph_base::m_ymax, decltype(ymax), 0.0>{},
-    param_spec<&graph_base::m_fast, decltype(fast), true>{},
-    param_spec<&graph_base::m_visible, decltype(visible), true>{}
+    param_spec<&graph_base::m_width, decltype(width)>{},
+    param_spec<&graph_base::m_height, decltype(height)>{},
+    param_spec<&graph_base::m_background, decltype(background)>{},
+    param_spec<&graph_base::m_foreground, decltype(foreground)>{},
+    param_spec<&graph_base::m_xmin, decltype(xmin)>{},
+    param_spec<&graph_base::m_xmax, decltype(xmax)>{},
+    param_spec<&graph_base::m_ymin, decltype(ymin)>{},
+    param_spec<&graph_base::m_ymax, decltype(ymax)>{},
+    param_spec<&graph_base::m_fast, decltype(fast)>{},
+    param_spec<&graph_base::m_visible, decltype(visible)>{}
   };
 };
 
@@ -137,15 +137,15 @@ template<>
 struct object_params<gcurve_object>
 {
   static constexpr auto value = std::tuple{
-    param_spec<&plot_base::m_color, decltype(color), vec3{0, 0, 0}>{},
-    param_spec<&plot_base::m_visible, decltype(visible), true>{},
-    param_spec<&plot_base::m_legend, decltype(legend), true>{},
-    param_spec<&gcurve_object::m_width, decltype(width), 1.0>{},
-    param_spec<&gcurve_object::m_markers, decltype(markers), false>{},
-    param_spec<&gcurve_object::m_marker_radius, decltype(marker_radius), 3.0>{},
-    param_spec<&gcurve_object::m_dot, decltype(show_dot), false>{},
-    param_spec<&gcurve_object::m_dot_radius, decltype(dot_radius), 4.0>{},
-    param_spec<&gcurve_object::m_dot_color, decltype(dot_color), vec3{1, 0, 0}>{}
+    param_spec<&plot_base::m_color, decltype(color)>{},
+    param_spec<&plot_base::m_visible, decltype(visible)>{},
+    param_spec<&plot_base::m_legend, decltype(legend)>{},
+    param_spec<&gcurve_object::m_width, decltype(width)>{},
+    param_spec<&gcurve_object::m_markers, decltype(markers)>{},
+    param_spec<&gcurve_object::m_marker_radius, decltype(marker_radius)>{},
+    param_spec<&gcurve_object::m_dot, decltype(show_dot)>{},
+    param_spec<&gcurve_object::m_dot_radius, decltype(dot_radius)>{},
+    param_spec<&gcurve_object::m_dot_color, decltype(dot_color)>{}
   };
 };
 
@@ -196,10 +196,10 @@ template<>
 struct object_params<gdots_object>
 {
   static constexpr auto value = std::tuple{
-    param_spec<&plot_base::m_color, decltype(color), vec3{0, 0, 0}>{},
-    param_spec<&plot_base::m_visible, decltype(visible), true>{},
-    param_spec<&plot_base::m_legend, decltype(legend), true>{},
-    param_spec<&gdots_object::m_radius, decltype(radius), 3.0>{}
+    param_spec<&plot_base::m_color, decltype(color)>{},
+    param_spec<&plot_base::m_visible, decltype(visible)>{},
+    param_spec<&plot_base::m_legend, decltype(legend)>{},
+    param_spec<&gdots_object::m_radius, decltype(radius)>{}
   };
 };
 
@@ -250,10 +250,10 @@ template<>
 struct object_params<gvbars_object>
 {
   static constexpr auto value = std::tuple{
-    param_spec<&plot_base::m_color, decltype(color), vec3{0, 0, 0}>{},
-    param_spec<&plot_base::m_visible, decltype(visible), true>{},
-    param_spec<&plot_base::m_legend, decltype(legend), true>{},
-    param_spec<&gvbars_object::m_delta, decltype(delta), 1.0>{}
+    param_spec<&plot_base::m_color, decltype(color)>{},
+    param_spec<&plot_base::m_visible, decltype(visible)>{},
+    param_spec<&plot_base::m_legend, decltype(legend)>{},
+    param_spec<&gvbars_object::m_delta, decltype(delta)>{}
   };
 };
 

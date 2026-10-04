@@ -24,6 +24,40 @@ export namespace vcpp
 using namespace lam::symbols;
 
 // ============================================================================
+// size= setters
+//
+// GlowScript stores every object's dimensions as one vector, `size`; length,
+// height, width and radius are views onto it. vcpp keeps per-type members, so
+// size= fans out to them here. A size those members can't hold exactly throws
+// rather than being cut down to fit.
+// ============================================================================
+
+namespace detail
+{
+constexpr bool same_extent(double a, double b) noexcept
+{ return a == b || std::abs(a - b) <= 1e-9 * std::max(std::abs(a), std::abs(b)); }
+
+// box, ellipsoid, pyramid: size = (length, height, width)
+template<typename Object>
+constexpr void set_size_lhw(Object& o, const vec3& s)
+{
+  o.m_length = s.x();
+  o.m_height = s.y();
+  o.m_width = s.z();
+}
+
+// cylinder, cone, helix: size = (length, 2*radius, 2*radius); one radius, so size.y must equal size.z
+template<typename Object>
+constexpr void set_size_lr(Object& o, const vec3& s)
+{
+  if (!same_extent(s.y(), s.z()))
+    throw std::invalid_argument("vcpp: size.y and size.z must match; this object has a single radius");
+  o.m_length = s.x();
+  o.m_radius = s.y() / 2;
+}
+} // namespace detail
+
+// ============================================================================
 // SPHERE
 // ============================================================================
 
@@ -36,10 +70,22 @@ struct sphere_object : object_base
   constexpr void set_radius(double r) noexcept { m_radius = r; }
 };
 
+namespace detail
+{
+// sphere: size = (2*radius, 2*radius, 2*radius); one radius, so all three must match
+constexpr void set_size_sphere(sphere_object& o, const vec3& s)
+{
+  if (!same_extent(s.x(), s.y()) || !same_extent(s.x(), s.z()))
+    throw std::invalid_argument("vcpp: a sphere's size must be uniform; it has a single radius");
+  o.m_radius = s.x() / 2;
+}
+} // namespace detail
+
 template<>
 struct object_params<sphere_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&sphere_object::m_radius, decltype(radius), 1.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&sphere_object::m_radius, decltype(radius)>{},
+                                           param_spec<&detail::set_size_sphere, decltype(size)>{}};
 };
 
 template<typename... Binders>
@@ -72,10 +118,14 @@ struct ellipsoid_object : object_base
 template<>
 struct object_params<ellipsoid_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&ellipsoid_object::m_length, decltype(length), 1.0>{},
-                                           param_spec<&ellipsoid_object::m_height, decltype(height), 1.0>{},
-                                           param_spec<&ellipsoid_object::m_width, decltype(width), 1.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&ellipsoid_object::m_length, decltype(length)>{},
+                                           param_spec<&ellipsoid_object::m_height, decltype(height)>{},
+                                           param_spec<&ellipsoid_object::m_width, decltype(width)>{},
+                                           param_spec<&detail::set_size_lhw<ellipsoid_object>, decltype(size)>{}};
 };
+
+template<>
+inline constexpr bool length_follows_axis<ellipsoid_object> = true;
 
 template<typename... Binders>
 constexpr ellipsoid_object ellipsoid(Binders... binders)
@@ -107,10 +157,14 @@ struct box_object : object_base
 template<>
 struct object_params<box_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&box_object::m_length, decltype(length), 1.0>{},
-                                           param_spec<&box_object::m_height, decltype(height), 1.0>{},
-                                           param_spec<&box_object::m_width, decltype(width), 1.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&box_object::m_length, decltype(length)>{},
+                                           param_spec<&box_object::m_height, decltype(height)>{},
+                                           param_spec<&box_object::m_width, decltype(width)>{},
+                                           param_spec<&detail::set_size_lhw<box_object>, decltype(size)>{}};
 };
+
+template<>
+inline constexpr bool length_follows_axis<box_object> = true;
 
 template<typename... Binders>
 constexpr box_object box(Binders... binders)
@@ -138,9 +192,13 @@ struct cylinder_object : object_base
 template<>
 struct object_params<cylinder_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&cylinder_object::m_radius, decltype(radius), 1.0>{},
-                                           param_spec<&cylinder_object::m_length, decltype(length), 1.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&cylinder_object::m_radius, decltype(radius)>{},
+                                           param_spec<&cylinder_object::m_length, decltype(length)>{},
+                                           param_spec<&detail::set_size_lr<cylinder_object>, decltype(size)>{}};
 };
+
+template<>
+inline constexpr bool length_follows_axis<cylinder_object> = true;
 
 template<typename... Binders>
 constexpr cylinder_object cylinder(Binders... binders)
@@ -168,9 +226,13 @@ struct cone_object : object_base
 template<>
 struct object_params<cone_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&cone_object::m_radius, decltype(radius), 1.0>{},
-                                           param_spec<&cone_object::m_length, decltype(length), 1.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&cone_object::m_radius, decltype(radius)>{},
+                                           param_spec<&cone_object::m_length, decltype(length)>{},
+                                           param_spec<&detail::set_size_lr<cone_object>, decltype(size)>{}};
 };
+
+template<>
+inline constexpr bool length_follows_axis<cone_object> = true;
 
 template<typename... Binders>
 constexpr cone_object cone(Binders... binders)
@@ -206,10 +268,10 @@ struct arrow_object : object_base
 template<>
 struct object_params<arrow_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&arrow_object::m_shaftwidth, decltype(shaftwidth), 0.1>{},
-                                           param_spec<&arrow_object::m_headwidth, decltype(headwidth), 0.2>{},
-                                           param_spec<&arrow_object::m_headlength, decltype(headlength), 0.3>{},
-                                           param_spec<&arrow_object::m_round, decltype(round), false>{}};
+  static constexpr auto value = std::tuple{param_spec<&arrow_object::m_shaftwidth, decltype(shaftwidth)>{},
+                                           param_spec<&arrow_object::m_headwidth, decltype(headwidth)>{},
+                                           param_spec<&arrow_object::m_headlength, decltype(headlength)>{},
+                                           param_spec<&arrow_object::m_round, decltype(round)>{}};
 };
 
 template<typename... Binders>
@@ -238,8 +300,8 @@ struct ring_object : object_base
 template<>
 struct object_params<ring_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&ring_object::m_radius, decltype(radius), 1.0>{},
-                                           param_spec<&ring_object::m_thickness, decltype(thickness), 0.1>{}};
+  static constexpr auto value = std::tuple{param_spec<&ring_object::m_radius, decltype(radius)>{},
+                                           param_spec<&ring_object::m_thickness, decltype(thickness)>{}};
 };
 
 template<typename... Binders>
@@ -280,12 +342,16 @@ struct helix_object : object_base
 template<>
 struct object_params<helix_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&helix_object::m_radius, decltype(radius), 1.0>{},
-                                           param_spec<&helix_object::m_thickness, decltype(thickness), 0.05>{},
-                                           param_spec<&helix_object::m_length, decltype(length), 1.0>{},
-                                           param_spec<&helix_object::m_coils, decltype(coils), 5>{},
-                                           param_spec<&helix_object::m_ccw, decltype(ccw), true>{}};
+  static constexpr auto value = std::tuple{param_spec<&helix_object::m_radius, decltype(radius)>{},
+                                           param_spec<&helix_object::m_thickness, decltype(thickness)>{},
+                                           param_spec<&helix_object::m_length, decltype(length)>{},
+                                           param_spec<&helix_object::m_coils, decltype(coils)>{},
+                                           param_spec<&helix_object::m_ccw, decltype(ccw)>{},
+                                           param_spec<&detail::set_size_lr<helix_object>, decltype(size)>{}};
 };
+
+template<>
+inline constexpr bool length_follows_axis<helix_object> = true;
 
 template<typename... Binders>
 constexpr helix_object helix(Binders... binders)
@@ -307,10 +373,14 @@ struct pyramid_object : object_base
 template<>
 struct object_params<pyramid_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&pyramid_object::m_length, decltype(length), 1.0>{},
-                                           param_spec<&pyramid_object::m_height, decltype(height), 1.0>{},
-                                           param_spec<&pyramid_object::m_width, decltype(width), 1.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&pyramid_object::m_length, decltype(length)>{},
+                                           param_spec<&pyramid_object::m_height, decltype(height)>{},
+                                           param_spec<&pyramid_object::m_width, decltype(width)>{},
+                                           param_spec<&detail::set_size_lhw<pyramid_object>, decltype(size)>{}};
 };
+
+template<>
+inline constexpr bool length_follows_axis<pyramid_object> = true;
 
 template<typename... Binders>
 constexpr pyramid_object pyramid(Binders... binders)
@@ -355,7 +425,7 @@ struct curve_object : object_base
 template<>
 struct object_params<curve_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&curve_object::m_radius, decltype(radius), 0.05>{}};
+  static constexpr auto value = std::tuple{param_spec<&curve_object::m_radius, decltype(radius)>{}};
 };
 
 template<typename... Binders>
@@ -407,7 +477,7 @@ struct points_object : object_base
 template<>
 struct object_params<points_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&points_object::m_size, decltype(size), 5.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&points_object::m_size, decltype(size)>{}};
 };
 
 template<typename... Binders>
@@ -450,10 +520,12 @@ struct label_object : object_base
 template<>
 struct object_params<label_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&label_object::m_height, decltype(height), 15.0>{},
-                                           param_spec<&label_object::m_billboard, decltype(billboard), true>{},
-                                           param_spec<&label_object::m_xoffset, decltype(xoffset), 0.0>{},
-                                           param_spec<&label_object::m_yoffset, decltype(yoffset), 0.0>{}};
+  static constexpr auto value = std::tuple{param_spec<&label_object::m_text, decltype(text)>{},
+                                           param_spec<&label_object::m_height, decltype(height)>{},
+                                           param_spec<&label_object::m_billboard, decltype(billboard)>{},
+                                           param_spec<&label_object::m_xoffset, decltype(xoffset)>{},
+                                           param_spec<&label_object::m_yoffset, decltype(yoffset)>{},
+                                           param_spec<&label_object::m_box, decltype(prop::box)>{}};
 };
 
 template<typename... Binders>
@@ -665,8 +737,11 @@ struct text3d_object : object_base
 template<>
 struct object_params<text3d_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&text3d_object::m_height, decltype(height), 1.0>{},
-                                           param_spec<&text3d_object::m_depth, decltype(thickness), 0.2>{}};
+  static constexpr auto value = std::tuple{param_spec<&text3d_object::m_text, decltype(text)>{},
+                                           param_spec<&text3d_object::m_height, decltype(height)>{},
+                                           param_spec<&text3d_object::m_depth, decltype(thickness)>{},
+                                           param_spec<&text3d_object::m_font, decltype(font)>{},
+                                           param_spec<&text3d_object::m_align, decltype(align)>{}};
 };
 
 template<typename... Binders>
@@ -707,7 +782,10 @@ struct extrusion_object : object_base
 template<>
 struct object_params<extrusion_object>
 {
-  static constexpr auto value = std::tuple{};
+  static constexpr auto value = std::tuple{param_spec<&extrusion_object::m_path, decltype(path)>{},
+                                           param_spec<&extrusion_object::m_shape, decltype(shape)>{},
+                                           param_spec<&extrusion_object::m_twist, decltype(twist)>{},
+                                           param_spec<&extrusion_object::m_scale, decltype(scale_end)>{}};
 };
 
 template<typename... Binders>

@@ -88,18 +88,18 @@ struct object_base
 // ============================================================================
 
 inline constexpr auto common_params =
-  std::tuple{param_spec<&object_base::m_pos, decltype(pos), vec3{0, 0, 0}>{},
-             param_spec<&object_base::m_axis, decltype(axis), vec3{1, 0, 0}>{},
-             param_spec<&object_base::m_up, decltype(up), vec3{0, 1, 0}>{},
-             param_spec<&object_base::m_color, decltype(color), vec3{1, 1, 1}>{},
-             param_spec<&object_base::m_opacity, decltype(opacity), 1.0>{},
-             param_spec<&object_base::m_shininess, decltype(shininess), 0.6>{},
-             param_spec<&object_base::m_emissive, decltype(emissive), false>{},
-             param_spec<&object_base::m_visible, decltype(visible), true>{},
-             param_spec<&object_base::m_make_trail, decltype(make_trail), false>{},
-             param_spec<&object_base::m_retain, decltype(retain), -1.0>{},
-             param_spec<&object_base::m_trail_color, decltype(trail_color), vec3{1, 1, 1}>{},
-             param_spec<&object_base::m_texture, decltype(texture), render::texture_handle{}>{}};
+  std::tuple{param_spec<&object_base::m_pos, decltype(pos)>{},
+             param_spec<&object_base::m_axis, decltype(axis)>{},
+             param_spec<&object_base::m_up, decltype(up)>{},
+             param_spec<&object_base::m_color, decltype(color)>{},
+             param_spec<&object_base::m_opacity, decltype(opacity)>{},
+             param_spec<&object_base::m_shininess, decltype(shininess)>{},
+             param_spec<&object_base::m_emissive, decltype(emissive)>{},
+             param_spec<&object_base::m_visible, decltype(visible)>{},
+             param_spec<&object_base::m_make_trail, decltype(make_trail)>{},
+             param_spec<&object_base::m_retain, decltype(retain)>{},
+             param_spec<&object_base::m_trail_color, decltype(trail_color)>{},
+             param_spec<&object_base::m_texture, decltype(texture)>{}};
 
 // ============================================================================
 // make<ObjectType> - Generic object factory
@@ -112,17 +112,47 @@ inline constexpr auto common_params =
 //   auto s = make<sphere_object>(pos = vec(0,0,0), radius = 2);
 // ============================================================================
 
+// A named parameter no spec maps would be silently ignored; reject it instead.
+template<typename ObjectType, typename Binder>
+constexpr void check_named_param()
+{
+  using Symbol = typename Binder::symbol_type;
+  static_assert(accepts_symbol<Symbol>(common_params) || accepts_symbol<Symbol>(object_params<ObjectType>::value),
+                "vcpp: this object does not take one of the named parameters passed to it");
+}
+
 template<typename ObjectType, typename... Binders>
 constexpr ObjectType make(Binders... binders)
 {
-  auto params = substitution(binders...);
   ObjectType obj{};
 
-  // Apply common parameters to base class
-  apply_params(static_cast<object_base&>(obj), params, common_params);
+  // lam's substitution can't be queried when empty, and box() means all defaults anyway.
+  if constexpr (sizeof...(Binders) > 0)
+  {
+    (check_named_param<ObjectType, Binders>(), ...);
 
-  // Apply object-specific parameters
-  apply_params(obj, params, object_params<ObjectType>::value);
+    auto params = substitution(binders...);
+    using params_t = decltype(params);
+
+    // Apply common parameters to base class
+    apply_params(static_cast<object_base&>(obj), params, common_params);
+
+    // Apply object-specific parameters
+    apply_params(obj, params, object_params<ObjectType>::value);
+
+    // GlowScript applies axis before size/length, and links them: an explicit length (or size.x)
+    // rescales axis; otherwise axis sets the length.
+    if constexpr (length_follows_axis<ObjectType>)
+    {
+      if constexpr (is_bound<decltype(length), params_t> || is_bound<decltype(size), params_t>)
+      {
+        const vec3 dir = mag2(obj.m_axis) > 0.0 ? hat(obj.m_axis) : vec3{1, 0, 0};
+        obj.m_axis = dir * obj.m_length;
+      }
+      else if constexpr (is_bound<decltype(axis), params_t>)
+        obj.m_length = mag(obj.m_axis);
+    }
+  }
 
   return obj;
 }

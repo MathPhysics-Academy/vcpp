@@ -46,15 +46,16 @@ inline constexpr bool is_bound = detail::is_bound_impl<Symbol, Substitution>::va
 // ============================================================================
 // param_spec - Specification for a single parameter
 //
-// Maps: symbol -> member pointer -> default value
+// Maps: symbol -> member pointer, or symbol -> setter function (Object&, value).
+// Defaults live in the member initializers; no value is carried here, so members
+// of any type (string, vector) can be specs.
 // ============================================================================
 
-template<auto MemberPtr, typename Symbol, auto Default>
+template<auto MemberPtr, typename Symbol>
 struct param_spec
 {
   using symbol_type = Symbol;
   static constexpr auto member = MemberPtr;
-  static constexpr auto default_value = Default;
 };
 
 // ============================================================================
@@ -72,7 +73,10 @@ constexpr void apply_param(Object& obj, const Substitution& params, ParamSpec)
 
   if constexpr (is_bound<Symbol, Substitution>)
   {
-    obj.*(ParamSpec::member) = sym(params);
+    if constexpr (std::is_member_object_pointer_v<decltype(ParamSpec::member)>)
+      obj.*(ParamSpec::member) = sym(params);
+    else
+      ParamSpec::member(obj, sym(params)); // a setter, for values that fan out to several members
   }
   // else: object already has default from initialization
 }
@@ -86,6 +90,27 @@ constexpr void apply_params(Object& obj, const Substitution& params, std::tuple<
 {
   (apply_param(obj, params, ParamSpecs{}), ...);
 }
+
+// ============================================================================
+// accepts_symbol - Is Symbol named by one of the specs in a tuple?
+//
+// Lets a factory reject a named parameter it would otherwise silently ignore.
+// ============================================================================
+
+template<typename Symbol, typename... ParamSpecs>
+constexpr bool accepts_symbol(std::tuple<ParamSpecs...>)
+{
+  return (std::same_as<std::remove_cvref_t<Symbol>, std::remove_cvref_t<typename ParamSpecs::symbol_type>> || ...);
+}
+
+// ============================================================================
+// length_follows_axis - GlowScript's box family keeps length == mag(axis)
+//
+// Specialized true for the object types where setting one sets the other.
+// ============================================================================
+
+template<typename ObjectType>
+inline constexpr bool length_follows_axis = false;
 
 // ============================================================================
 // object_params - Registry of parameters for each object type
