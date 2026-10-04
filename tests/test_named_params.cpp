@@ -62,9 +62,24 @@ bool test_sphere_uniform_size()
 // ...and one they can't throws, rather than being cut down to fit
 bool test_lossy_size_throws()
 {
-  bool sphere_threw = false, cylinder_threw = false;
-  try { sphere(size = vec3{3, 2, 1}); } catch (const std::invalid_argument&) { sphere_threw = true; }
-  try { cylinder(size = vec3{1, 2, 1}); } catch (const std::invalid_argument&) { cylinder_threw = true; }
+  bool sphere_threw = false;
+  bool cylinder_threw = false;
+  try
+  {
+    sphere(size = vec3{3, 2, 1});
+  }
+  catch (const std::invalid_argument&)
+  {
+    sphere_threw = true;
+  }
+  try
+  {
+    cylinder(size = vec3{1, 2, 1});
+  }
+  catch (const std::invalid_argument&)
+  {
+    cylinder_threw = true;
+  }
   return sphere_threw && cylinder_threw;
 }
 

@@ -737,11 +737,10 @@ struct text3d_object : object_base
 template<>
 struct object_params<text3d_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&text3d_object::m_text, decltype(text)>{},
-                                           param_spec<&text3d_object::m_height, decltype(height)>{},
-                                           param_spec<&text3d_object::m_depth, decltype(thickness)>{},
-                                           param_spec<&text3d_object::m_font, decltype(font)>{},
-                                           param_spec<&text3d_object::m_align, decltype(align)>{}};
+  static constexpr auto value = std::tuple{
+    param_spec<&text3d_object::m_text, decltype(text)>{}, param_spec<&text3d_object::m_height, decltype(height)>{},
+    param_spec<&text3d_object::m_depth, decltype(thickness)>{}, param_spec<&text3d_object::m_font, decltype(font)>{},
+    param_spec<&text3d_object::m_align, decltype(align)>{}};
 };
 
 template<typename... Binders>

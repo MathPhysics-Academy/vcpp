@@ -63,21 +63,19 @@ struct graph_object : graph_base
 template<>
 struct object_params<graph_object>
 {
-  static constexpr auto value = std::tuple{
-    param_spec<&graph_base::m_title, decltype(title)>{},
-    param_spec<&graph_base::m_xtitle, decltype(xtitle)>{},
-    param_spec<&graph_base::m_ytitle, decltype(ytitle)>{},
-    param_spec<&graph_base::m_width, decltype(width)>{},
-    param_spec<&graph_base::m_height, decltype(height)>{},
-    param_spec<&graph_base::m_background, decltype(background)>{},
-    param_spec<&graph_base::m_foreground, decltype(foreground)>{},
-    param_spec<&graph_base::m_xmin, decltype(xmin)>{},
-    param_spec<&graph_base::m_xmax, decltype(xmax)>{},
-    param_spec<&graph_base::m_ymin, decltype(ymin)>{},
-    param_spec<&graph_base::m_ymax, decltype(ymax)>{},
-    param_spec<&graph_base::m_fast, decltype(fast)>{},
-    param_spec<&graph_base::m_visible, decltype(visible)>{}
-  };
+  static constexpr auto value = std::tuple{param_spec<&graph_base::m_title, decltype(title)>{},
+                                           param_spec<&graph_base::m_xtitle, decltype(xtitle)>{},
+                                           param_spec<&graph_base::m_ytitle, decltype(ytitle)>{},
+                                           param_spec<&graph_base::m_width, decltype(width)>{},
+                                           param_spec<&graph_base::m_height, decltype(height)>{},
+                                           param_spec<&graph_base::m_background, decltype(background)>{},
+                                           param_spec<&graph_base::m_foreground, decltype(foreground)>{},
+                                           param_spec<&graph_base::m_xmin, decltype(xmin)>{},
+                                           param_spec<&graph_base::m_xmax, decltype(xmax)>{},
+                                           param_spec<&graph_base::m_ymin, decltype(ymin)>{},
+                                           param_spec<&graph_base::m_ymax, decltype(ymax)>{},
+                                           param_spec<&graph_base::m_fast, decltype(fast)>{},
+                                           param_spec<&graph_base::m_visible, decltype(visible)>{}};
 };
 
 // Factory function for graph
@@ -98,9 +96,7 @@ namespace detail
 {
 template<typename Plot>
 void set_graph_ref(Plot& p, const graph_object& g)
-{
-  p.m_graph_id = g.m_id;
-}
+{ p.m_graph_id = g.m_id; }
 
 template<typename Plot, typename... Binders>
 Plot make_plot(Binders... binders)
@@ -151,27 +147,23 @@ struct gcurve_object : plot_base
 template<>
 struct object_params<gcurve_object>
 {
-  static constexpr auto value = std::tuple{
-    param_spec<&plot_base::m_label, decltype(prop::label)>{},
-    param_spec<&detail::set_graph_ref<gcurve_object>, decltype(graph_ref)>{},
-    param_spec<&plot_base::m_color, decltype(color)>{},
-    param_spec<&plot_base::m_visible, decltype(visible)>{},
-    param_spec<&plot_base::m_legend, decltype(legend)>{},
-    param_spec<&gcurve_object::m_width, decltype(width)>{},
-    param_spec<&gcurve_object::m_markers, decltype(markers)>{},
-    param_spec<&gcurve_object::m_marker_radius, decltype(marker_radius)>{},
-    param_spec<&gcurve_object::m_dot, decltype(show_dot)>{},
-    param_spec<&gcurve_object::m_dot_radius, decltype(dot_radius)>{},
-    param_spec<&gcurve_object::m_dot_color, decltype(dot_color)>{}
-  };
+  static constexpr auto value = std::tuple{param_spec<&plot_base::m_label, decltype(prop::label)>{},
+                                           param_spec<&detail::set_graph_ref<gcurve_object>, decltype(graph_ref)>{},
+                                           param_spec<&plot_base::m_color, decltype(color)>{},
+                                           param_spec<&plot_base::m_visible, decltype(visible)>{},
+                                           param_spec<&plot_base::m_legend, decltype(legend)>{},
+                                           param_spec<&gcurve_object::m_width, decltype(width)>{},
+                                           param_spec<&gcurve_object::m_markers, decltype(markers)>{},
+                                           param_spec<&gcurve_object::m_marker_radius, decltype(marker_radius)>{},
+                                           param_spec<&gcurve_object::m_dot, decltype(show_dot)>{},
+                                           param_spec<&gcurve_object::m_dot_radius, decltype(dot_radius)>{},
+                                           param_spec<&gcurve_object::m_dot_color, decltype(dot_color)>{}};
 };
 
 // Factory function for gcurve
 template<typename... Binders>
 gcurve_object gcurve(Binders... binders)
-{
-  return detail::make_plot<gcurve_object>(binders...);
-}
+{ return detail::make_plot<gcurve_object>(binders...); }
 
 // ============================================================================
 // gdots_object - Scatter plot
@@ -193,22 +185,18 @@ struct gdots_object : plot_base
 template<>
 struct object_params<gdots_object>
 {
-  static constexpr auto value = std::tuple{
-    param_spec<&plot_base::m_label, decltype(prop::label)>{},
-    param_spec<&detail::set_graph_ref<gdots_object>, decltype(graph_ref)>{},
-    param_spec<&plot_base::m_color, decltype(color)>{},
-    param_spec<&plot_base::m_visible, decltype(visible)>{},
-    param_spec<&plot_base::m_legend, decltype(legend)>{},
-    param_spec<&gdots_object::m_radius, decltype(radius)>{}
-  };
+  static constexpr auto value = std::tuple{param_spec<&plot_base::m_label, decltype(prop::label)>{},
+                                           param_spec<&detail::set_graph_ref<gdots_object>, decltype(graph_ref)>{},
+                                           param_spec<&plot_base::m_color, decltype(color)>{},
+                                           param_spec<&plot_base::m_visible, decltype(visible)>{},
+                                           param_spec<&plot_base::m_legend, decltype(legend)>{},
+                                           param_spec<&gdots_object::m_radius, decltype(radius)>{}};
 };
 
 // Factory function for gdots
 template<typename... Binders>
 gdots_object gdots(Binders... binders)
-{
-  return detail::make_plot<gdots_object>(binders...);
-}
+{ return detail::make_plot<gdots_object>(binders...); }
 
 // ============================================================================
 // gvbars_object - Vertical bar chart
@@ -230,22 +218,18 @@ struct gvbars_object : plot_base
 template<>
 struct object_params<gvbars_object>
 {
-  static constexpr auto value = std::tuple{
-    param_spec<&plot_base::m_label, decltype(prop::label)>{},
-    param_spec<&detail::set_graph_ref<gvbars_object>, decltype(graph_ref)>{},
-    param_spec<&plot_base::m_color, decltype(color)>{},
-    param_spec<&plot_base::m_visible, decltype(visible)>{},
-    param_spec<&plot_base::m_legend, decltype(legend)>{},
-    param_spec<&gvbars_object::m_delta, decltype(delta)>{}
-  };
+  static constexpr auto value = std::tuple{param_spec<&plot_base::m_label, decltype(prop::label)>{},
+                                           param_spec<&detail::set_graph_ref<gvbars_object>, decltype(graph_ref)>{},
+                                           param_spec<&plot_base::m_color, decltype(color)>{},
+                                           param_spec<&plot_base::m_visible, decltype(visible)>{},
+                                           param_spec<&plot_base::m_legend, decltype(legend)>{},
+                                           param_spec<&gvbars_object::m_delta, decltype(delta)>{}};
 };
 
 // Factory function for gvbars
 template<typename... Binders>
 gvbars_object gvbars(Binders... binders)
-{
-  return detail::make_plot<gvbars_object>(binders...);
-}
+{ return detail::make_plot<gvbars_object>(binders...); }
 
 // ============================================================================
 // Plot entry (for type-erased storage in graph_registry)

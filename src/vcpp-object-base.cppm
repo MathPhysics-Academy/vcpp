@@ -87,19 +87,18 @@ struct object_base
 // These are applied to ALL object types by make<T>().
 // ============================================================================
 
-inline constexpr auto common_params =
-  std::tuple{param_spec<&object_base::m_pos, decltype(pos)>{},
-             param_spec<&object_base::m_axis, decltype(axis)>{},
-             param_spec<&object_base::m_up, decltype(up)>{},
-             param_spec<&object_base::m_color, decltype(color)>{},
-             param_spec<&object_base::m_opacity, decltype(opacity)>{},
-             param_spec<&object_base::m_shininess, decltype(shininess)>{},
-             param_spec<&object_base::m_emissive, decltype(emissive)>{},
-             param_spec<&object_base::m_visible, decltype(visible)>{},
-             param_spec<&object_base::m_make_trail, decltype(make_trail)>{},
-             param_spec<&object_base::m_retain, decltype(retain)>{},
-             param_spec<&object_base::m_trail_color, decltype(trail_color)>{},
-             param_spec<&object_base::m_texture, decltype(texture)>{}};
+inline constexpr auto common_params = std::tuple{param_spec<&object_base::m_pos, decltype(pos)>{},
+                                                 param_spec<&object_base::m_axis, decltype(axis)>{},
+                                                 param_spec<&object_base::m_up, decltype(up)>{},
+                                                 param_spec<&object_base::m_color, decltype(color)>{},
+                                                 param_spec<&object_base::m_opacity, decltype(opacity)>{},
+                                                 param_spec<&object_base::m_shininess, decltype(shininess)>{},
+                                                 param_spec<&object_base::m_emissive, decltype(emissive)>{},
+                                                 param_spec<&object_base::m_visible, decltype(visible)>{},
+                                                 param_spec<&object_base::m_make_trail, decltype(make_trail)>{},
+                                                 param_spec<&object_base::m_retain, decltype(retain)>{},
+                                                 param_spec<&object_base::m_trail_color, decltype(trail_color)>{},
+                                                 param_spec<&object_base::m_texture, decltype(texture)>{}};
 
 // ============================================================================
 // make<ObjectType> - Generic object factory

@@ -99,9 +99,7 @@ constexpr void apply_params(Object& obj, const Substitution& params, std::tuple<
 
 template<typename Symbol, typename... ParamSpecs>
 constexpr bool accepts_symbol(std::tuple<ParamSpecs...>)
-{
-  return (std::same_as<std::remove_cvref_t<Symbol>, std::remove_cvref_t<typename ParamSpecs::symbol_type>> || ...);
-}
+{ return (std::same_as<std::remove_cvref_t<Symbol>, std::remove_cvref_t<typename ParamSpecs::symbol_type>> || ...); }
 
 // A named parameter no spec maps would be silently ignored; reject it instead.
 template<typename Binder, typename... SpecTuples>
