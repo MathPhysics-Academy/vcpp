@@ -39,7 +39,7 @@ inline constexpr symbol<> texture{};   // texture reference
 
 // Behavior
 inline constexpr symbol<> make_trail{};   // leave trail when moved (bool)
-inline constexpr symbol<> retain{};       // trail retain time (double, -1 = infinite)
+inline constexpr symbol<> retain{};       // trail points kept (int, -1 = all)
 inline constexpr symbol<> trail_color{};  // trail color (vec3)
 inline constexpr symbol<> trail_radius{}; // trail thickness (double)
 

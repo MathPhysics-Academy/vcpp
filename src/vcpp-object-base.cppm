@@ -50,7 +50,7 @@ struct object_base
 
   // Behavior
   bool m_make_trail{false};
-  double m_retain{-1.0}; // trail retain time (-1 = infinite)
+  int m_retain{-1}; // trail points kept, newest first (-1 = all)
   vec3 m_trail_color{1, 1, 1};
 
   // Texture
@@ -129,6 +129,10 @@ constexpr ObjectType make(Binders... binders)
 
     // Apply object-specific parameters
     apply_params(obj, params, object_params<ObjectType>::value);
+
+    // As in GlowScript, a trail takes the object's colour unless trail_color is given
+    if constexpr (!is_bound<decltype(trail_color), params_t>)
+      obj.m_trail_color = obj.m_color;
 
     // GlowScript applies axis before size/length, and links them: an explicit length (or size.x)
     // rescales axis; otherwise axis sets the length.

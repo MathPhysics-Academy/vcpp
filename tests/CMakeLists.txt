@@ -12,3 +12,8 @@ add_executable(test_named_params test_named_params.cpp)
 target_link_libraries(test_named_params PRIVATE vcpp)
 target_compile_features(test_named_params PRIVATE cxx_std_23)
 add_test(NAME test_named_params COMMAND test_named_params)
+
+add_executable(test_trails test_trails.cpp)
+target_link_libraries(test_trails PRIVATE vcpp)
+target_compile_features(test_trails PRIVATE cxx_std_23)
+add_test(NAME test_trails COMMAND test_trails)

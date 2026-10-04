@@ -175,7 +175,6 @@ public:
   struct trail_data
   {
     std::vector<vec3> positions;
-    std::vector<double> timestamps;
     vec3 color{1, 1, 1};
     double radius{0.02};
     mutable bool dirty{true};
@@ -394,15 +393,15 @@ public:
 
   // ========== Trail Management ==========
 
-  void update_trails(double current_time)
+  // Called once per render, as GlowScript's attach_trail is: a visible object that has moved since its
+  // last trail point gets a new one, and only the newest m_retain points are kept.
+  void update_trails()
   {
     // Iterate through all scene entries and update trails for objects with make_trail=true
     for (std::size_t entry_idx = 0; entry_idx < m_entries.size(); ++entry_idx)
     {
       const auto& entry = m_entries[entry_idx];
       const object_base* obj = nullptr;
-      vec3 trail_col{1, 1, 1};
-      double retain = -1.0;
 
       // Get the object based on type
       switch (entry.type)
@@ -438,31 +437,19 @@ public:
           continue; // Skip non-trailable objects
       }
 
-      if (!obj || !obj->m_make_trail)
+      if (!obj || !obj->m_make_trail || !obj->m_visible)
         continue;
 
-      trail_col = obj->m_trail_color;
-      retain = obj->m_retain;
-
-      // Get or create trail data
       auto& trail = m_trails[entry_idx];
-      trail.color = trail_col;
+      trail.color = obj->m_trail_color;
+      if (!trail.positions.empty() && trail.positions.back() == obj->m_pos)
+        continue;
 
-      // Add current position
       trail.positions.push_back(obj->m_pos);
-      trail.timestamps.push_back(current_time);
+      if (obj->m_retain >= 0 && trail.positions.size() > static_cast<std::size_t>(obj->m_retain))
+        trail.positions.erase(trail.positions.begin(),
+                              trail.positions.end() - static_cast<std::ptrdiff_t>(obj->m_retain));
       trail.dirty = true;
-
-      // Prune old points if retain is positive
-      if (retain > 0)
-      {
-        while (!trail.timestamps.empty() && (current_time - trail.timestamps.front()) > retain)
-        {
-          trail.positions.erase(trail.positions.begin());
-          trail.timestamps.erase(trail.timestamps.begin());
-          trail.dirty = true;
-        }
-      }
     }
   }
 };

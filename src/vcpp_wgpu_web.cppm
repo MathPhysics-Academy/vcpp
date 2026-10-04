@@ -1309,15 +1309,11 @@ inline double get_current_time()
 inline void main_loop_callback()
 {
   if (g_renderer.current_canvas)
-  {
     vcpp::process_camera_input(*g_renderer.current_canvas);
-
-    // Update trails
-    double current_time = get_current_time();
-    g_renderer.current_canvas->update_trails(current_time);
-  }
   if (user_update_fn)
     user_update_fn();
+  if (g_renderer.current_canvas)
+    g_renderer.current_canvas->update_trails(); // after the update, so trails include this frame's moves
 
   vcpp::g_input.key_down_events.clear();
   vcpp::graph_bridge::flush_updates();

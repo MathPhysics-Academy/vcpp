@@ -805,18 +805,18 @@ namespace
     scene.background(vec3{0.05, 0.0, 0.1});
 
     // Create spheres with trails enabled
-    auto ball1 = sphere(pos=vec3{2, 0, 0}, radius=0.3, color=colors::red,
-                        make_trail=true, trail_color=colors::orange, retain=3.0);
+    auto ball1 = sphere(pos = vec3{2, 0, 0}, radius = 0.3, color = colors::red, make_trail = true,
+                        trail_color = colors::orange, retain = 180);
     scene.add(ball1);
     tr_demo.ball_indices.push_back(scene.m_spheres.size() - 1);
 
-    auto ball2 = sphere(pos=vec3{0, 2, 0}, radius=0.3, color=colors::green,
-                        make_trail=true, trail_color=colors::cyan, retain=3.0);
+    auto ball2 = sphere(pos = vec3{0, 2, 0}, radius = 0.3, color = colors::green, make_trail = true,
+                        trail_color = colors::cyan, retain = 180);
     scene.add(ball2);
     tr_demo.ball_indices.push_back(scene.m_spheres.size() - 1);
 
-    auto ball3 = sphere(pos=vec3{0, 0, 2}, radius=0.3, color=colors::blue,
-                        make_trail=true, trail_color=colors::magenta, retain=3.0);
+    auto ball3 = sphere(pos = vec3{0, 0, 2}, radius = 0.3, color = colors::blue, make_trail = true,
+                        trail_color = colors::magenta, retain = 180);
     scene.add(ball3);
     tr_demo.ball_indices.push_back(scene.m_spheres.size() - 1);
 
