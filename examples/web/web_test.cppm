@@ -32,6 +32,7 @@ namespace
   
   // Forward declaration for coroutine rain scene
   bool is_coro_rain_scene = false;
+  std::optional<vcpp::task_scope> rain_scope; // owns the coroutine rain's tasks
 
   // Graph demo state
   struct graph_demo_state {
@@ -107,6 +108,7 @@ namespace
   void reset_all_demos() {
     is_raining_scene = false;
     is_coro_rain_scene = false;  // Stop coroutine rain
+    rain_scope.reset();
     t_sim.active = false;
     g_demo.active = false;
     c_demo.active = false;
@@ -451,8 +453,6 @@ namespace
     }
   }
   
-  // Storage for active raindrop coroutines
-  std::vector<vcpp::task<void>> rain_tasks;
   
   // Number of active rain coroutines
   int coro_rain_active_count = 0;
@@ -495,8 +495,7 @@ namespace
         coro_rain_active_count++;
         
         // Start the lifecycle coroutine
-        auto task = raindrop_coro(idx, x, z, size);
-        task.detach();
+        rain_scope->spawn(raindrop_coro, idx, x, z, size);
       }
       
       // Wait a random interval before activating next drop
@@ -518,7 +517,7 @@ namespace
     reset_all_demos();
     
     is_coro_rain_scene = true;
-    rain_tasks.clear();
+    rain_scope.emplace();
     coro_rain_active_count = 0;
     coro_rain_next_slot = 0;
     
@@ -568,15 +567,13 @@ namespace
       
       coro_rain_next_slot++;
       coro_rain_active_count++;
-      
-      auto task = raindrop_coro(idx, x, z, size);
-      task.detach();
+
+      rain_scope->spawn(raindrop_coro, idx, x, z, size);
     }
     
     // Start the continuous spawner coroutine (activates remaining pre-allocated drops)
-    auto spawner = rain_spawner_coro();
-    spawner.detach();
-    
+    rain_scope->spawn(rain_spawner_coro);
+
     std::cout << "Loaded COROUTINE Rain Scene (Press `)" << std::endl;
     std::cout << "  " << initial_batch << " initial drops + continuous spawning (max " << coro_rain_max << ")" << std::endl;
     std::cout << "  Shader: Fresnel rim, velocity color, splat fade" << std::endl;

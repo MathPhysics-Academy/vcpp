@@ -172,6 +172,74 @@ bool test_rate()
   return slow >= 12 && slow <= 17 && fast >= 100 && fast <= 135;
 }
 
+// Counts what a task_scope's pool takes from and returns to its upstream
+class counting_resource : public std::pmr::memory_resource
+{
+public:
+  std::size_t allocated = 0;
+  std::size_t deallocated = 0;
+
+private:
+  void* do_allocate(std::size_t bytes, std::size_t align) override
+  {
+    allocated += bytes;
+    return std::pmr::new_delete_resource()->allocate(bytes, align);
+  }
+  void do_deallocate(void* p, std::size_t bytes, std::size_t align) override
+  {
+    deallocated += bytes;
+    std::pmr::new_delete_resource()->deallocate(p, bytes, align);
+  }
+  bool do_is_equal(const std::pmr::memory_resource& o) const noexcept override { return this == &o; }
+};
+
+// Bumps a counter when a coroutine's local is destroyed
+struct local_guard
+{
+  int* destroyed;
+  ~local_guard() { ++*destroyed; }
+};
+
+vcpp::task<void> wait_forever(int* destroyed)
+{
+  local_guard g{destroyed};
+  while (true)
+    co_await vcpp::next_frame();
+}
+
+vcpp::task<void> finish_after_one_frame() { co_await vcpp::next_frame(); }
+
+// Frames come from the scope's memory; destroying the scope while tasks wait runs their locals'
+// destructors, cancels their wake-ups, and returns every byte upstream
+bool test_task_scope_owns_frames()
+{
+  counting_resource upstream;
+  int destroyed = 0;
+  {
+    vcpp::task_scope scope(&upstream);
+    scope.spawn(wait_forever, &destroyed);
+    scope.spawn(wait_forever, &destroyed);
+    vcpp::tick_coroutines();
+    if (upstream.allocated == 0)
+      return false;
+  }
+  vcpp::tick_coroutines(); // would resume freed frames if the wake-ups were still scheduled
+  return destroyed == 2 && upstream.deallocated == upstream.allocated;
+}
+
+// Finished tasks are dropped on the next spawn
+bool test_task_scope_reaps_finished()
+{
+  vcpp::task_scope scope;
+  scope.spawn(finish_after_one_frame);
+  scope.spawn(finish_after_one_frame);
+  vcpp::tick_coroutines();
+  scope.spawn(finish_after_one_frame);
+  bool reaped = scope.size() == 1;
+  vcpp::tick_coroutines();
+  return reaped;
+}
+
 int main()
 {
   int passed = 0;
@@ -203,6 +271,8 @@ int main()
   run_test("task awaits task", test_task_awaits_task);
   run_test("wait_for(10 ms) ~100/s", test_wait_for_rate);
   run_test("rate(30) and rate(200)", test_rate);
+  run_test("task_scope owns its frames", test_task_scope_owns_frames);
+  run_test("task_scope drops finished tasks", test_task_scope_reaps_finished);
 
   std::cout << "================\n";
   std::cout << "Passed: " << passed << "/" << (passed + failed) << "\n";

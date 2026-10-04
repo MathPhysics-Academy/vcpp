@@ -6,6 +6,7 @@
  *  - frames(fps): Generator yielding dt each frame
  *  - animate(duration, fps): Time-bounded animation generator
  *  - task<T>: eager coroutine; co_await one task from another
+ *  - task_scope: owns tasks for its own lifetime; their frames come from its pool
  *  - next_frame, wait_for(seconds): awaitables resumed by tick_coroutines()
  *  - rate, sleep: GlowScript's timing, ported
  */
@@ -452,6 +453,32 @@ struct resume_continuation
   }
   void await_resume() const noexcept {}
 };
+
+// Where a task's frame is allocated: the pool of the task_scope whose spawn() is creating it, else
+// the heap. A prefix in front of the frame records which, so operator delete returns it there.
+inline thread_local std::pmr::memory_resource* g_frame_resource = nullptr;
+
+struct frame_allocation
+{
+  static constexpr std::size_t prefix = alignof(std::max_align_t); // keeps the frame aligned
+
+  static void* allocate(std::size_t size)
+  {
+    std::pmr::memory_resource* r = g_frame_resource;
+    void* p = r ? r->allocate(size + prefix, alignof(std::max_align_t)) : ::operator new(size + prefix);
+    *static_cast<std::pmr::memory_resource**>(p) = r;
+    return static_cast<std::byte*>(p) + prefix;
+  }
+
+  static void deallocate(void* frame, std::size_t size) noexcept
+  {
+    void* p = static_cast<std::byte*>(frame) - prefix;
+    if (auto* r = *static_cast<std::pmr::memory_resource**>(p))
+      r->deallocate(p, size + prefix, alignof(std::max_align_t));
+    else
+      ::operator delete(p, size + prefix);
+  }
+};
 } // namespace detail
 
 template <typename T = void>
@@ -466,6 +493,12 @@ public:
   {
     std::exception_ptr exception;
     std::coroutine_handle<> continuation; // the coroutine co_awaiting this one, if any
+
+    // Only the frame spawn() creates goes to its scope; anything this task starts uses the heap.
+    promise_type() noexcept { detail::g_frame_resource = nullptr; }
+
+    static void* operator new(std::size_t size) { return detail::frame_allocation::allocate(size); }
+    static void operator delete(void* p, std::size_t size) noexcept { detail::frame_allocation::deallocate(p, size); }
 
     task get_return_object()
     {
@@ -564,6 +597,11 @@ public:
     std::exception_ptr exception;
     std::coroutine_handle<> continuation;
 
+    promise_type() noexcept(std::is_nothrow_default_constructible_v<T>) { detail::g_frame_resource = nullptr; }
+
+    static void* operator new(std::size_t size) { return detail::frame_allocation::allocate(size); }
+    static void operator delete(void* p, std::size_t size) noexcept { detail::frame_allocation::deallocate(p, size); }
+
     task get_return_object()
     {
       return task{std::coroutine_handle<promise_type>::from_promise(*this)};
@@ -651,6 +689,73 @@ private:
   }
 
   handle_type m_handle;
+};
+
+// ============================================================================
+// task_scope - Owns tasks for as long as it exists
+//
+// spawn() calls a coroutine and keeps its task; the frame comes from the scope's pool. Destroying
+// the scope destroys every task it holds: wake-ups are cancelled, locals' destructors run, and the
+// memory goes back to the pool, which is released with the scope. Finished tasks are dropped on
+// the next spawn(), so a long-lived scope stays bounded. A scope must not be destroyed from inside
+// one of its own tasks.
+//
+//   vcpp::task_scope rain;               // or task_scope rain(&my_resource);
+//   rain.spawn(raindrop, idx, x, z);
+// ============================================================================
+
+class task_scope
+{
+public:
+  // The pool takes its blocks from upstream: the default heap, or a resource you supply.
+  explicit task_scope(std::pmr::memory_resource* upstream = std::pmr::get_default_resource()) : m_pool(upstream) {}
+
+  template<typename F, typename... Args>
+    requires std::same_as<std::invoke_result_t<F, Args...>, task<void>>
+  void spawn(F&& f, Args&&... args)
+  {
+    reap();
+    auto* previous = std::exchange(detail::g_frame_resource, &m_pool);
+    try
+    {
+      m_tasks.push_back(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
+    }
+    catch (...)
+    {
+      detail::g_frame_resource = previous;
+      throw;
+    }
+    detail::g_frame_resource = previous;
+  }
+
+  // Tasks held, finished ones included until the next spawn()
+  std::size_t size() const noexcept { return m_tasks.size(); }
+
+private:
+  // Drop finished tasks; an exception that ended one is reported, not lost
+  void reap()
+  {
+    std::erase_if(m_tasks, [](const task<void>& t) {
+      if (!t.done())
+        return false;
+      try
+      {
+        t.rethrow_if_exception();
+      }
+      catch (const std::exception& e)
+      {
+        std::println("task_scope: a task ended with an exception: {}", e.what());
+      }
+      catch (...)
+      {
+        std::println("task_scope: a task ended with an exception");
+      }
+      return true;
+    });
+  }
+
+  std::pmr::unsynchronized_pool_resource m_pool; // declared first, so destroyed after the tasks
+  std::vector<task<void>> m_tasks;
 };
 
 // ============================================================================
