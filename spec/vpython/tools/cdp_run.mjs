@@ -73,7 +73,8 @@ const keys = [
   ['Digit1', '1', 49], ['Digit2', '2', 50], ['Digit3', '3', 51], ['Digit4', '4', 52],
   ['Digit5', '5', 53], ['Digit6', '6', 54], ['Digit7', '7', 55], ['Digit8', '8', 56],
   ['Digit9', '9', 57], ['Digit0', '0', 48], ['Minus', '-', 189], ['Equal', '=', 187],
-  ['BracketLeft', '[', 219], ['BracketRight', ']', 221],
+  ['BracketLeft', '[', 219], ['BracketRight', ']', 221], ['Backquote', '`', 192],
+  ['Digit1', '1', 49], // leave the rain while its coroutines are waiting
 ];
 if (loaded) {
   for (const [code, key, vk] of keys) {
@@ -86,6 +87,11 @@ if (loaded) {
     if (code === 'Digit9') await shot(`cdp_${label}_labels`);
     if (code === 'Equal') await shot(`cdp_${label}_compound`); // rotates, so compare by eye, not bytes
     if (code === 'BracketLeft') await shot(`cdp_${label}_text3d`);
+    if (code === 'Backquote') { // random drops, so compare by eye; two shots show it animating
+      await shot(`cdp_${label}_cororain`);
+      await sleep(1000);
+      await shot(`cdp_${label}_cororain_1s`);
+    }
   }
 }
 
