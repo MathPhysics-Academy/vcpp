@@ -63,16 +63,21 @@ public:
     for (auto& [name, f] : m_functions)
     {
       m_out.clear();
+      m_loops = 0;
       m_fn = &f;
       for (const auto& [local, t] : f.local_types)
         if (std::ranges::find(f.params, local) == f.params.end())
           line(std::format("{} {}{{}};", cpp_type(t, local), cpp_name(local)));
       for (const auto& stmt : (*f.def)["body"].items())
         statement(stmt);
+      // Without a co_return or co_await the function wouldn't be a coroutine, and would return no task
+      if (f.returns.k == kind::unknown)
+        line("co_return;");
       m_fn = nullptr;
       out += signature(name, f) + "\n{\n" + m_out + "}\n\n";
     }
     m_out.clear();
+    m_loops = 0;
     for (const auto& stmt : body)
       if (stmt["_type"].string() != "FunctionDef")
         statement(stmt);
@@ -87,14 +92,34 @@ private:
     boolean,
     string,
     vector,
-    object
+    object,
+    list
   };
 
   struct type
   {
     kind k = kind::unknown;
-    std::string object; // the vcpp factory for an object: "box", "sphere", ...
+    std::string object;        // the vcpp factory for an object: "box", "sphere", ...
+    std::vector<type> element; // a list's element type: one entry, unknown until something is put in it
+
+    static type list_of(type t) { return {kind::list, {}, {std::move(t)}}; }
   };
+
+  // Fills in what `into` doesn't know yet from `from`; false if they disagree. A list's element type is
+  // often learned after the list is made, from `p = []` then `p.append(x)`.
+  static bool unify(type& into, const type& from)
+  {
+    if (from.k == kind::unknown)
+      return true;
+    if (into.k == kind::unknown)
+    {
+      into = from;
+      return true;
+    }
+    if (into.k != from.k || into.object != from.object)
+      return false;
+    return into.k != kind::list || unify(into.element[0], from.element[0]);
+  }
 
   struct expr
   {
@@ -131,6 +156,7 @@ private:
   std::map<std::string, type> m_globals; // top-level variables, and attributes added to top-level objects
   std::map<std::string, function_info> m_functions;
   function_info* m_fn = nullptr; // the function being analysed or written; null at top level
+  int m_loops = 0;               // numbers the counters for loops
 
   // ---------------------------------------------------------------- names
 
@@ -230,6 +256,8 @@ private:
       while_loop(s);
     else if (t == "If")
       if_chain(s);
+    else if (t == "For")
+      for_loop(s);
     else if (t == "Return")
       return_statement(s);
     else if (t == "Global")
@@ -311,6 +339,11 @@ private:
       assign_attribute(target, expression(value_node), s);
       return;
     }
+    if (t == "Subscript")
+    {
+      assign_item(target, expression(value_node), s);
+      return;
+    }
     unsupported(s, std::format("assigning to a {}", t));
   }
 
@@ -360,6 +393,14 @@ private:
     unsupported(s, std::format("setting .{} here", attr));
   }
 
+  void assign_item(const json& target, const expr& value, const json& s)
+  {
+    const expr item = subscript(target);
+    if (type* list = variable_type(target["value"]); list && !unify(list->element[0], value.t))
+      unsupported(s, "a list of different types");
+    line(std::format("{} = {};", item.code, value.code));
+  }
+
   void aug_assign(const json& s)
   {
     static const std::map<std::string_view, std::string_view> ops{
@@ -383,6 +424,8 @@ private:
     }
     else if (t == "Attribute")
       assign_attribute(target, value, s);
+    else if (t == "Subscript")
+      assign_item(target, value, s);
     else
       unsupported(s, std::format("updating a {}", t));
   }
@@ -417,6 +460,104 @@ private:
     line("}");
   }
 
+  // for i in range(...) counts in a double, like every VPython number. for x in a_list walks it by index,
+  // so items appended inside the loop are reached, as in Python. The loop variable lives on after the loop,
+  // as in Python, but a range loop leaves it at the stop value rather than the last one.
+  void for_loop(const json& s)
+  {
+    if (!s["orelse"].items().empty())
+      unsupported(s, "for ... else");
+    const json& target = s["target"];
+    if (target["_type"].string() != "Name")
+      unsupported(s, "a for loop over several names at once");
+    const std::string& name = target["id"].string();
+    const json& iter = s["iter"];
+    if (iter["_type"].string() == "Call" && iter["func"]["_type"].string() == "Name" &&
+        iter["func"]["id"].string() == "range")
+    {
+      range_loop(s, name, iter);
+      return;
+    }
+    const expr list = expression(iter);
+    if (list.t.k != kind::list)
+      unsupported(s, "a for loop over something other than range() or a list");
+    if (iter["_type"].string() != "Name")
+      unsupported(s, "a for loop over a list that isn't in a variable");
+    store_type(name, list.t.element[0], s);
+    const std::string n = std::format("for__{}", ++m_loops);
+    line(std::format("for (std::size_t {0} = 0; {0} < {1}.size(); ++{0})", n, list.code));
+    line("{");
+    ++m_depth;
+    line(std::format("{} = {}[{}];", cpp_name(name), list.code, n));
+    --m_depth;
+    block(s["body"]);
+    line("}");
+  }
+
+  void range_loop(const json& s, const std::string& name, const json& call)
+  {
+    if (!call["keywords"].items().empty())
+      unsupported(call, "keyword arguments to range()");
+    const auto& args = call["args"].items();
+    if (args.empty() || args.size() > 3)
+      unsupported(call, "range() with this many arguments");
+    std::vector<std::string> v;
+    for (const auto& a : args)
+      v.push_back(expression(a).code);
+    const std::string start = args.size() == 1 ? "0.0" : v[0];
+    const std::string stop = args.size() == 1 ? v[0] : v[1];
+    const std::string step = args.size() == 3 ? v[2] : "1.0";
+    const auto sign = args.size() == 3 ? constant_sign(args[2]) : std::optional{1};
+    store_type(name, {kind::number, {}}, s);
+    const std::string i = cpp_name(name);
+    // Python works out the stop value once. It is kept in a variable unless it is a constant or a name
+    // (a name the loop changes is read again each time round)
+    const json& stop_node = args[args.size() == 1 ? 0 : 1];
+    const bool fixed = stop_node["_type"].string() == "Name" || constant_sign(stop_node);
+    const std::string end = fixed ? stop : std::format("for__{}", ++m_loops);
+    if (!fixed)
+    {
+      line("{");
+      ++m_depth;
+      line(std::format("const double {} = {};", end, stop));
+    }
+    std::string test;
+    if (sign)
+      test = std::format("{} {} {}", i, *sign < 0 ? ">" : "<", end);
+    else // a step known only when the program runs
+      test = std::format("({0} > 0 ? {1} < {2} : {1} > {2})", step, i, end);
+    line(std::format("for ({0} = {1}; {2}; {0} += {3})", i, start, test, step));
+    line("{");
+    block(s["body"]);
+    line("}");
+    if (!fixed)
+    {
+      --m_depth;
+      line("}");
+    }
+  }
+
+  // The sign of a numeric literal, or of -literal; nothing for anything else
+  static std::optional<int> constant_sign(const json& e)
+  {
+    if (e["_type"].string() == "UnaryOp" && e["op"]["_type"].string() == "USub")
+    {
+      const auto inner = constant_sign(e["operand"]);
+      return inner ? std::optional{-*inner} : std::nullopt;
+    }
+    if (e["_type"].string() != "Constant" || !std::holds_alternative<json::number>(e["value"].value))
+      return std::nullopt;
+    const std::string& text = e["value"].num().text;
+    return text.starts_with('-') ? -1 : (std::stod(text) == 0 ? 0 : 1);
+  }
+
+  // Records a variable's type where no assignment is written, as for a loop variable
+  void store_type(const std::string& name, const type& t, const json& s)
+  {
+    if (!unify(slot(name), t))
+      unsupported(s, std::format("{} holding values of different types", name));
+  }
+
   std::string condition(const json& test)
   {
     const expr e = expression(test);
@@ -435,10 +576,7 @@ private:
 
   void store(const std::string& name, const expr& value, const json& s)
   {
-    type& t = slot(name);
-    if (t.k == kind::unknown)
-      t = value.t;
-    else if (value.t.k != kind::unknown && (t.k != value.t.k || t.object != value.t.object))
+    if (!unify(slot(name), value.t))
       unsupported(s, std::format("{} holding values of different types", name));
     line(std::format("{} = {};", cpp_name(name), value.code));
   }
@@ -488,7 +626,7 @@ private:
         for (const auto& target : s["targets"].items())
           if (target["_type"].string() == "Name")
             f.assigned.insert(target["id"].string());
-      if (t == "AugAssign" && s["target"]["_type"].string() == "Name")
+      if ((t == "AugAssign" || t == "For") && s["target"]["_type"].string() == "Name")
         f.assigned.insert(s["target"]["id"].string());
       if (t == "Global")
         for (const auto& n : s["names"].items())
@@ -563,7 +701,7 @@ private:
     }
     else
       for (std::size_t i = 0; i < values.size(); ++i)
-        if (values[i].t.k != f.param_types[i].k || values[i].t.object != f.param_types[i].object)
+        if (!unify(f.param_types[i], values[i].t))
           unsupported(e, std::format("calling {} with arguments of different types", e["func"]["id"].string()));
     if (f.analyzing && f.returns.k == kind::unknown)
       unsupported(e, "a recursive call before the function's first return");
@@ -584,9 +722,7 @@ private:
       return;
     }
     const expr value = expression(s["value"]);
-    if (m_fn->returns.k == kind::unknown)
-      m_fn->returns = value.t;
-    else if (value.t.k != m_fn->returns.k || value.t.object != m_fn->returns.object)
+    if (!unify(m_fn->returns, value.t))
       unsupported(s, "a function returning values of different types");
     line(std::format("co_return {};", value.code));
   }
@@ -605,6 +741,8 @@ private:
         return "vec3";
       case kind::object:
         return std::format("handle<{}_object>", t.object);
+      case kind::list:
+        return std::format("std::vector<{}>", cpp_type(t.element[0], name));
       default:
         throw translate_error(0, std::format("could not work out the type of {}", name));
     }
@@ -614,7 +752,12 @@ private:
   {
     std::string params;
     for (std::size_t i = 0; i < f.params.size(); ++i)
-      params += std::format("{}{} {}", i ? ", " : "", cpp_type(f.param_types[i], f.params[i]), cpp_name(f.params[i]));
+    {
+      // A list is passed by reference: Python functions change the caller's list, not a copy
+      const char* ref = f.param_types[i].k == kind::list ? "&" : "";
+      params +=
+        std::format("{}{}{} {}", i ? ", " : "", cpp_type(f.param_types[i], f.params[i]), ref, cpp_name(f.params[i]));
+    }
     const std::string result = f.returns.k == kind::unknown ? "void" : cpp_type(f.returns, name);
     return std::format("task<{}> {}({})", result, cpp_name(name), params);
   }
@@ -679,7 +822,48 @@ private:
       return boolean_op(e);
     if (t == "Call")
       return call(e);
+    if (t == "List")
+      return list_literal(e);
+    if (t == "Subscript")
+      return subscript(e);
     unsupported(e, std::format("the {} expression", t));
+  }
+
+  // [a, b] is a std::vector of the elements' common type; [] is {} until something is put in it
+  expr list_literal(const json& e)
+  {
+    type element;
+    std::string code;
+    for (const auto& item : e["elts"].items())
+    {
+      const expr v = expression(item);
+      if (!unify(element, v.t))
+        unsupported(e, "a list of different types");
+      code += (code.empty() ? "" : ", ") + v.code;
+    }
+    if (code.empty())
+      return {"{}", type::list_of({})};
+    return {std::format("std::vector<{}>{{{}}}", cpp_type(element, "a list element"), code), type::list_of(element)};
+  }
+
+  // a[i]; a negative literal counts from the end, as in Python
+  expr subscript(const json& e)
+  {
+    const expr list = expression(e["value"]);
+    if (list.t.k != kind::list)
+      unsupported(e, "indexing something other than a list");
+    const json& index = e["slice"];
+    if (index["_type"].string() == "Slice")
+      unsupported(e, "slices");
+    const auto sign = constant_sign(index);
+    std::string at;
+    if (sign && *sign < 0)
+      at = std::format("{}.size() - {}", list.code, index["operand"]["value"].num().text);
+    else if (sign)
+      at = index["value"].num().text;
+    else
+      at = std::format("static_cast<std::size_t>({})", expression(index).code);
+    return {std::format("{}[{}]", list.code, at), list.t.element[0]};
   }
 
   static expr constant(const json& e)
@@ -817,6 +1001,8 @@ private:
       const json& base = func["value"];
       if (base["_type"].string() == "Name" && base["id"].string() == "color")
         return {std::format("colors::{}({})", func["attr"].string(), arguments(e)), {kind::vector, {}}};
+      if (func["attr"].string() == "append" && expression(base).t.k == kind::list)
+        return append(e);
       unsupported(e, std::format("calling .{}()", func["attr"].string()));
     }
     if (func["_type"].string() != "Name")
@@ -829,6 +1015,12 @@ private:
       return {std::format("vec3{{{}}}", arguments(e)), {kind::vector, {}}};
     if (f == "rate" || f == "sleep")
       return {std::format("{}({})", f, arguments(e)), {}};
+    if (f == "len")
+    {
+      if (e["args"].items().size() != 1 || expression(e["args"].items()[0]).t.k != kind::list)
+        unsupported(e, "len() of something other than a list");
+      return {std::format("static_cast<double>({}.size())", arguments(e)), {kind::number, {}}};
+    }
     if (is_object_factory(f))
       return {std::format("{}({})", vcpp_factory(f), keyword_arguments(e)),
               {kind::object, std::string(vcpp_factory(f))}};
@@ -843,6 +1035,35 @@ private:
     if (const auto it = functions.find(f); it != functions.end())
       return {std::format("{}({})", it->second.first, arguments(e)), {it->second.second, {}}};
     unsupported(e, std::format("calling {}()", f));
+  }
+
+  // list.append(x); the list's element type is learned here when it was made empty
+  expr append(const json& e)
+  {
+    const json& base = e["func"]["value"];
+    const auto& args = e["args"].items();
+    if (args.size() != 1 || !e["keywords"].items().empty())
+      unsupported(e, "append() with other than one argument");
+    expr value = expression(args[0]);
+    if (value.t.k == kind::object && args[0]["_type"].string() == "Call")
+      value.code = std::format("scene.add({})", value.code);
+    type* list = variable_type(base);
+    if (!list)
+      unsupported(e, "appending to a list that isn't in a variable");
+    if (!unify(list->element[0], value.t))
+      unsupported(e, "a list of different types");
+    return {std::format("{}.push_back({})", expression(base).code, value.code), {}};
+  }
+
+  // The recorded type of a variable, or of an attribute a program added to an object; null for anything else
+  type* variable_type(const json& e)
+  {
+    const std::string& t = e["_type"].string();
+    if (t == "Name")
+      return &slot(e["id"].string());
+    if (t == "Attribute" && expression(e["value"]).t.k == kind::object && !object_attribute(e["attr"].string()))
+      return &slot(user_attribute(e["value"], e["attr"].string(), e));
+    return nullptr;
   }
 
   std::string arguments(const json& e)

@@ -10,18 +10,24 @@ namespace
 {
 vec3 F{};
 handle<box_object> anchor{};
+handle<sphere_object> b{};
 handle<sphere_object> ball{};
 vec3 ball__v{};
+std::vector<handle<sphere_object>> balls{};
 double dt_{};
+std::vector<double> heights{};
+double i{};
 double k{};
 double last_x{};
 double m{};
+double n{};
 double t{};
 double t_start{};
 vec3 x0{};
 } // namespace
 
 task<double> kinetic(vec3 v, double mass_, double scale);
+task<void> lift(std::vector<handle<sphere_object>>& group_, double dy);
 task<vec3> spring_force(vec3 x);
 task<void> tick();
 
@@ -30,6 +36,18 @@ task<double> kinetic(vec3 v, double mass_, double scale)
   double e{};
   e = ((0.5 * mass_) * std::pow(mag(v), 2.0));
   co_return (scale * e);
+}
+
+task<void> lift(std::vector<handle<sphere_object>>& group_, double dy)
+{
+  handle<sphere_object> b{};
+  for (std::size_t for__1 = 0; for__1 < group_.size(); ++for__1)
+  {
+    b = group_[for__1];
+    b->m_pos.y() = (b->m_pos.y() + dy);
+  }
+  group_.push_back(scene.add(sphere(pos = vec3{0.0, 3.0, 0.0}, radius = 0.1)));
+  co_return;
 }
 
 task<vec3> spring_force(vec3 x)
@@ -41,6 +59,7 @@ task<void> tick()
 {
   t = t + (dt_);
   co_await rate(100.0);
+  co_return;
 }
 
 task<void> vpython_program()
@@ -82,4 +101,21 @@ task<void> vpython_program()
     }
   }
   ball.set_pos(vec3{last_x, 0.0, 0.0});
+  balls = {};
+  for (i = 0.0; i < 5.0; i += 1.0)
+  {
+    balls.push_back(scene.add(sphere(pos = vec3{i, 2.0, 0.0}, radius = 0.1)));
+  }
+  heights = std::vector<double>{0.5, 1.0, 1.5};
+  for (n = (static_cast<double>(heights.size()) - 1.0); n > -1.0; n += -1.0)
+  {
+    heights[static_cast<std::size_t>(n)] = (heights[static_cast<std::size_t>(n)] * 2.0);
+  }
+  for (std::size_t for__1 = 0; for__1 < balls.size(); ++for__1)
+  {
+    b = balls[for__1];
+    b->m_color = colors::green;
+  }
+  balls[balls.size() - 1]->m_radius = heights[0];
+  co_await lift(balls, 0.5);
 }

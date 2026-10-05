@@ -42,3 +42,20 @@ while t < 10:
         ball.color = color.cyan
 
 ball.pos = vector(last_x, 0, 0)
+
+balls = []
+for i in range(5):
+    balls.append(sphere(pos=vector(i, 2, 0), radius=0.1))
+heights = [0.5, 1, 1.5]
+for n in range(len(heights) - 1, -1, -1):
+    heights[n] = heights[n] * 2
+for b in balls:
+    b.color = color.green
+balls[-1].radius = heights[0]
+
+def lift(group, dy):
+    for b in group:
+        b.pos.y = b.pos.y + dy
+    group.append(sphere(pos=vector(0, 3, 0), radius=0.1))
+
+lift(balls, 0.5)
