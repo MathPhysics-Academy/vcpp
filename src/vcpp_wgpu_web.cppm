@@ -204,6 +204,13 @@ struct renderer_state
   };
   std::vector<curve_mesh_data> curve_meshes;
 
+
+  // Objects drawn one at a time each get a slot here. Queue writes all land before the pass runs, so
+  // sharing one instance buffer gave every such draw the last object's position and colour.
+  WGPUBuffer single_ib{nullptr};
+  std::size_t single_ib_cap{0}; // in instances
+  std::vector<instance_data> single_instances;
+
   // Points instance buffer
   WGPUBuffer points_ib{nullptr};
   std::size_t points_ib_cap{0};
@@ -393,6 +400,23 @@ inline void render_frame()
   pass_desc.colorAttachmentCount = 1;
   pass_desc.colorAttachments = &color_att;
   pass_desc.depthStencilAttachment = &depth_att;
+
+  const std::size_t singles =
+    c.m_curves.size() + c.m_compounds.size() + c.m_trails.size() + c.m_extrusions.size() + c.m_text3ds.size();
+  if (singles > g_renderer.single_ib_cap)
+  {
+    if (g_renderer.single_ib)
+      wgpuBufferRelease(g_renderer.single_ib);
+    g_renderer.single_ib_cap = singles * 2;
+    g_renderer.single_ib = create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst),
+                                         g_renderer.single_ib_cap * sizeof(instance_data));
+  }
+  g_renderer.single_instances.clear();
+  // Offset of inst's slot in single_ib, which is written once, after all draws are recorded
+  auto single_instance_offset = [](const instance_data& inst) -> std::uint64_t {
+    g_renderer.single_instances.push_back(inst);
+    return (g_renderer.single_instances.size() - 1) * sizeof(instance_data);
+  };
 
   WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &pass_desc);
   wgpuRenderPassEncoderSetPipeline(pass, g_renderer.pipeline);
@@ -740,23 +764,10 @@ inline void render_frame()
     inst.color = to_gpu4(crv.m_color, static_cast<float>(crv.m_opacity));
     inst.material = {static_cast<float>(crv.m_shininess), 0, 0, 0};
 
-    // Use a temporary instance buffer
-    static WGPUBuffer curve_single_ib = nullptr;
-    static std::size_t curve_single_ib_cap = 0;
-    std::size_t inst_size = sizeof(instance_data);
-
-    if (inst_size > curve_single_ib_cap)
-    {
-      if (curve_single_ib)
-        wgpuBufferRelease(curve_single_ib);
-      curve_single_ib_cap = inst_size * 2;
-      curve_single_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), curve_single_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, curve_single_ib, 0, &inst, inst_size);
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, curve_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, curve_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
+                                         sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, curve_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, curve_mesh.index_count, 1, 0, 0, 0);
   }
@@ -968,20 +979,10 @@ inline void render_frame()
 
     instance_data inst = build_instance(comp, vec3{1, 1, 1});
 
-    static WGPUBuffer comp_single_ib = nullptr;
-    static std::size_t comp_single_ib_cap = 0;
-    if (sizeof(instance_data) > comp_single_ib_cap)
-    {
-      if (comp_single_ib)
-        wgpuBufferRelease(comp_single_ib);
-      comp_single_ib_cap = sizeof(instance_data) * 2;
-      comp_single_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), comp_single_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, comp_single_ib, 0, &inst, sizeof(instance_data));
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, comp_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, comp_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
+                                         sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, comp_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, comp_mesh.index_count, 1, 0, 0, 0);
   }
@@ -1033,20 +1034,10 @@ inline void render_frame()
     inst.color = to_gpu4(trail.color, 1.0f);
     inst.material = {0.3f, 0, 0, 0};
 
-    static WGPUBuffer trail_single_ib = nullptr;
-    static std::size_t trail_single_ib_cap = 0;
-    if (sizeof(instance_data) > trail_single_ib_cap)
-    {
-      if (trail_single_ib)
-        wgpuBufferRelease(trail_single_ib);
-      trail_single_ib_cap = sizeof(instance_data) * 2;
-      trail_single_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), trail_single_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, trail_single_ib, 0, &inst, sizeof(instance_data));
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, trail_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, trail_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
+                                         sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, trail_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, trail_mesh.index_count, 1, 0, 0, 0);
   }
@@ -1101,20 +1092,10 @@ inline void render_frame()
 
     instance_data inst = build_instance(ext, vec3{1, 1, 1});
 
-    static WGPUBuffer ext_single_ib = nullptr;
-    static std::size_t ext_single_ib_cap = 0;
-    if (sizeof(instance_data) > ext_single_ib_cap)
-    {
-      if (ext_single_ib)
-        wgpuBufferRelease(ext_single_ib);
-      ext_single_ib_cap = sizeof(instance_data) * 2;
-      ext_single_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), ext_single_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, ext_single_ib, 0, &inst, sizeof(instance_data));
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, ext_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, ext_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
+                                         sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, ext_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, ext_mesh.index_count, 1, 0, 0, 0);
   }
@@ -1180,23 +1161,17 @@ inline void render_frame()
     inst.color = to_gpu4(txt.m_color, static_cast<float>(txt.m_opacity));
     inst.material = {static_cast<float>(txt.m_shininess), txt.m_emissive ? 1.0f : 0.0f, 0, 0};
 
-    static WGPUBuffer txt_single_ib = nullptr;
-    static std::size_t txt_single_ib_cap = 0;
-    if (sizeof(instance_data) > txt_single_ib_cap)
-    {
-      if (txt_single_ib)
-        wgpuBufferRelease(txt_single_ib);
-      txt_single_ib_cap = sizeof(instance_data) * 2;
-      txt_single_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), txt_single_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, txt_single_ib, 0, &inst, sizeof(instance_data));
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, txt_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, txt_single_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
+                                         sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, txt_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, txt_mesh.index_count, 1, 0, 0, 0);
   }
+
+  if (!g_renderer.single_instances.empty())
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.single_ib, 0, g_renderer.single_instances.data(),
+                         g_renderer.single_instances.size() * sizeof(instance_data));
 
   wgpuRenderPassEncoderEnd(pass);
   wgpuRenderPassEncoderRelease(pass);
