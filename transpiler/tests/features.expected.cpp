@@ -6,29 +6,65 @@ import lam.linearalgebra;
 
 using namespace vcpp;
 
+namespace
+{
+vec3 F{};
+handle<box_object> anchor{};
+handle<sphere_object> ball{};
+vec3 ball__v{};
+double dt_{};
+double k{};
+double last_x{};
+double m{};
+double t{};
+vec3 x0{};
+} // namespace
+
+task<double> kinetic(vec3 v);
+task<vec3> spring_force(vec3 x);
+task<void> tick();
+
+task<double> kinetic(vec3 v)
+{
+  double e{};
+  e = ((0.5 * m) * std::pow(mag(v), 2.0));
+  co_return e;
+}
+
+task<vec3> spring_force(vec3 x)
+{
+  co_return (-k * (x - x0));
+}
+
+task<void> tick()
+{
+  t = t + (dt_);
+  co_await rate(100.0);
+}
+
 task<void> vpython_program()
 {
   scene.m_caption = "A ball on a spring";
-  auto k = 4.0;
-  auto m = 0.5;
-  auto x0 = vec3{1.0, 0.0, 0.0};
-  auto anchor = scene.add(box(pos = vec3{-2.0, 0.0, 0.0}, size = vec3{0.2, 1.0, 1.0}, color = colors::gray(0.5)));
-  auto ball = scene.add(sphere(pos = x0, radius = 0.2, color = colors::cyan, make_trail = true, retain = 100));
-  auto ball__v = vec3{0.0, 0.5, 0.0};
-  auto dt_ = 0.01;
-  auto t = 0.0;
+  k = 4.0;
+  m = 0.5;
+  x0 = vec3{1.0, 0.0, 0.0};
+  anchor = scene.add(box(pos = vec3{-2.0, 0.0, 0.0}, size = vec3{0.2, 1.0, 1.0}, color = colors::gray(0.5)));
+  ball = scene.add(sphere(pos = x0, radius = 0.2, color = colors::cyan, make_trail = true, retain = 100));
+  ball__v = vec3{0.0, 0.5, 0.0};
+  dt_ = 0.01;
+  t = 0.0;
   while (t < 10.0)
   {
-    co_await rate(100.0);
-    auto F = (-k * (ball->m_pos - x0));
+    co_await tick();
+    F = (co_await spring_force(ball->m_pos));
     ball__v = (ball__v + ((F / m) * dt_));
     ball.set_pos((ball->m_pos + (ball__v * dt_)));
-    t = t + (dt_);
+    last_x = ball->m_pos.x();
     if ((ball->m_pos.x() > 2.0 || !((-1.0 < ball->m_pos.y() && ball->m_pos.y() < 1.0))))
     {
       ball->m_color = colors::red;
     }
-    else if (std::pow(mag(ball__v), 2.0) > 4.0)
+    else if ((co_await kinetic(ball__v)) > 2.0)
     {
       ball->m_color = colors::yellow;
     }
@@ -37,4 +73,5 @@ task<void> vpython_program()
       ball->m_color = colors::cyan;
     }
   }
+  ball.set_pos(vec3{last_x, 0.0, 0.0});
 }

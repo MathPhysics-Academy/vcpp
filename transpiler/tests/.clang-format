@@ -1,0 +1,3 @@
+# Expected transpiler output must stay exactly as vpy2cpp writes it
+DisableFormat: true
+SortIncludes: Never

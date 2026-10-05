@@ -10,15 +10,30 @@ ball = sphere(pos=x0, radius=0.2, color=color.cyan, make_trail=True, retain=100)
 ball.v = vector(0, 0.5, 0)
 dt = 0.01
 t = 0
-while t < 10:
+
+def spring_force(x):
+    return -k * (x - x0)
+
+def kinetic(v):
+    e = 0.5 * m * mag(v) ** 2
+    return e
+
+def tick():
+    global t
+    t += dt
     rate(100)
-    F = -k * (ball.pos - x0)
+
+while t < 10:
+    tick()
+    F = spring_force(ball.pos)
     ball.v = ball.v + F / m * dt
     ball.pos = ball.pos + ball.v * dt
-    t += dt
+    last_x = ball.pos.x
     if ball.pos.x > 2 or not (-1 < ball.pos.y < 1):
         ball.color = color.red
-    elif mag(ball.v) ** 2 > 4:
+    elif kinetic(ball.v) > 2:
         ball.color = color.yellow
     else:
         ball.color = color.cyan
+
+ball.pos = vector(last_x, 0, 0)
