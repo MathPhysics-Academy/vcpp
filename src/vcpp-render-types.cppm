@@ -234,9 +234,7 @@ inline gpu_mat4 align_x_to_axis(const vec3& axis) noexcept
 // Rotation matrix from object orientation (axis + up)
 inline gpu_mat4 rotation_from_orientation(const vec3& axis, const vec3& up_vec) noexcept
 {
-  vec3 z = hat(axis);
-  vec3 x = hat(cross(up_vec, z));
-  vec3 y = cross(z, x);
+  const auto [x, y, z] = orientation_of(axis, up_vec);
 
   gpu_mat4 m{};
   m.data[0] = static_cast<float>(x.x());

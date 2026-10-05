@@ -487,12 +487,7 @@ inline void render_frame()
   {
     if (!b.m_visible)
       continue;
-    instance_data inst{};
-    gpu_mat4 tr = matrix::translate(static_cast<float>(b.m_pos.x()), static_cast<float>(b.m_pos.y()),
-                                    static_cast<float>(b.m_pos.z()));
-    inst.model = matrix::multiply(tr, matrix::scale(static_cast<float>(b.m_length), static_cast<float>(b.m_height),
-                                                    static_cast<float>(b.m_width)));
-    inst.color = to_gpu4(b.m_color, static_cast<float>(b.m_opacity));
+    instance_data inst = build_instance(b, vec3{b.m_length, b.m_height, b.m_width});
     inst.material = {static_cast<float>(b.m_shininess), 0, 0, 0};
     box_instances.push_back(inst);
   }

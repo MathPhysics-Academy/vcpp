@@ -754,10 +754,7 @@ inline mesh_data merge_meshes(const std::vector<mesh_data>& meshes)
 
 inline void transform_mesh(mesh_data& mesh, const vec3& pos, const vec3& axis, const vec3& up, const vec3& scale)
 {
-  // Build rotation matrix from axis and up
-  vec3 x_axis = hat(axis);
-  vec3 z_axis = hat(cross(x_axis, up));
-  vec3 y_axis = cross(z_axis, x_axis);
+  const auto [x_axis, y_axis, z_axis] = orientation_of(axis, up);
 
   for (auto& v : mesh.vertices)
   {

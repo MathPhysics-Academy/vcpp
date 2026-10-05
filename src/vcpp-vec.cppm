@@ -120,6 +120,33 @@ constexpr vec3 rotate(const vec3& v, double angle, const vec3& axis = vec3{0, 0,
 }
 
 // Random vector with components in [-1, 1]
+// Orientation as GlowScript draws an object: x along axis, y along up made perpendicular, z = x cross y.
+// When up is parallel to axis, y is the default up turned the way (1,0,0) turns into axis, which is
+// where GlowScript's own up would be after setting that axis.
+struct orientation
+{
+  vec3 x;
+  vec3 y;
+  vec3 z;
+};
+
+constexpr orientation orientation_of(const vec3& axis, const vec3& up) noexcept
+{
+  const vec3 x = mag2(axis) > 0.0 ? hat(axis) : vec3{1, 0, 0};
+  const double along = dot(up, x);
+  vec3 y{up.x() - along * x.x(), up.y() - along * x.y(), up.z() - along * x.z()};
+  if (mag2(y) <= 1e-12 * mag2(up))
+  {
+    const vec3 turn = cross(vec3{1, 0, 0}, x);
+    if (mag2(turn) < 1e-24)
+      y = x.x() > 0 ? vec3{0, 1, 0} : vec3{0, -1, 0}; // axis along -x: GlowScript flips up
+    else
+      y = rotate(vec3{0, 1, 0}, diff_angle(vec3{1, 0, 0}, x), turn);
+  }
+  y = hat(y);
+  return {x, y, cross(x, y)};
+}
+
 inline vec3 random_vec()
 {
   static std::mt19937 gen{std::random_device{}()};

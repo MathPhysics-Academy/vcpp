@@ -1413,7 +1413,7 @@ void update() {
 
       // Rotate around Y axis
       double angle = cp_demo.time * 0.5;
-      comp.m_axis = vec3{std::sin(angle), 0, std::cos(angle)};
+      comp.m_axis = vec3{std::cos(angle), 0, -std::sin(angle)};
 
       // Also bob up and down
       comp.m_pos = vec3{0, std::sin(cp_demo.time * 2.0) * 0.5, 0};
