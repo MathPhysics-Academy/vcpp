@@ -16,6 +16,7 @@ export module vcpp:scene;
 import :vec;
 import :color;
 import :objects;
+import :traits;
 
 export namespace vcpp
 {
@@ -146,6 +147,14 @@ public:
   // The object's index in the canvas's scene entries, as used to key trails
   std::size_t entry() const noexcept { return m_entry; }
 
+  // Setters that apply GlowScript's rules for these attributes; writing the members directly doesn't
+  void set_pos(const vec3& v) const;
+  void set_axis(const vec3& v) const;
+  void set_up(const vec3& v) const;
+  void set_length(double length) const
+    requires length_follows_axis<T>;
+  void set_size(const vec3& size) const;
+
   explicit operator bool() const noexcept { return m_canvas != nullptr; }
 
 private:
@@ -211,6 +220,7 @@ public:
   struct trail_data
   {
     std::vector<vec3> positions;
+    int moves{0}; // set_pos calls since the last point, for interval
     vec3 color{1, 1, 1};
     double radius{0.02};
     mutable bool dirty{true};
@@ -421,20 +431,26 @@ public:
           continue; // Skip non-trailable objects
       }
 
-      if (!obj || !obj->m_make_trail || !obj->m_visible)
+      // With an interval, set_pos adds the points instead
+      if (!obj || !obj->m_make_trail || !obj->m_visible || obj->m_interval > 0)
         continue;
 
       auto& trail = m_trails[entry_idx];
-      trail.color = obj->m_trail_color;
       if (!trail.positions.empty() && trail.positions.back() == obj->m_pos)
         continue;
-
-      trail.positions.push_back(obj->m_pos);
-      if (obj->m_retain >= 0 && trail.positions.size() > static_cast<std::size_t>(obj->m_retain))
-        trail.positions.erase(trail.positions.begin(),
-                              trail.positions.end() - static_cast<std::ptrdiff_t>(obj->m_retain));
-      trail.dirty = true;
+      add_trail_point(entry_idx, *obj);
     }
+  }
+
+  // Adds obj's position to the trail of scene entry `entry`, keeping the newest m_retain points
+  void add_trail_point(std::size_t entry, const object_base& obj)
+  {
+    auto& trail = m_trails[entry];
+    trail.color = obj.m_trail_color;
+    trail.positions.push_back(obj.m_pos);
+    if (obj.m_retain >= 0 && trail.positions.size() > static_cast<std::size_t>(obj.m_retain))
+      trail.positions.erase(trail.positions.begin(), trail.positions.end() - static_cast<std::ptrdiff_t>(obj.m_retain));
+    trail.dirty = true;
   }
 };
 
@@ -444,6 +460,137 @@ T& handle<T>::operator*() const
   if (!m_canvas || m_generation != m_canvas->generation())
     throw std::logic_error("vcpp: handle used after its scene was cleared, or never set");
   return m_canvas->objects<T>()[m_index];
+}
+
+namespace detail
+{
+// When one of axis and up turns from `from` to `to`, turn the other with it (GlowScript's adjust_up and
+// adjust_axis in vectors.js)
+inline void turn_with(vec3& other, const vec3& from, const vec3& to)
+{
+  if (dot(to, other) == 0)
+    return; // already perpendicular
+  const double angle = diff_angle(from, to);
+  if (angle <= 1e-6)
+    return;
+  if (std::abs(angle - std::numbers::pi) < 1e-6)
+    other = vec3{-other.x(), -other.y(), -other.z()}; // a 180-degree turn has no rotation axis
+  else
+    other = rotate(other, angle, cross(from, to));
+}
+} // namespace detail
+
+// GlowScript's __update_trail: with an interval, every interval-th assignment adds a trail point,
+// and the first assignment always does
+template<typename T>
+void handle<T>::set_pos(const vec3& v) const
+{
+  T& obj = **this;
+  obj.m_pos = v;
+  if (!obj.m_make_trail || !obj.m_visible || obj.m_interval <= 0)
+    return;
+  auto& trail = m_canvas->m_trails[m_entry];
+  bool add = false;
+  if (++trail.moves >= obj.m_interval)
+  {
+    trail.moves = 0;
+    add = true;
+  }
+  else if (trail.moves == 1 && trail.positions.empty())
+    add = true;
+  if (add)
+    m_canvas->add_trail_point(m_entry, obj);
+}
+
+// GlowScript's axis setter: up turns with the axis; for the box family the length follows; a zero
+// axis is remembered and its predecessor used as the starting point once the axis is nonzero again
+template<typename T>
+void handle<T>::set_axis(const vec3& v) const
+{
+  T& obj = **this;
+  vec3 from = obj.m_axis;
+  obj.m_axis = v;
+  if constexpr (length_follows_axis<T>)
+    obj.m_length = mag(v);
+  if (mag2(v) == 0)
+  {
+    if (!obj.m_axis_before_zero)
+      obj.m_axis_before_zero = from;
+    return;
+  }
+  if (obj.m_axis_before_zero)
+  {
+    from = *obj.m_axis_before_zero;
+    obj.m_axis_before_zero.reset();
+  }
+  detail::turn_with(obj.m_up, from, v);
+}
+
+// GlowScript's up setter: the axis turns with up
+template<typename T>
+void handle<T>::set_up(const vec3& v) const
+{
+  T& obj = **this;
+  const vec3 from = hat(obj.m_up);
+  obj.m_up = v;
+  detail::turn_with(obj.m_axis, from, v);
+}
+
+// GlowScript's length setter, including its quirk: after a zero length, a new length is set along
+// (1,0,0), because it tests the old length after restoring the remembered axis
+template<typename T>
+void handle<T>::set_length(double length) const
+  requires length_follows_axis<T>
+{
+  T& obj = **this;
+  if (length == 0)
+  {
+    if (!obj.m_axis_before_zero)
+      obj.m_axis_before_zero = obj.m_axis;
+    obj.m_axis = vec3{0, 0, 0};
+    obj.m_length = 0;
+    return;
+  }
+  if (obj.m_axis_before_zero)
+  {
+    obj.m_axis = *obj.m_axis_before_zero;
+    obj.m_axis_before_zero.reset();
+  }
+  if (obj.m_length == 0)
+    set_axis(vec3{length, 0, 0});
+  else
+  {
+    const vec3 dir = hat(obj.m_axis);
+    set_axis(vec3{dir.x() * length, dir.y() * length, dir.z() * length});
+  }
+}
+
+// GlowScript's size setter: the dimensions as size= sets them, then for the box family the axis
+// keeps its direction and takes size.x as its length
+template<typename T>
+void handle<T>::set_size(const vec3& size) const
+{
+  T& obj = **this;
+  if constexpr (std::same_as<T, box_object> || std::same_as<T, ellipsoid_object> || std::same_as<T, pyramid_object>)
+    detail::set_size_lhw(obj, size);
+  else if constexpr (std::same_as<T, cylinder_object> || std::same_as<T, cone_object> || std::same_as<T, helix_object>)
+    detail::set_size_lr(obj, size);
+  else
+  {
+    static_assert(std::same_as<T, sphere_object>, "vcpp: this object has no size");
+    detail::set_size_sphere(obj, size);
+  }
+  if constexpr (length_follows_axis<T>)
+  {
+    vec3 dir = obj.m_axis;
+    if (mag2(dir) == 0)
+    {
+      dir = obj.m_axis_before_zero.value_or(vec3{1, 0, 0});
+      obj.m_axis_before_zero.reset();
+    }
+    dir = hat(dir);
+    obj.m_axis = vec3{dir.x() * size.x(), dir.y() * size.x(), dir.z() * size.x()};
+  }
 }
 
 // ============================================================================

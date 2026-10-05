@@ -50,11 +50,15 @@ struct object_base
 
   // Behavior
   bool m_make_trail{false};
-  int m_retain{-1}; // trail points kept, newest first (-1 = all)
+  int m_retain{-1};   // trail points kept, newest first (-1 = all)
+  int m_interval{-1}; // with a handle's set_pos, a trail point every m_interval moves (-1 = once per render)
   vec3 m_trail_color{1, 1, 1};
 
   // Texture
   render::texture_handle m_texture{}; // null = no texture
+
+  // The axis before it was set to zero, restored when it becomes nonzero (GlowScript's __oldaxis)
+  std::optional<vec3> m_axis_before_zero;
 
   // ========== Property Accessors (getter/setter pairs) ==========
   // These enable: ball.pos() and ball.pos(new_value)
@@ -97,6 +101,7 @@ inline constexpr auto common_params = std::tuple{param_spec<&object_base::m_pos,
                                                  param_spec<&object_base::m_visible, decltype(visible)>{},
                                                  param_spec<&object_base::m_make_trail, decltype(make_trail)>{},
                                                  param_spec<&object_base::m_retain, decltype(retain)>{},
+                                                 param_spec<&object_base::m_interval, decltype(interval)>{},
                                                  param_spec<&object_base::m_trail_color, decltype(trail_color)>{},
                                                  param_spec<&object_base::m_texture, decltype(texture)>{}};
 

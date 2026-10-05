@@ -65,6 +65,71 @@ bool test_empty_handle()
   return false;
 }
 
+bool near(const vec3& a, const vec3& b) { return mag(vec3{a.x() - b.x(), a.y() - b.y(), a.z() - b.z()}) < 1e-9; }
+
+// With an interval, the first set_pos and then every interval-th one add a trail point
+bool test_interval_counts_moves()
+{
+  canvas c;
+  auto ball = c.add(sphere(make_trail = true, interval = 3));
+  for (int i = 1; i <= 7; ++i)
+    ball.set_pos(vec3{static_cast<double>(i), 0, 0});
+  c.update_trails(); // with an interval, the per-render step adds nothing
+  const auto& points = c.m_trails[ball.entry()].positions;
+  return points.size() == 3 && points[0] == vec3{1, 0, 0} && points[1] == vec3{3, 0, 0} && points[2] == vec3{6, 0, 0};
+}
+
+// Turning axis turns up with it, so a cylinder pointed straight down keeps a valid up
+bool test_up_turns_with_axis()
+{
+  canvas c;
+  auto leg = c.add(cylinder());
+  leg.set_axis(vec3{0, -1.2, 0});
+  return near(leg->m_up, vec3{1, 0, 0}) && leg->m_length == 1.2;
+}
+
+// A 180-degree turn has no rotation axis, so up flips; but an up already perpendicular to the new
+// axis is left alone, as GlowScript's adjust_up returns early
+bool test_axis_flip()
+{
+  canvas c;
+  auto tilted = c.add(box(axis = vec3{1, 1, 0}));
+  tilted.set_axis(vec3{-1, -1, 0});
+  auto level = c.add(box());
+  level.set_axis(vec3{-2, 0, 0});
+  return near(tilted->m_up, vec3{0, -1, 0}) && near(level->m_up, vec3{0, 1, 0});
+}
+
+// Setting up turns axis the same way
+bool test_axis_turns_with_up()
+{
+  canvas c;
+  auto b = c.add(box());
+  b.set_up(vec3{-1, 0, 0});
+  return near(b->m_axis, vec3{0, 1, 0});
+}
+
+// length rescales axis, keeping its direction; a zero length remembers the axis
+bool test_length_and_axis()
+{
+  canvas c;
+  auto b = c.add(box(axis = vec3{0, 0, 2}));
+  b.set_length(5);
+  bool scaled = near(b->m_axis, vec3{0, 0, 5}) && b->m_length == 5;
+  b.set_axis(vec3{0, 0, 0});
+  b.set_axis(vec3{0, 3, 0}); // turns up from the remembered (0,0,5), not from zero
+  return scaled && b->m_length == 3 && near(b->m_up, vec3{0, 0, -1});
+}
+
+// set_size sets the dimensions and gives axis the length size.x
+bool test_set_size()
+{
+  canvas c;
+  auto cyl = c.add(cylinder(axis = vec3{0, 2, 0}));
+  cyl.set_size(vec3{4, 1, 1});
+  return near(cyl->m_axis, vec3{0, 4, 0}) && cyl->m_length == 4 && cyl->m_radius == 0.5;
+}
+
 } // namespace
 
 int main()
@@ -92,6 +157,12 @@ int main()
   run_test("finds its own object", test_finds_its_own_object);
   run_test("cleared scene throws", test_cleared_scene_throws);
   run_test("empty handle", test_empty_handle);
+  run_test("interval counts moves", test_interval_counts_moves);
+  run_test("up turns with axis", test_up_turns_with_axis);
+  run_test("axis flip", test_axis_flip);
+  run_test("axis turns with up", test_axis_turns_with_up);
+  run_test("length and axis", test_length_and_axis);
+  run_test("set_size", test_set_size);
 
   std::println("=================");
   std::println("Passed: {}/{}", passed, passed + failed);
