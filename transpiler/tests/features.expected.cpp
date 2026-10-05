@@ -28,16 +28,16 @@ handle<sphere_object> trailing{};
 vec3 x0{};
 } // namespace
 
-task<double> kinetic(vec3 v, double mass_, double scale);
+task<double> kinetic(vec3 v, double mass_, double scale_);
 task<void> lift(std::vector<handle<sphere_object>>& group_, double dy);
 task<vec3> spring_force(vec3 x);
 task<void> tick();
 
-task<double> kinetic(vec3 v, double mass_, double scale)
+task<double> kinetic(vec3 v, double mass_, double scale_)
 {
   double e{};
   e = ((0.5 * mass_) * std::pow(mag(v), 2.0));
-  co_return (scale * e);
+  co_return (scale_ * e);
 }
 
 task<void> lift(std::vector<handle<sphere_object>>& group_, double dy)

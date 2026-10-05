@@ -24,3 +24,9 @@ if(Python3_FOUND)
                    -DEXPECTED=${CMAKE_CURRENT_SOURCE_DIR}/tests/features.expected.cpp
                    -DWORK=${CMAKE_CURRENT_BINARY_DIR}/features -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_translation.cmake)
 endif()
+
+# vcpp's named parameters are all reserved names in the translator
+enable_testing()
+add_test(NAME vpy2cpp_reserved_names
+         COMMAND ${CMAKE_COMMAND} -DPROPS=${CMAKE_CURRENT_SOURCE_DIR}/../src/vcpp-props.cppm
+                 -DEMIT=${CMAKE_CURRENT_SOURCE_DIR}/emit.cppm -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/check_reserved.cmake)

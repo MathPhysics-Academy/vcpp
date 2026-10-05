@@ -174,15 +174,16 @@ private:
   static bool reserved(std::string_view name)
   {
     static const std::set<std::string_view> names{
-      // vcpp named parameters (vcpp-props.cppm)
+      // vcpp named parameters (vcpp-props.cppm; tests/check_reserved.cmake checks this list against it)
       "acceleration", "align", "ambient", "axis", "background", "billboard", "border", "box", "caption", "ccw",
       "center", "charge", "closed", "coils", "color", "delta", "depth", "dot_color", "dot_radius", "dt", "emissive",
-      "fast", "font", "foreground", "forward", "fov", "graph_ref", "group", "headlength", "headwidth", "height",
-      "interval", "label", "legend", "length", "lights", "line", "make_trail", "marker_radius", "markers", "mass",
-      "momentum", "normal", "opacity", "path", "points", "pos", "radius", "range", "retain", "round", "scale_end",
-      "shaftwidth", "shape", "shininess", "show_dot", "show_end_face", "show_start_face", "size", "target_canvas",
-      "texpos", "text", "texture", "thickness", "title", "trail_color", "trail_radius", "twist", "up", "v0", "v1", "v2",
-      "v3", "velocity", "visible", "width", "xmax", "xmin", "xoffset", "xtitle", "ymax", "ymin", "yoffset", "ytitle",
+      "end_normal", "fast", "font", "foreground", "forward", "fov", "graph_ref", "group", "headlength", "headwidth",
+      "height", "interval", "label", "legend", "length", "lights", "line", "make_trail", "marker_radius", "markers",
+      "mass", "momentum", "normal", "opacity", "path", "points", "pos", "radius", "range", "retain", "round", "scale",
+      "shaftwidth", "shape", "sharp_joints", "shininess", "show_dot", "show_end_face", "show_start_face", "size",
+      "smooth", "smooth_joints", "start_normal", "target_canvas", "texpos", "text", "texture", "thickness", "title",
+      "trail_color", "trail_radius", "trail_type", "twist", "up", "v0", "v1", "v2", "v3", "velocity", "visible",
+      "width", "xmax", "xmin", "xoffset", "xscale", "xtitle", "ymax", "ymin", "yoffset", "yscale", "ytitle",
       // vcpp functions and objects the generated code uses
       "scene", "rate", "sleep", "vec3", "vec2", "colors", "mag", "hat", "norm", "cross", "dot", "task",
       // C++ keywords that are valid Python names
