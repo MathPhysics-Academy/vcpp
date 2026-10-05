@@ -24,6 +24,7 @@ double n{};
 std::string skin{};
 double t{};
 double t_start{};
+handle<sphere_object> trailing{};
 vec3 x0{};
 } // namespace
 
@@ -121,4 +122,9 @@ task<void> vpython_program()
   co_await lift(balls, 0.5);
   skin = textures::metal;
   anchor->m_texture = skin;
+  scene.m_title = std::format("{} balls, the first at x = {:.2f}", static_cast<double>(balls.size()), balls[0]->m_pos.x());
+  scene.append_to_title(" {braces}");
+  scene.append_to_caption(std::format("{} {} {}", "t =", t, "steps"));
+  trailing = scene.add(sphere(pos = vec3{0.0, -1.0, 0.0}, radius = 0.1, make_trail = true, trail_type = "points"));
+  co_return;
 }

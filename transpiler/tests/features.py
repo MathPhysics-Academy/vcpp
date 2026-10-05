@@ -62,3 +62,8 @@ lift(balls, 0.5)
 
 skin = textures.metal
 anchor.texture = skin
+
+scene.title = f"{len(balls)} balls, the first at x = {balls[0].pos.x:.2f}"
+scene.append_to_title(" {braces}")
+scene.append_to_caption("t =", t, "steps")
+trailing = sphere(pos=vector(0, -1, 0), radius=0.1, make_trail=True, trail_type="points")

@@ -81,6 +81,7 @@ public:
     for (const auto& stmt : body)
       if (stmt["_type"].string() != "FunctionDef")
         statement(stmt);
+    line("co_return;"); // as in each function: it makes vpython_program a coroutine even without rate()
     return out + "task<void> vpython_program()\n{\n" + m_out + "}\n";
   }
 
@@ -827,6 +828,8 @@ private:
       return list_literal(e);
     if (t == "Subscript")
       return subscript(e);
+    if (t == "JoinedStr")
+      return formatted_string(e);
     unsupported(e, std::format("the {} expression", t));
   }
 
@@ -845,6 +848,42 @@ private:
     if (code.empty())
       return {"{}", type::list_of({})};
     return {std::format("std::vector<{}>{{{}}}", cpp_type(element, "a list element"), code), type::list_of(element)};
+  }
+
+  // f"..." is std::format. A format spec carries over: Python's and std::format's agree on the usual ones,
+  // such as .2f, and an integer spec (d, x, ...) formats the double as an integer. A number with no spec
+  // prints as GlowScript prints it, without a trailing .0.
+  expr formatted_string(const json& e)
+  {
+    std::string fmt;
+    std::string args;
+    for (const auto& part : e["values"].items())
+    {
+      if (part["_type"].string() == "Constant")
+      {
+        for (const char c : part["value"].string())
+          fmt += (c == '{' || c == '}') ? std::string(2, c) : std::string(1, c);
+        continue;
+      }
+      if (part["conversion"].num().text != "-1")
+        unsupported(e, "!r, !s or !a in an f-string");
+      expr v = expression(part["value"]);
+      if (v.t.k != kind::number && v.t.k != kind::string && v.t.k != kind::boolean)
+        unsupported(e, "formatting this kind of value in an f-string");
+      std::string spec;
+      if (!part["format_spec"].is_null())
+        for (const auto& piece : part["format_spec"]["values"].items())
+        {
+          if (piece["_type"].string() != "Constant")
+            unsupported(e, "a format spec worked out as the program runs");
+          spec += piece["value"].string();
+        }
+      if (!spec.empty() && std::string_view("bcdoxX").contains(spec.back()))
+        v.code = std::format("static_cast<long long>({})", v.code);
+      fmt += spec.empty() ? "{}" : "{:" + spec + "}";
+      args += ", " + v.code;
+    }
+    return {std::format("std::format({}{})", string_literal(fmt), args), {kind::string, {}}};
   }
 
   // a[i]; a negative literal counts from the end, as in Python
@@ -1006,6 +1045,9 @@ private:
         return {std::format("colors::{}({})", func["attr"].string(), arguments(e)), {kind::vector, {}}};
       if (func["attr"].string() == "append" && expression(base).t.k == kind::list)
         return append(e);
+      if (base["_type"].string() == "Name" && base["id"].string() == "scene" &&
+          (func["attr"].string() == "append_to_title" || func["attr"].string() == "append_to_caption"))
+        return append_text(e);
       unsupported(e, std::format("calling .{}()", func["attr"].string()));
     }
     if (func["_type"].string() != "Name")
@@ -1056,6 +1098,29 @@ private:
     if (!unify(list->element[0], value.t))
       unsupported(e, "a list of different types");
     return {std::format("{}.push_back({})", expression(base).code, value.code), {}};
+  }
+
+  // scene.append_to_title(a, b, ...) adds the arguments' text, separated by spaces, as GlowScript does
+  expr append_text(const json& e)
+  {
+    if (!e["keywords"].items().empty())
+      unsupported(e, "keyword arguments here");
+    const auto& args = e["args"].items();
+    std::string text;
+    if (args.size() == 1 && expression(args[0]).t.k == kind::string)
+      text = expression(args[0]).code;
+    else
+    {
+      std::string fmt;
+      std::string values;
+      for (const auto& a : args)
+      {
+        fmt += fmt.empty() ? "{}" : " {}";
+        values += ", " + expression(a).code;
+      }
+      text = std::format("std::format(\"{}\"{})", fmt, values);
+    }
+    return {std::format("scene.{}({})", e["func"]["attr"].string(), text), {}};
   }
 
   // The recorded type of a variable, or of an attribute a program added to an object; null for anything else
