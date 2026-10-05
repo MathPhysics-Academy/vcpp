@@ -238,6 +238,41 @@ public:
   // user zooming or panning, or by the program setting it false.
   bool m_autoscale{true};
 
+  // GlowScript's scene.userspin and scene.userzoom: whether the user may rotate or zoom the view
+  bool m_userspin{true};
+  bool m_userzoom{true};
+
+  // GlowScript's scene.center: the camera keeps its direction and distance from the new point
+  void set_center(const vec3& center)
+  {
+    m_camera.m_pos = center + (m_camera.m_pos - m_camera.m_center);
+    m_camera.m_center = center;
+    m_scene_dirty = true;
+  }
+
+  // GlowScript's scene.forward: the camera looks along `forward`, at the same distance from center
+  void set_forward(const vec3& forward)
+  {
+    m_camera.m_pos = m_camera.m_center - hat(forward) * mag(m_camera.m_pos - m_camera.m_center);
+    m_scene_dirty = true;
+  }
+
+  // GlowScript's scene.range: how far from center the view reaches, along the canvas's shorter side.
+  // It ends autoscale. The camera's distance depends on the canvas's shape, so it is set at the next render.
+  void set_range(double range)
+  {
+    m_range = range;
+    m_autoscale = false;
+    m_scene_dirty = true;
+  }
+
+  // GlowScript's scene.fov, in radians
+  void set_fov(double fov)
+  {
+    m_camera.m_fov = fov * 180 / std::numbers::pi;
+    m_scene_dirty = true;
+  }
+
   template<typename T>
   static constexpr object_type type_of()
   {
@@ -279,6 +314,7 @@ public:
 
 private:
   std::uint64_t m_generation{0};
+  double m_range{0}; // a scene.range not yet applied
   double m_autoscale_last_zx{-1};
   double m_autoscale_last_zy{-1};
 
@@ -511,6 +547,7 @@ public:
     m_entries.clear();
     ++m_generation;
     m_autoscale = true; // a cleared scene starts over, like a new GlowScript canvas
+    m_range = 0;
     m_autoscale_last_zx = -1;
     m_autoscale_last_zy = -1;
     m_scene_dirty = true;
@@ -576,9 +613,17 @@ public:
   // GlowScript's Autoscale.compute_autoscale (autoscale.js), run once per render with the canvas's size in
   // pixels. The camera keeps its direction from center; its distance is refitted only when the scene's
   // reach grows, or falls below a third of what it was at the last fit.
+  // A pending scene.range is applied here too.
   void autoscale(double width, double height)
   {
-    if (!m_autoscale || width <= 0 || height <= 0)
+    if (width <= 0 || height <= 0)
+      return;
+    if (m_range > 0)
+    {
+      place_camera(m_range, width, height);
+      m_range = 0;
+    }
+    if (!m_autoscale)
       return;
     const vec3 ctr = m_camera.m_center;
     const double tan_hfov = std::tan(m_camera.m_fov * std::numbers::pi / 360.0);
@@ -608,12 +653,18 @@ public:
       range = width >= height ? 1.1 * zy / cot_hfov : 1.1 * (width / height) * zy / cot_hfov;
     m_autoscale_last_zx = zx;
     m_autoscale_last_zy = zy;
+    place_camera(range, width, height);
+  }
 
+  // Moves the camera along its direction from center so the view reaches `range` from center
+  void place_camera(double range, double width, double height)
+  {
+    const double tan_hfov = std::tan(m_camera.m_fov * std::numbers::pi / 360.0);
     const double distance = width >= height ? range / tan_hfov : range * (height / width) / tan_hfov;
-    vec3 dir = m_camera.m_pos - ctr;
+    vec3 dir = m_camera.m_pos - m_camera.m_center;
     if (mag2(dir) == 0)
       dir = vec3{0, 0, 1};
-    m_camera.m_pos = ctr + hat(dir) * distance;
+    m_camera.m_pos = m_camera.m_center + hat(dir) * distance;
   }
 
   // Adds obj's position to the trail of scene entry `entry`, keeping the newest m_retain points

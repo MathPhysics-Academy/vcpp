@@ -92,7 +92,7 @@ inline void process_camera_input(canvas& c)
 
   // Left-drag: Orbit (Standard)
   // Condition: Left Down AND NOT Shift AND NOT Ctrl
-  if (m.left_down && !g_input.ctrl_held && !g_input.shift_held)
+  if (m.left_down && !g_input.ctrl_held && !g_input.shift_held && c.m_userspin)
   {
     if (dx != 0 || dy != 0)
     {
@@ -142,7 +142,7 @@ inline void process_camera_input(canvas& c)
 
   // Scroll wheel: zoom
   // Trackpads generate scroll events.
-  if (m.scroll_delta != 0)
+  if (m.scroll_delta != 0 && c.m_userzoom)
   {
     // Reduce sensitivity for trackpads (which generate high delta)
     double sensitivity = g_input_config.zoom_sensitivity;
@@ -155,8 +155,8 @@ inline void process_camera_input(canvas& c)
       cam.zoom(factor);
       c.mark_dirty();
     }
-    m.scroll_delta = 0; // consume scroll
   }
+  m.scroll_delta = 0; // consume scroll
 
   // Update last position for next frame
   m.last_x = m.x;

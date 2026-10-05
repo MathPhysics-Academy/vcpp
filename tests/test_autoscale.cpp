@@ -58,6 +58,31 @@ bool test_off_and_clear()
   return untouched && c.m_autoscale && distance(c) < 10;
 }
 
+// center moves the camera with it; forward turns it about center; both keep its distance
+bool test_center_and_forward()
+{
+  canvas c;
+  c.set_center(vec3{1, 2, 3});
+  const bool moved = near(distance(c), 10) && near(c.m_camera.m_pos.z(), 13) && near(c.m_camera.m_pos.x(), 1);
+  c.set_forward(vec3{0, -1, 1}); // looking down at 45 degrees, toward +z
+  const vec3 off = c.m_camera.m_pos - c.m_camera.m_center;
+  return moved && near(distance(c), 10) && near(off.y(), 10 / std::sqrt(2.0)) && near(off.z(), -off.y());
+}
+
+// range places the camera at the next render, range / tan 30 away on a wide canvas and further by
+// height/width on a tall one, and ends autoscale
+bool test_range()
+{
+  canvas c;
+  c.add(sphere(radius = 1.0));
+  c.set_range(2);
+  c.autoscale(800, 600);
+  const bool wide = near(distance(c), 2 / std::tan(std::numbers::pi / 6)) && !c.m_autoscale;
+  c.set_range(2);
+  c.autoscale(600, 800);
+  return wide && near(distance(c), 2 * (800.0 / 600) / std::tan(std::numbers::pi / 6));
+}
+
 } // namespace
 
 int main()
@@ -84,6 +109,8 @@ int main()
   run_test("fits a sphere", test_fits_a_sphere);
   run_test("refit rule", test_refit_rule);
   run_test("off and clear", test_off_and_clear);
+  run_test("center and forward", test_center_and_forward);
+  run_test("range", test_range);
 
   std::println("====================");
   std::println("Passed: {}/{}", passed, passed + failed);
