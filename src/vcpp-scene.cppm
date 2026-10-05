@@ -220,10 +220,11 @@ public:
   struct trail_data
   {
     std::vector<vec3> positions;
+    std::uint64_t added{0}; // points ever added; the renderer compares it to find the new ones
+    int retain{-1};
     int moves{0}; // set_pos calls since the last point, for interval
     vec3 color{1, 1, 1};
     double radius{0.02};
-    mutable bool dirty{true};
   };
   std::unordered_map<std::size_t, trail_data> m_trails; // keyed by scene entry index
 
@@ -621,9 +622,10 @@ public:
     auto& trail = m_trails[entry];
     trail.color = obj.m_trail_color;
     trail.positions.push_back(obj.m_pos);
+    ++trail.added;
+    trail.retain = obj.m_retain;
     if (obj.m_retain >= 0 && trail.positions.size() > static_cast<std::size_t>(obj.m_retain))
       trail.positions.erase(trail.positions.begin(), trail.positions.end() - static_cast<std::ptrdiff_t>(obj.m_retain));
-    trail.dirty = true;
   }
 };
 

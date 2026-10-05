@@ -252,7 +252,14 @@ struct renderer_state
   std::vector<compound_mesh_data> compound_meshes;
 
   // Per-trail mesh data (rendered as tubes)
-  std::unordered_map<std::size_t, curve_mesh_data> trail_meshes;
+  // Each trail's tube, kept on the GPU and updated a few rings at a time
+  struct trail_mesh_data
+  {
+    mesh::tube_builder tube{6};
+    WGPUBuffer vertex_buffer{nullptr};
+    WGPUBuffer index_buffer{nullptr};
+  };
+  std::unordered_map<std::size_t, trail_mesh_data> trail_meshes;
 
   // Per-extrusion mesh data
   std::vector<curve_mesh_data> extrusion_meshes;
@@ -1085,46 +1092,36 @@ inline void render_frame()
     wgpuRenderPassEncoderDrawIndexed(pass, comp_mesh.index_count, 1, 0, 0, 0);
   }
 
-  // Draw Trails (rendered as tubes using generate_tube)
+  // Draw Trails
   for (auto& [entry_idx, trail] : c.m_trails)
   {
-    if (trail.positions.size() < 2)
-      continue;
-
     auto& trail_mesh = g_renderer.trail_meshes[entry_idx];
-
-    if (trail.dirty)
+    auto& tube = trail_mesh.tube;
+    if (tube.update(trail.positions, trail.added, trail.retain, static_cast<float>(trail.radius)))
     {
-      auto tube_mesh = mesh::generate_tube(trail.positions, static_cast<float>(trail.radius), 6);
-
-      if (!tube_mesh.indices.empty())
-      {
-        std::size_t vb_size = tube_mesh.vertices.size() * sizeof(vertex);
-        std::size_t ib_size = tube_mesh.indices.size() * sizeof(std::uint32_t);
-        std::size_t total = vb_size + ib_size;
-
-        if (total > trail_mesh.buffer_capacity)
-        {
-          if (trail_mesh.vertex_buffer)
-            wgpuBufferRelease(trail_mesh.vertex_buffer);
-          if (trail_mesh.index_buffer)
-            wgpuBufferRelease(trail_mesh.index_buffer);
-
-          trail_mesh.buffer_capacity = total * 2;
-          trail_mesh.vertex_buffer = create_buffer(
-            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size * 2);
-          trail_mesh.index_buffer = create_buffer(
-            static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size * 2);
-        }
-
-        wgpuQueueWriteBuffer(g_renderer.queue, trail_mesh.vertex_buffer, 0, tube_mesh.vertices.data(), vb_size);
-        wgpuQueueWriteBuffer(g_renderer.queue, trail_mesh.index_buffer, 0, tube_mesh.indices.data(), ib_size);
-        trail_mesh.index_count = static_cast<std::uint32_t>(tube_mesh.indices.size());
-      }
-      trail.dirty = false;
+      if (trail_mesh.vertex_buffer)
+        wgpuBufferRelease(trail_mesh.vertex_buffer);
+      if (trail_mesh.index_buffer)
+        wgpuBufferRelease(trail_mesh.index_buffer);
+      const std::size_t vb_size = tube.vertices().size_bytes();
+      const std::size_t ib_size = tube.indices().size_bytes();
+      trail_mesh.vertex_buffer =
+        create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size);
+      trail_mesh.index_buffer =
+        create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size);
+      wgpuQueueWriteBuffer(g_renderer.queue, trail_mesh.vertex_buffer, 0, tube.vertices().data(), vb_size);
+      wgpuQueueWriteBuffer(g_renderer.queue, trail_mesh.index_buffer, 0, tube.indices().data(), ib_size);
+    }
+    else
+    {
+      const std::size_t ring_bytes = tube.ring_size() * sizeof(vertex);
+      for (std::size_t ring : tube.changed_rings())
+        wgpuQueueWriteBuffer(g_renderer.queue, trail_mesh.vertex_buffer, ring * ring_bytes,
+                             tube.vertices().data() + ring * tube.ring_size(), ring_bytes);
     }
 
-    if (trail_mesh.index_count == 0 || !trail_mesh.vertex_buffer)
+    const auto ranges = tube.draw_ranges();
+    if (!trail_mesh.vertex_buffer || ranges[0].second == 0)
       continue;
 
     instance_data inst{};
@@ -1132,12 +1129,13 @@ inline void render_frame()
     inst.color = to_gpu4(trail.color, 1.0f);
     inst.material = {0.3f, 0, 0, 0};
 
-
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, trail_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, trail_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, trail_mesh.index_count, 1, 0, 0, 0);
+    for (const auto& [first, count] : ranges)
+      if (count > 0)
+        wgpuRenderPassEncoderDrawIndexed(pass, count, 1, first, 0, 0);
   }
 
   // Draw Extrusions (similar to curves but with custom cross-section)

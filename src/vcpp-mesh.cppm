@@ -515,112 +515,214 @@ inline mesh_data generate_ring(float major_radius = 1.0f, float minor_radius = 0
 }
 
 // ============================================================================
-// Tube Mesh Generator (for curves)
+// Tubes along a polyline (curves and trails)
 //
-// Generates a tube along arbitrary 3D points using Frenet frames.
+// Each point gets a ring of tube_slices + 1 vertices (the last repeats the first, for the texture seam).
+// A ring's orientation is carried from the ring before it (parallel transport), so the tube doesn't twist.
 // ============================================================================
+
+// The direction of a polyline at point i: along the neighbouring points
+inline vec3 tube_tangent(std::span<const vec3> points, std::size_t i)
+{
+  const std::size_t n = points.size();
+  const vec3 t = i == 0       ? points[1] - points[0]
+                 : i == n - 1 ? points[n - 1] - points[n - 2]
+                              : points[i + 1] - points[i - 1];
+  return mag2(t) < 1e-12 ? vec3{1, 0, 0} : hat(t);
+}
+
+// The ring orientation at the first point
+inline vec3 tube_first_normal(const vec3& tangent)
+{
+  const vec3 guide = std::abs(dot(tangent, vec3{0, 1, 0})) > 0.99 ? vec3{0, 0, 1} : vec3{0, 1, 0};
+  return hat(cross(tangent, guide));
+}
+
+// The previous ring's orientation carried onto a point with this tangent
+inline vec3 tube_next_normal(const vec3& previous, const vec3& tangent)
+{
+  vec3 proj = previous - tangent * dot(previous, tangent);
+  if (mag2(proj) < 1e-12)
+    proj = cross(tangent, std::abs(dot(tangent, vec3{0, 1, 0})) > 0.99 ? vec3{0, 0, 1} : vec3{0, 1, 0});
+  return hat(proj);
+}
+
+// Writes the ring around `center` into out (tube_slices + 1 vertices); v is the ring's texture coordinate
+inline void tube_ring(std::span<vertex> out, const vec3& center, const vec3& tangent, const vec3& normal, float radius,
+                      float v)
+{
+  const int slices = static_cast<int>(out.size()) - 1;
+  const vec3 binormal = cross(tangent, normal);
+  for (int j = 0; j <= slices; ++j)
+  {
+    const double phi = TWO_PI * static_cast<double>(j) / static_cast<double>(slices);
+    const vec3 offset = normal * std::cos(phi) + binormal * std::sin(phi);
+    const vec3 pos = center + offset * static_cast<double>(radius);
+    vertex& out_v = out[static_cast<std::size_t>(j)];
+    out_v = vertex{};
+    out_v.position[0] = static_cast<float>(pos.x());
+    out_v.position[1] = static_cast<float>(pos.y());
+    out_v.position[2] = static_cast<float>(pos.z());
+    out_v.normal[0] = static_cast<float>(offset.x());
+    out_v.normal[1] = static_cast<float>(offset.y());
+    out_v.normal[2] = static_cast<float>(offset.z());
+    out_v.uv[0] = v;
+    out_v.uv[1] = static_cast<float>(j) / static_cast<float>(slices);
+  }
+}
+
+// The two triangles of each side between ring a and ring b, as indices (rings of tube_slices + 1 vertices)
+inline void tube_segment(std::vector<std::uint32_t>& out, std::uint32_t ring_a, std::uint32_t ring_b, int tube_slices)
+{
+  const auto stride = static_cast<std::uint32_t>(tube_slices + 1);
+  for (std::uint32_t j = 0; j < static_cast<std::uint32_t>(tube_slices); ++j)
+  {
+    const std::uint32_t v0 = ring_a * stride + j;
+    const std::uint32_t v1 = ring_b * stride + j;
+    out.insert(out.end(), {v0, v1, v0 + 1, v1, v1 + 1, v0 + 1});
+  }
+}
 
 inline mesh_data generate_tube(const std::vector<vec3>& points, float radius, int tube_slices = 8)
 {
   mesh_data mesh;
-
   if (points.size() < 2)
     return mesh;
 
-  int n = static_cast<int>(points.size());
-
-  // Compute tangents
-  std::vector<vec3> tangents(n);
-  for (int i = 0; i < n; ++i)
+  const std::size_t n = points.size();
+  const auto stride = static_cast<std::size_t>(tube_slices + 1);
+  mesh.vertices.resize(n * stride);
+  vec3 normal;
+  for (std::size_t i = 0; i < n; ++i)
   {
-    if (i == 0)
-      tangents[i] = hat(points[1] - points[0]);
-    else if (i == n - 1)
-      tangents[i] = hat(points[n - 1] - points[n - 2]);
-    else
-      tangents[i] = hat(points[i + 1] - points[i - 1]);
-
-    if (mag2(tangents[i]) < 1e-12)
-      tangents[i] = vec3{1, 0, 0};
+    const vec3 tangent = tube_tangent(points, i);
+    normal = i == 0 ? tube_first_normal(tangent) : tube_next_normal(normal, tangent);
+    tube_ring(std::span{mesh.vertices}.subspan(i * stride, stride), points[i], tangent, normal, radius,
+              static_cast<float>(i) / static_cast<float>(n - 1));
   }
-
-  // Compute initial normal
-  std::vector<vec3> normals(n);
-  std::vector<vec3> binormals(n);
-
-  vec3 up_guide{0, 1, 0};
-  if (std::abs(dot(tangents[0], up_guide)) > 0.99)
-    up_guide = vec3{0, 0, 1};
-
-  normals[0] = hat(cross(tangents[0], up_guide));
-  binormals[0] = cross(tangents[0], normals[0]);
-
-  // Propagate frame (parallel transport)
-  for (int i = 1; i < n; ++i)
-  {
-    vec3 proj = normals[i - 1] - tangents[i] * dot(normals[i - 1], tangents[i]);
-    if (mag2(proj) < 1e-12)
-    {
-      proj = cross(tangents[i], up_guide);
-      if (mag2(proj) < 1e-12)
-        proj = cross(tangents[i], vec3{0, 0, 1});
-    }
-    normals[i] = hat(proj);
-    binormals[i] = cross(tangents[i], normals[i]);
-  }
-
-  // Generate ring of vertices at each point
-  for (int i = 0; i < n; ++i)
-  {
-    float t_param = static_cast<float>(i) / static_cast<float>(n - 1);
-
-    for (int j = 0; j <= tube_slices; ++j)
-    {
-      double phi = TWO_PI * static_cast<double>(j) / static_cast<double>(tube_slices);
-      double cos_phi = std::cos(phi);
-      double sin_phi = std::sin(phi);
-
-      vec3 offset = normals[i] * cos_phi + binormals[i] * sin_phi;
-      vec3 pos = points[i] + offset * static_cast<double>(radius);
-
-      vertex v{};
-      v.position[0] = static_cast<float>(pos.x());
-      v.position[1] = static_cast<float>(pos.y());
-      v.position[2] = static_cast<float>(pos.z());
-      v.normal[0] = static_cast<float>(offset.x());
-      v.normal[1] = static_cast<float>(offset.y());
-      v.normal[2] = static_cast<float>(offset.z());
-      v.uv[0] = t_param;
-      v.uv[1] = static_cast<float>(j) / static_cast<float>(tube_slices);
-      mesh.vertices.push_back(v);
-    }
-  }
-
-  // Generate indices
-  for (int i = 0; i < n - 1; ++i)
-  {
-    for (int j = 0; j < tube_slices; ++j)
-    {
-      int current_ring = i * (tube_slices + 1);
-      int next_ring = (i + 1) * (tube_slices + 1);
-
-      std::uint32_t v0 = static_cast<std::uint32_t>(current_ring + j);
-      std::uint32_t v1 = static_cast<std::uint32_t>(next_ring + j);
-      std::uint32_t v2 = static_cast<std::uint32_t>(current_ring + j + 1);
-      std::uint32_t v3 = static_cast<std::uint32_t>(next_ring + j + 1);
-
-      mesh.indices.push_back(v0);
-      mesh.indices.push_back(v1);
-      mesh.indices.push_back(v2);
-
-      mesh.indices.push_back(v1);
-      mesh.indices.push_back(v3);
-      mesh.indices.push_back(v2);
-    }
-  }
-
+  for (std::size_t i = 0; i + 1 < n; ++i)
+    tube_segment(mesh.indices, static_cast<std::uint32_t>(i), static_cast<std::uint32_t>(i + 1), tube_slices);
   return mesh;
 }
+
+// ============================================================================
+// tube_builder - A trail's tube, updated one point at a time
+//
+// Holds the tube's vertices in buffer slots, one ring per slot. Each update writes only the newest rings
+// and the one before them, whose direction changes once a point follows it. With retain, the slots form a
+// ring buffer of `retain` rings and the tube is drawn as one or two index ranges; without it the buffer
+// grows by doubling. The whole tube is rebuilt only on the first update, when retain or the radius changes,
+// when the trail restarts, or when the buffer must grow.
+// ============================================================================
+
+class tube_builder
+{
+public:
+  explicit tube_builder(int tube_slices = 6) : m_slices(tube_slices) {}
+
+  // Brings the tube up to date with points (newest last); `added` counts every point the trail has ever
+  // added. True when every vertex and index changed; otherwise changed_rings() lists the slots rewritten.
+  bool update(std::span<const vec3> points, std::uint64_t added, int retain, float radius)
+  {
+    m_changed.clear();
+    const std::size_t n = points.size();
+    const bool bounded = retain > 0;
+    const std::uint64_t fresh = added - m_seen;
+    if (n < 2)
+    {
+      m_rings = n;
+      m_seen = added;
+      return false;
+    }
+    if (m_capacity == 0 || added < m_seen || fresh >= n || retain != m_retain || radius != m_radius ||
+        (bounded ? m_capacity != static_cast<std::size_t>(retain) : n > m_capacity))
+    {
+      rebuild(points, retain, radius);
+      m_seen = added;
+      return true;
+    }
+    if (fresh == 0)
+      return false;
+
+    const std::size_t dropped = m_rings + fresh - n; // pushed out by retain
+    m_first = bounded ? (m_first + dropped) % m_capacity : 0;
+    vec3 normal = m_last_normal;
+    for (std::size_t i = n - fresh - 1; i < n; ++i)
+    {
+      const vec3 tangent = tube_tangent(points, i);
+      normal = tube_next_normal(normal, tangent);
+      write_ring(slot(i), points[i], tangent, normal);
+    }
+    m_last_normal = normal;
+    m_rings = n;
+    m_seen = added;
+    return false;
+  }
+
+  std::span<const vertex> vertices() const { return m_vertices; }
+  std::span<const std::uint32_t> indices() const { return m_indices; }
+  const std::vector<std::size_t>& changed_rings() const { return m_changed; }
+  std::size_t ring_size() const { return static_cast<std::size_t>(m_slices) + 1; }
+
+  // The index ranges to draw, as (first index, count): two when the ring buffer wraps, else one and an empty one
+  std::array<std::pair<std::uint32_t, std::uint32_t>, 2> draw_ranges() const
+  {
+    if (m_rings < 2)
+      return {};
+    const std::size_t per_segment = 6 * static_cast<std::size_t>(m_slices);
+    const std::size_t segments = m_rings - 1;
+    const std::size_t first_part = std::min(segments, m_capacity - m_first);
+    return {{{static_cast<std::uint32_t>(m_first * per_segment), static_cast<std::uint32_t>(first_part * per_segment)},
+             {0, static_cast<std::uint32_t>((segments - first_part) * per_segment)}}};
+  }
+
+private:
+  int m_slices;
+  std::vector<vertex> m_vertices;
+  std::vector<std::uint32_t> m_indices;
+  std::vector<std::size_t> m_changed;
+  std::size_t m_capacity{0}; // ring slots
+  std::size_t m_first{0};    // slot of the oldest ring
+  std::size_t m_rings{0};
+  std::uint64_t m_seen{0};
+  int m_retain{-1};
+  float m_radius{0};
+  vec3 m_last_normal;
+
+  std::size_t slot(std::size_t i) const { return m_retain > 0 ? (m_first + i) % m_capacity : i; }
+
+  void write_ring(std::size_t at, const vec3& center, const vec3& tangent, const vec3& normal)
+  {
+    tube_ring(std::span{m_vertices}.subspan(at * ring_size(), ring_size()), center, tangent, normal, m_radius, 0);
+    m_changed.push_back(at);
+  }
+
+  void rebuild(std::span<const vec3> points, int retain, float radius)
+  {
+    const std::size_t n = points.size();
+    m_retain = retain;
+    m_radius = radius;
+    m_capacity = retain > 0 ? static_cast<std::size_t>(retain) : std::max<std::size_t>(64, 2 * n);
+    m_first = 0;
+    m_vertices.assign(m_capacity * ring_size(), vertex{});
+    m_indices.clear();
+    // Segment s joins slot s to the next slot; with retain the last one wraps to slot 0
+    const std::size_t segments = retain > 0 ? m_capacity : m_capacity - 1;
+    for (std::size_t s = 0; s < segments; ++s)
+      tube_segment(m_indices, static_cast<std::uint32_t>(s), static_cast<std::uint32_t>((s + 1) % m_capacity),
+                   m_slices);
+    vec3 normal;
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      const vec3 tangent = tube_tangent(points, i);
+      normal = i == 0 ? tube_first_normal(tangent) : tube_next_normal(normal, tangent);
+      write_ring(i, points[i], tangent, normal);
+    }
+    m_changed.clear();
+    m_last_normal = normal;
+    m_rings = n;
+  }
+};
 
 // ============================================================================
 // Pyramid Mesh Generator
