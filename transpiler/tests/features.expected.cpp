@@ -17,18 +17,19 @@ double k{};
 double last_x{};
 double m{};
 double t{};
+double t_start{};
 vec3 x0{};
 } // namespace
 
-task<double> kinetic(vec3 v);
+task<double> kinetic(vec3 v, double mass_, double scale);
 task<vec3> spring_force(vec3 x);
 task<void> tick();
 
-task<double> kinetic(vec3 v)
+task<double> kinetic(vec3 v, double mass_, double scale)
 {
   double e{};
-  e = ((0.5 * m) * std::pow(mag(v), 2.0));
-  co_return e;
+  e = ((0.5 * mass_) * std::pow(mag(v), 2.0));
+  co_return (scale * e);
 }
 
 task<vec3> spring_force(vec3 x)
@@ -45,6 +46,12 @@ task<void> tick()
 task<void> vpython_program()
 {
   scene.m_caption = "A ball on a spring";
+  // scene.width = 600.0: not translated; the canvas takes its size from the page
+  // scene.height = 600.0: not translated; the canvas takes its size from the page
+  scene.set_center(vec3{0.0, 0.0, 0.0});
+  scene.set_forward(vec3{0.0, -0.2, -1.0});
+  scene.set_range(3.0);
+  scene.m_userzoom = false;
   k = 4.0;
   m = 0.5;
   x0 = vec3{1.0, 0.0, 0.0};
@@ -53,6 +60,7 @@ task<void> vpython_program()
   ball__v = vec3{0.0, 0.5, 0.0};
   dt_ = 0.01;
   t = 0.0;
+  t_start = 0.0;
   while (t < 10.0)
   {
     co_await tick();
@@ -64,7 +72,7 @@ task<void> vpython_program()
     {
       ball->m_color = colors::red;
     }
-    else if ((co_await kinetic(ball__v)) > 2.0)
+    else if (((co_await kinetic(ball__v, m, 0.5)) > 1.0 || (co_await kinetic(ball__v, m, 1.0)) > 2.0))
     {
       ball->m_color = colors::yellow;
     }

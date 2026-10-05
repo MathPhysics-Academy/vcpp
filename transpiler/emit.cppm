@@ -116,6 +116,7 @@ private:
     const json* def = nullptr;
     std::vector<std::string> params;
     std::vector<type> param_types;
+    std::vector<const json*> defaults; // each parameter's default value, or null
     std::set<std::string> assigned;
     std::set<std::string> globals;
     std::map<std::string, type> local_types; // parameters and locals
@@ -284,10 +285,14 @@ private:
 
   void assign(const json& s)
   {
+    // a = b = value gives every target the same value, left to right. The value is computed once unless
+    // it is a constant or a name, so a = b = sphere() makes one sphere
     const auto& targets = s["targets"].items();
-    if (targets.size() != 1)
-      unsupported(s, "assigning to several targets at once");
+    const std::string& v = s["value"]["_type"].string();
+    const bool repeat = v == "Constant" || v == "Name";
     assign_to(targets[0], s["value"], s);
+    for (std::size_t i = 1; i < targets.size(); ++i)
+      assign_to(targets[i], repeat ? s["value"] : targets[0], s);
   }
 
   void assign_to(const json& target, const json& value_node, const json& s)
@@ -316,12 +321,19 @@ private:
 
     if (base["_type"].string() == "Name" && base["id"].string() == "scene")
     {
-      static const std::map<std::string_view, std::string_view> scene_attrs{
-        {"caption", "m_caption"}, {"title", "m_title"}, {"background", "m_background"}, {"autoscale", "m_autoscale"}};
-      const auto it = scene_attrs.find(attr);
-      if (it == scene_attrs.end())
+      static const std::map<std::string_view, std::string_view> scene_members{
+        {"caption", "m_caption"},     {"title", "m_title"},       {"background", "m_background"},
+        {"autoscale", "m_autoscale"}, {"userspin", "m_userspin"}, {"userzoom", "m_userzoom"}};
+      static const std::set<std::string_view> scene_setters{"center", "forward", "range", "fov"};
+      if (const auto it = scene_members.find(attr); it != scene_members.end())
+        line(std::format("scene.{} = {};", it->second, value.code));
+      else if (scene_setters.contains(attr))
+        line(std::format("scene.set_{}({});", attr, value.code));
+      else if (attr == "width" || attr == "height")
+        line(
+          std::format("// scene.{} = {}: not translated; the canvas takes its size from the page", attr, value.code));
+      else
         unsupported(s, std::format("setting scene.{}", attr));
-      line(std::format("scene.{} = {};", it->second, value.code));
       return;
     }
 
@@ -448,15 +460,20 @@ private:
   void declare_function(const json& def)
   {
     const json& args = def["args"];
-    if (!args["defaults"].items().empty() || !args["vararg"].is_null() || !args["kwarg"].is_null() ||
-        !args["kwonlyargs"].items().empty() || !args["posonlyargs"].items().empty())
-      unsupported(def, "default, *args, **kwargs or keyword-only parameters");
+    if (!args["vararg"].is_null() || !args["kwarg"].is_null() || !args["kwonlyargs"].items().empty() ||
+        !args["posonlyargs"].items().empty())
+      unsupported(def, "*args, **kwargs, keyword-only or positional-only parameters");
     if (!def["decorator_list"].items().empty())
       unsupported(def, "decorators");
     function_info f;
     f.def = &def;
     for (const auto& a : args["args"].items())
       f.params.push_back(a["arg"].string());
+    // Python lines the defaults up with the last parameters
+    const auto& defaults = args["defaults"].items();
+    f.defaults.resize(f.params.size() - defaults.size());
+    for (const auto& d : defaults)
+      f.defaults.push_back(&d);
     collect_names(def["body"], f);
     m_functions.emplace(def["name"].string(), std::move(f));
   }
@@ -482,17 +499,51 @@ private:
     }
   }
 
+  // A call's arguments in parameter order. A default is computed at each call, in the program's top-level
+  // scope; Python computes it once, when the def runs, which gives the same value for the constants and
+  // top-level names defaults hold here.
+  std::vector<expr> call_arguments(const json& e, const function_info& f)
+  {
+    const std::string& name = e["func"]["id"].string();
+    const auto& args = e["args"].items();
+    if (args.size() > f.params.size())
+      throw translate_error(line_of(e), std::format("{} takes at most {} arguments", name, f.params.size()));
+    std::vector<std::optional<expr>> values(f.params.size());
+    for (std::size_t i = 0; i < args.size(); ++i)
+      values[i] = expression(args[i]);
+    for (const auto& k : e["keywords"].items())
+    {
+      if (k["arg"].is_null())
+        unsupported(e, "**keyword arguments");
+      const auto it = std::ranges::find(f.params, k["arg"].string());
+      if (it == f.params.end())
+        throw translate_error(line_of(e), std::format("{} has no parameter {}", name, k["arg"].string()));
+      auto& given = values[static_cast<std::size_t>(it - f.params.begin())];
+      if (given)
+        throw translate_error(line_of(e), std::format("{} is given {} twice", name, k["arg"].string()));
+      given = expression(k["value"]);
+    }
+    std::vector<expr> out;
+    for (std::size_t i = 0; i < values.size(); ++i)
+    {
+      if (values[i])
+        out.push_back(*values[i]);
+      else if (f.defaults[i])
+      {
+        function_info* caller = m_fn;
+        m_fn = nullptr;
+        out.push_back(expression(*f.defaults[i]));
+        m_fn = caller;
+      }
+      else
+        throw translate_error(line_of(e), std::format("{} is missing its argument {}", name, f.params[i]));
+    }
+    return out;
+  }
+
   expr user_call(const json& e, function_info& f)
   {
-    if (!e["keywords"].items().empty())
-      unsupported(e, "keyword arguments to a function");
-    const auto& args = e["args"].items();
-    if (args.size() != f.params.size())
-      throw translate_error(line_of(e),
-                            std::format("{} takes {} arguments", e["func"]["id"].string(), f.params.size()));
-    std::vector<expr> values;
-    for (const auto& a : args)
-      values.push_back(expression(a));
+    const std::vector<expr> values = call_arguments(e, f);
 
     if (!f.analyzed && !f.analyzing)
     {
