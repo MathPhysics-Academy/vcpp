@@ -120,6 +120,7 @@ inline void process_camera_input(canvas& c)
       // If `cam.pan` moves camera position:
       // dy negative (mouse up) -> term is negative -> camera moves down -> scene up.
       // This matches "drag scene".
+      c.m_autoscale = false; // as in GlowScript, zooming or panning ends autoscale
       cam.pan(r * (-dx * scale) + u * (dy * scale));
       c.mark_dirty();
     }
@@ -133,6 +134,7 @@ inline void process_camera_input(canvas& c)
        vec3 r = cam.right();
        vec3 u = cam.m_up;
        double scale = g_input_config.pan_sensitivity;
+       c.m_autoscale = false;
        cam.pan(r * (-dx * scale) + u * (dy * scale));
        c.mark_dirty();
     }
@@ -149,6 +151,7 @@ inline void process_camera_input(canvas& c)
     double factor = 1.0 - m.scroll_delta * sensitivity;
     if (factor > 0.01 && factor < 100.0) 
     {
+      c.m_autoscale = false;
       cam.zoom(factor);
       c.mark_dirty();
     }

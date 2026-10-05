@@ -233,6 +233,10 @@ public:
   // ========== Dirty Tracking ==========
   bool m_scene_dirty{true};
 
+  // GlowScript's scene.autoscale: move the camera out to keep everything in view. Turned off by the
+  // user zooming or panning, or by the program setting it false.
+  bool m_autoscale{true};
+
   template<typename T>
   static constexpr object_type type_of()
   {
@@ -274,6 +278,129 @@ public:
 
 private:
   std::uint64_t m_generation{0};
+  double m_autoscale_last_zx{-1};
+  double m_autoscale_last_zy{-1};
+
+  // An axis-aligned bounding box in world coordinates
+  struct extent
+  {
+    vec3 lo;
+    vec3 hi;
+    bool empty{true};
+
+    void add(const vec3& p)
+    {
+      if (empty)
+      {
+        lo = hi = p;
+        empty = false;
+        return;
+      }
+      lo = vec3{std::min(lo.x(), p.x()), std::min(lo.y(), p.y()), std::min(lo.z(), p.z())};
+      hi = vec3{std::max(hi.x(), p.x()), std::max(hi.y(), p.y()), std::max(hi.z(), p.z())};
+    }
+
+    // The 8 corners of a box with this center, orientation and size
+    void add_box(const vec3& center, const orientation& o, double length, double height, double width)
+    {
+      for (double sx : {-0.5, 0.5})
+        for (double sy : {-0.5, 0.5})
+          for (double sz : {-0.5, 0.5})
+            add(center + o.x * (sx * length) + o.y * (sy * height) + o.z * (sz * width));
+    }
+
+    // A box that starts at pos and runs along axis, as cylinders, cones, pyramids and arrows do
+    void add_box_from_base(const object_base& obj, double length, double height, double width)
+    {
+      const auto o = orientation_of(obj.m_axis, obj.m_up);
+      add_box(obj.m_pos + o.x * (length / 2), o, length, height, width);
+    }
+
+    void add_ball(const vec3& center, double radius)
+    {
+      add(center - vec3{radius, radius, radius});
+      add(center + vec3{radius, radius, radius});
+    }
+  };
+
+  // Calls f with the extent of each visible object that autoscale counts. Labels are 2D overlays and
+  // 3D text is left out, as GlowScript leaves it out.
+  template<typename F>
+  void for_each_extent(F&& f) const
+  {
+    auto each = [&](const auto& objects, auto&& fill) {
+      for (const auto& obj : objects)
+      {
+        if (!obj.m_visible)
+          continue;
+        extent e;
+        fill(e, obj);
+        if (!e.empty)
+          f(e);
+      }
+    };
+    auto centered = [](extent& e, const auto& obj) {
+      e.add_box(obj.m_pos, orientation_of(obj.m_axis, obj.m_up), obj.m_length, obj.m_height, obj.m_width);
+    };
+    auto round = [](extent& e, const auto& obj) {
+      e.add_box_from_base(obj, mag(obj.m_axis), 2 * obj.m_radius, 2 * obj.m_radius);
+    };
+    each(m_spheres, [](extent& e, const sphere_object& s) { e.add_ball(s.m_pos, s.m_radius); });
+    each(m_boxes, centered);
+    each(m_ellipsoids, centered);
+    each(m_cylinders, round);
+    each(m_cones, round);
+    each(m_helixes, round);
+    each(m_pyramids,
+         [](extent& e, const pyramid_object& p) { e.add_box_from_base(p, p.m_length, p.m_height, p.m_width); });
+    each(m_arrows, [](extent& e, const arrow_object& a) {
+      const double w = std::max(a.m_shaftwidth, a.m_headwidth);
+      e.add_box_from_base(a, mag(a.m_axis), w, w);
+    });
+    each(m_rings, [](extent& e, const ring_object& r) {
+      const double d = 2 * (r.m_radius + r.m_thickness);
+      e.add_box(r.m_pos, orientation_of(r.m_axis, r.m_up), 2 * r.m_thickness, d, d);
+    });
+    each(m_curves, [](extent& e, const curve_object& c) {
+      for (const auto& p : c.m_points)
+        e.add_ball(p, c.m_radius);
+    });
+    each(m_points, [](extent& e, const points_object& pts) {
+      for (const auto& p : pts.m_points)
+        e.add(p);
+    });
+    each(m_triangles, [](extent& e, const triangle_object& t) {
+      for (const auto* v : {&t.m_v0, &t.m_v1, &t.m_v2})
+        e.add(v->pos);
+    });
+    each(m_quads, [](extent& e, const quad_object& q) {
+      for (const auto* v : {&q.m_v0, &q.m_v1, &q.m_v2, &q.m_v3})
+        e.add(v->pos);
+    });
+    each(m_compounds, [](extent& e, const compound_object& c) {
+      const auto o = orientation_of(c.m_axis, c.m_up);
+      for (std::size_t i = 0; i + 2 < c.m_vertices.size(); i += 8)
+        e.add(c.m_pos + o.x * double{c.m_vertices[i]} + o.y * double{c.m_vertices[i + 1]} +
+              o.z * double{c.m_vertices[i + 2]});
+    });
+    each(m_extrusions, [](extent& e, const extrusion_object& x) {
+      double reach = 0;
+      for (const auto& p : x.m_shape)
+        reach = std::max(reach, std::hypot(p.x(), p.y()));
+      reach *= std::max(1.0, x.m_scale);
+      const auto o = orientation_of(x.m_axis, x.m_up);
+      for (const auto& p : x.m_path)
+        e.add_ball(x.m_pos + o.x * p.x() + o.y * p.y() + o.z * p.z(), reach);
+    });
+    for (const auto& [entry, trail] : m_trails)
+    {
+      extent e;
+      for (const auto& p : trail.positions)
+        e.add_ball(p, trail.radius);
+      if (!e.empty)
+        f(e);
+    }
+  }
 
 public:
   // ========== Object Registration ==========
@@ -382,6 +509,9 @@ public:
     m_trails.clear();
     m_entries.clear();
     ++m_generation;
+    m_autoscale = true; // a cleared scene starts over, like a new GlowScript canvas
+    m_autoscale_last_zx = -1;
+    m_autoscale_last_zy = -1;
     m_scene_dirty = true;
   }
 
@@ -440,6 +570,49 @@ public:
         continue;
       add_trail_point(entry_idx, *obj);
     }
+  }
+
+  // GlowScript's Autoscale.compute_autoscale (autoscale.js), run once per render with the canvas's size in
+  // pixels. The camera keeps its direction from center; its distance is refitted only when the scene's
+  // reach grows, or falls below a third of what it was at the last fit.
+  void autoscale(double width, double height)
+  {
+    if (!m_autoscale || width <= 0 || height <= 0)
+      return;
+    const vec3 ctr = m_camera.m_center;
+    const double tan_hfov = std::tan(m_camera.m_fov * std::numbers::pi / 360.0);
+    const double cot_hfov = 1 / tan_hfov;
+    double zx = 0;
+    double zy = 0;
+    bool any = false;
+    for_each_extent([&](const extent& e) {
+      any = true;
+      const double xx = std::max(std::abs(e.lo.x() - ctr.x()), std::abs(e.hi.x() - ctr.x()));
+      const double yy = std::max(std::abs(e.lo.y() - ctr.y()), std::abs(e.hi.y() - ctr.y()));
+      const double zz = std::max(std::abs(e.lo.z() - ctr.z()), std::abs(e.hi.z() - ctr.z()));
+      zx = std::max(zx, xx * cot_hfov + zz);
+      zy = std::max(zy, yy * cot_hfov + zz);
+    });
+    if (!any)
+      return;
+    const double last_zx = m_autoscale_last_zx;
+    const double last_zy = m_autoscale_last_zy;
+    if (!(zx > last_zx || zx < last_zx / 3 || zy > last_zy || zy < last_zy / 3))
+      return;
+
+    double range = 0;
+    if (zx * height / width > zy)
+      range = width >= height ? 1.1 * (height / width) * zx / cot_hfov : 1.1 * zx / cot_hfov;
+    else
+      range = width >= height ? 1.1 * zy / cot_hfov : 1.1 * (width / height) * zy / cot_hfov;
+    m_autoscale_last_zx = zx;
+    m_autoscale_last_zy = zy;
+
+    const double distance = width >= height ? range / tan_hfov : range * (height / width) / tan_hfov;
+    vec3 dir = m_camera.m_pos - ctr;
+    if (mag2(dir) == 0)
+      dir = vec3{0, 0, 1};
+    m_camera.m_pos = ctr + hat(dir) * distance;
   }
 
   // Adds obj's position to the trail of scene entry `entry`, keeping the newest m_retain points

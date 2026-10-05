@@ -382,6 +382,7 @@ inline void render_frame()
 
   // Update camera uniforms
   camera_uniforms cam{};
+  c.autoscale(g_renderer.width, g_renderer.height);
   cam.view = matrix::look_at(c.m_camera.m_pos, c.m_camera.m_center, c.m_camera.m_up);
   float fov_rad = static_cast<float>(c.m_camera.m_fov * 3.14159265 / 180.0);
   cam.projection = matrix::perspective(fov_rad, static_cast<float>(g_renderer.width) / g_renderer.height,

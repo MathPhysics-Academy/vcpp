@@ -27,3 +27,8 @@ add_executable(test_handles test_handles.cpp)
 target_link_libraries(test_handles PRIVATE vcpp)
 target_compile_features(test_handles PRIVATE cxx_std_23)
 add_test(NAME test_handles COMMAND test_handles)
+
+add_executable(test_autoscale test_autoscale.cpp)
+target_link_libraries(test_autoscale PRIVATE vcpp)
+target_compile_features(test_autoscale PRIVATE cxx_std_23)
+add_test(NAME test_autoscale COMMAND test_autoscale)
