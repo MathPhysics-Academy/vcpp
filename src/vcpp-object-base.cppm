@@ -53,6 +53,8 @@ struct object_base
   int m_retain{-1};   // trail points kept, newest first (-1 = all)
   int m_interval{-1}; // with a handle's set_pos, a trail point every m_interval moves (-1 = once per render)
   vec3 m_trail_color{1, 1, 1};
+  std::string m_trail_type{"curve"}; // or "points": a sphere at each trail point
+  double m_trail_radius{0};          // 0: a curve a few pixels wide
 
   // GlowScript's texture: an image's URL, or ":name" for one of GlowScript's own (see textures::); empty
   // for none. The image multiplies the object's color.
@@ -119,6 +121,8 @@ inline constexpr auto common_params = std::tuple{param_spec<&object_base::m_pos,
                                                  param_spec<&object_base::m_retain, decltype(retain)>{},
                                                  param_spec<&object_base::m_interval, decltype(interval)>{},
                                                  param_spec<&object_base::m_trail_color, decltype(trail_color)>{},
+                                                 param_spec<&object_base::m_trail_type, decltype(trail_type)>{},
+                                                 param_spec<&object_base::m_trail_radius, decltype(trail_radius)>{},
                                                  param_spec<&object_base::m_texture, decltype(texture)>{}};
 
 // ============================================================================
@@ -167,6 +171,16 @@ constexpr ObjectType make(Binders... binders)
       else if constexpr (is_bound<decltype(axis), params_t>)
         obj.m_length = mag(obj.m_axis);
     }
+
+    // A points trail's spheres default to a tenth of the object's height, as in GlowScript
+    if constexpr (!is_bound<decltype(trail_radius), params_t>)
+      if (obj.m_trail_type == "points")
+      {
+        if constexpr (requires { obj.m_height; })
+          obj.m_trail_radius = 0.1 * obj.m_height;
+        else if constexpr (requires { obj.m_radius; })
+          obj.m_trail_radius = 0.2 * obj.m_radius;
+      }
   }
 
   return obj;

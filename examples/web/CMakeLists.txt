@@ -111,6 +111,7 @@ if(EMSCRIPTEN)
     -Wl,--undefined=__em_js__js_texture_width
     -Wl,--undefined=__em_js__js_texture_height
     -Wl,--undefined=__em_js__js_texture_take
+    -Wl,--undefined=__em_js__js_set_scene_text
     -Wl,--export=__em_js__js_create_graph
     -Wl,--export=__em_js__js_create_plot
     -Wl,--export=__em_js__js_add_point
@@ -127,6 +128,7 @@ if(EMSCRIPTEN)
     -Wl,--export=__em_js__js_texture_width
     -Wl,--export=__em_js__js_texture_height
     -Wl,--export=__em_js__js_texture_take
+    -Wl,--export=__em_js__js_set_scene_text
   )
 
   # Release build: optimize and strip debug info for smaller/harder to reverse-engineer output

@@ -194,6 +194,9 @@ struct renderer_state
   WGPUSampler texture_sampler{nullptr};
   WGPUBindGroup white_texture{nullptr}; // for objects without a texture
 
+  std::string shown_title;
+  std::string shown_caption;
+
   // Instance buffers per type to avoid race conditions
   WGPUBuffer sphere_ib{nullptr};
   std::size_t sphere_ib_cap{0};
@@ -253,6 +256,10 @@ struct renderer_state
   // Points instance buffer
   WGPUBuffer points_ib{nullptr};
   std::size_t points_ib_cap{0};
+
+  // Spheres of points-type trails
+  WGPUBuffer trail_points_ib{nullptr};
+  std::size_t trail_points_ib_cap{0};
 
   // Triangle/quad batched mesh
   WGPUBuffer tri_quad_vb{nullptr};
@@ -382,6 +389,32 @@ EM_JS(void, js_load_texture, (int id, const char* url), {
 EM_JS(int, js_texture_width, (int id), {
   const t = Module.vcppTextures[id];
   return t === undefined ? 0 : (t === null ? -1 : t.width);
+});
+
+// Shows a scene's title (which = 0) or caption (1) as HTML above or below the canvas, as GlowScript does
+EM_JS(void, js_set_scene_text, (int which, const char* html), {
+  const id = which == 0 ? 'vcpp-title' : 'vcpp-caption';
+  const text = UTF8ToString(html);
+  let el = document.getElementById(id);
+  if (!el) {
+    if (text.length == 0)
+      return;
+    const canvas = document.getElementById('canvas');
+    const box = canvas.parentElement;
+    box.style.display = 'flex';
+    box.style.flexDirection = 'column';
+    canvas.style.flex = '1 1 0';
+    canvas.style.height = 'auto';
+    canvas.style.minHeight = '0';
+    el = document.createElement('div');
+    el.id = id;
+    el.style.cssText = 'color: #ddd; font: 15px sans-serif; padding: 4px 8px; white-space: pre';
+    if (which == 0)
+      box.insertBefore(el, canvas);
+    else
+      canvas.after(el);
+  }
+  el.innerHTML = text;
 });
 
 EM_JS(int, js_texture_height, (int id), { return Module.vcppTextures[id].height; });
@@ -616,6 +649,17 @@ inline void render_frame()
   }
 
   canvas& c = *g_renderer.current_canvas;
+
+  if (c.m_title != g_renderer.shown_title)
+  {
+    g_renderer.shown_title = c.m_title;
+    js_set_scene_text(0, c.m_title.c_str());
+  }
+  if (c.m_caption != g_renderer.shown_caption)
+  {
+    g_renderer.shown_caption = c.m_caption;
+    js_set_scene_text(1, c.m_caption.c_str());
+  }
 
   WGPUSurfaceTexture surface_texture{};
   wgpuSurfaceGetCurrentTexture(g_renderer.surface, &surface_texture);
@@ -1224,8 +1268,24 @@ inline void render_frame()
   const double tan_hfov = std::tan(c.m_camera.m_fov * std::numbers::pi / 360.0);
   const double thin_radius =
     4 * mag(c.m_camera.m_pos - c.m_camera.m_center) * tan_hfov / std::max(g_renderer.css_width, g_renderer.css_height);
+  instance_batch trail_points;
   for (auto& [entry_idx, trail] : c.m_trails)
   {
+    if (trail.points)
+    {
+      const auto d = static_cast<float>(trail.radius * 2);
+      for (const vec3& p : trail.positions)
+      {
+        instance_data inst{};
+        inst.model = matrix::multiply(
+          matrix::translate(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z())),
+          matrix::scale(d, d, d));
+        inst.color = to_gpu4(trail.color, 1.0f);
+        inst.material = {0.3f, 0, 0, 0};
+        trail_points.add(inst, g_renderer.white_texture);
+      }
+      continue;
+    }
     auto& trail_mesh = g_renderer.trail_meshes[entry_idx];
     auto& tube = trail_mesh.tube;
     const double radius = trail.radius > 0 ? trail.radius : thin_radius;
@@ -1269,6 +1329,7 @@ inline void render_frame()
       if (count > 0)
         wgpuRenderPassEncoderDrawIndexed(pass, count, 1, first, 0, 0);
   }
+  draw_batch(pass, g_renderer.meshes[0], g_renderer.trail_points_ib, g_renderer.trail_points_ib_cap, trail_points);
 
   // Draw Extrusions (similar to curves but with custom cross-section)
   while (g_renderer.extrusion_meshes.size() < c.m_extrusions.size())

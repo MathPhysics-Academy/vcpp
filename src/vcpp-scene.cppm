@@ -188,8 +188,8 @@ public:
   vec3 m_background{0, 0, 0};
   bool m_visible{true};
   bool m_resizable{true};
-  std::string m_title{"VCpp"};
-  std::string m_caption{};
+  std::string m_title{};   // HTML shown above the canvas, as GlowScript's scene.title
+  std::string m_caption{}; // and below it, as scene.caption
 
   // ========== Camera ==========
   camera m_camera{};
@@ -228,6 +228,7 @@ public:
     int moves{0}; // set_pos calls since the last point, for interval
     vec3 color{1, 1, 1};
     double radius{0}; // 0: a thin line a few pixels wide, as in GlowScript
+    bool points{false}; // a sphere at each point instead of a curve
   };
   std::unordered_map<std::size_t, trail_data> m_trails; // keyed by scene entry index
 
@@ -244,6 +245,9 @@ public:
   // GlowScript's scene.userspin and scene.userzoom: whether the user may rotate or zoom the view
   bool m_userspin{true};
   bool m_userzoom{true};
+
+  void append_to_title(std::string_view html) { m_title += html; }
+  void append_to_caption(std::string_view html) { m_caption += html; }
 
   // GlowScript's scene.center: the camera keeps its direction and distance from the new point
   void set_center(const vec3& center)
@@ -675,6 +679,8 @@ public:
   {
     auto& trail = m_trails[entry];
     trail.color = obj.m_trail_color;
+    trail.radius = obj.m_trail_radius;
+    trail.points = obj.m_trail_type == "points";
     trail.positions.push_back(obj.m_pos);
     ++trail.added;
     trail.retain = obj.m_retain;

@@ -42,7 +42,8 @@ inline constexpr symbol<> make_trail{};   // leave trail when moved (bool)
 inline constexpr symbol<> retain{};       // trail points kept (int, -1 = all)
 inline constexpr symbol<> interval{};     // trail point every N assignments to pos (int, -1 = once per render)
 inline constexpr symbol<> trail_color{};  // trail color (vec3)
-inline constexpr symbol<> trail_radius{}; // trail thickness (double)
+inline constexpr symbol<> trail_radius{}; // trail radius (double; 0 = a thin line)
+inline constexpr symbol<> trail_type{};   // "curve" or "points"
 
 // ============================================================================
 // Geometry Properties

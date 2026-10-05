@@ -865,7 +865,7 @@ inline bool wgpu_renderer::init(canvas& c)
   if (!glfwInit())
     return false;
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  m_window = glfwCreateWindow(c.m_width, c.m_height, c.m_title.c_str(), nullptr, nullptr);
+  m_window = glfwCreateWindow(c.m_width, c.m_height, c.m_title.empty() ? "VCpp" : c.m_title.c_str(), nullptr, nullptr);
   if (!m_window)
     return false;
 
