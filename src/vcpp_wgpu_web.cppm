@@ -45,6 +45,8 @@ struct Camera {
 }
 
 @group(0) @binding(0) var<uniform> camera: Camera;
+@group(1) @binding(0) var tex: texture_2d<f32>;
+@group(1) @binding(1) var tex_sampler: sampler;
 
 struct VertexInput {
   @location(0) pos: vec3<f32>,
@@ -87,7 +89,10 @@ fn vs_main(vert: VertexInput, inst: InstanceInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-  var base_color = in.color;
+  // The texture (plain white for an untextured object) multiplies the color, as in GlowScript. Texture
+  // coordinates are GlowScript's, where v = 1 is the image's top row.
+  let texel = textureSample(tex, tex_sampler, vec2<f32>(in.uv.x, 1.0 - in.uv.y));
+  var base_color = vec4<f32>(in.color.rgb * texel.rgb, in.color.a);
 
   // Lighting (shared by all paths)
   let light_dir = normalize(vec3<f32>(1.0, 1.0, 1.0));
@@ -174,6 +179,20 @@ struct renderer_state
   WGPUBindGroup bind_group{nullptr};
   WGPUBindGroupLayout bind_group_layout{nullptr};
   WGPUBuffer camera_buffer{nullptr};
+
+  // Textures, by the name objects give them (bind group 1)
+  struct texture_entry
+  {
+    int id{0};
+    bool loading{true};
+    WGPUTexture texture{nullptr};
+    WGPUBindGroup bind_group{nullptr}; // null while loading, and if loading failed
+  };
+  std::unordered_map<std::string, texture_entry> textures;
+  int next_texture_id{0};
+  WGPUBindGroupLayout texture_layout{nullptr};
+  WGPUSampler texture_sampler{nullptr};
+  WGPUBindGroup white_texture{nullptr}; // for objects without a texture
 
   // Instance buffers per type to avoid race conditions
   WGPUBuffer sphere_ib{nullptr};
@@ -327,6 +346,217 @@ inline void create_mesh_buffers(int idx, const mesh::mesh_data& mesh_d)
 }
 
 // ============================================================================
+// Textures
+//
+// The browser fetches and decodes each image; vcpp polls for its pixels, then uploads them with a mip chain,
+// as GlowScript does with generateMipmap.
+// ============================================================================
+
+#pragma GCC visibility push(default) // keeps the __em_js__ symbols; see vcpp-label-bridge.cppm
+
+// clang-format would break the JavaScript
+// clang-format off
+EM_JS(void, js_load_texture, (int id, const char* url), {
+  const u = UTF8ToString(url);
+  Module.vcppTextures = Module.vcppTextures || {};
+  fetch(u)
+    .then((r) => {
+      if (!r.ok)
+        throw new Error('HTTP ' + r.status);
+      return r.blob();
+    })
+    .then((b) => createImageBitmap(b))
+    .then((img) => {
+      const c = new OffscreenCanvas(img.width, img.height);
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      Module.vcppTextures[id] = ctx.getImageData(0, 0, img.width, img.height);
+    })
+    .catch((e) => {
+      console.warn('vcpp: texture ' + u + ': ' + e.message);
+      Module.vcppTextures[id] = null;
+    });
+});
+
+// 0 while the image loads, -1 if it couldn't be loaded, else its width
+EM_JS(int, js_texture_width, (int id), {
+  const t = Module.vcppTextures[id];
+  return t === undefined ? 0 : (t === null ? -1 : t.width);
+});
+
+EM_JS(int, js_texture_height, (int id), { return Module.vcppTextures[id].height; });
+
+// Copies the image's RGBA pixels to out, then drops the browser's copy
+EM_JS(void, js_texture_take, (int id, std::uint8_t* out), {
+  HEAPU8.set(Module.vcppTextures[id].data, out);
+  Module.vcppTextures[id] = null;
+});
+// clang-format on
+
+#pragma GCC visibility pop
+
+// The next mip level: each pixel averages the 2x2 pixels above it (fewer at an odd edge)
+inline std::vector<std::uint8_t> half_size(const std::vector<std::uint8_t>& px, std::uint32_t w, std::uint32_t h)
+{
+  const std::uint32_t nw = std::max<std::uint32_t>(1, w / 2);
+  const std::uint32_t nh = std::max<std::uint32_t>(1, h / 2);
+  std::vector<std::uint8_t> out(static_cast<std::size_t>(nw) * nh * 4);
+  for (std::uint32_t y = 0; y < nh; ++y)
+    for (std::uint32_t x = 0; x < nw; ++x)
+    {
+      const std::uint32_t x0 = std::min(2 * x, w - 1);
+      const std::uint32_t x1 = std::min(2 * x + 1, w - 1);
+      const std::uint32_t y0 = std::min(2 * y, h - 1);
+      const std::uint32_t y1 = std::min(2 * y + 1, h - 1);
+      for (std::uint32_t c = 0; c < 4; ++c)
+      {
+        auto at = [&](std::uint32_t xx, std::uint32_t yy) -> std::uint32_t {
+          return px[(static_cast<std::size_t>(yy) * w + xx) * 4 + c];
+        };
+        const std::uint32_t sum = at(x0, y0) + at(x1, y0) + at(x0, y1) + at(x1, y1);
+        out[(static_cast<std::size_t>(y) * nw + x) * 4 + c] = static_cast<std::uint8_t>((sum + 2) / 4);
+      }
+    }
+  return out;
+}
+
+inline WGPUTexture create_texture(std::vector<std::uint8_t> pixels, std::uint32_t width, std::uint32_t height)
+{
+  const std::uint32_t levels = static_cast<std::uint32_t>(std::bit_width(std::max(width, height)));
+  WGPUTextureDescriptor desc{};
+  desc.size = {width, height, 1};
+  desc.format = WGPUTextureFormat_RGBA8Unorm;
+  desc.usage = static_cast<WGPUTextureUsage>(WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst);
+  desc.dimension = WGPUTextureDimension_2D;
+  desc.mipLevelCount = levels;
+  desc.sampleCount = 1;
+  WGPUTexture texture = wgpuDeviceCreateTexture(g_renderer.device, &desc);
+  for (std::uint32_t level = 0; level < levels; ++level)
+  {
+    WGPUTexelCopyTextureInfo dst = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
+    dst.texture = texture;
+    dst.mipLevel = level;
+    WGPUTexelCopyBufferLayout layout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
+    layout.bytesPerRow = width * 4;
+    layout.rowsPerImage = height;
+    const WGPUExtent3D size{width, height, 1};
+    wgpuQueueWriteTexture(g_renderer.queue, &dst, pixels.data(), pixels.size(), &layout, &size);
+    if (level + 1 < levels)
+    {
+      pixels = half_size(pixels, width, height);
+      width = std::max<std::uint32_t>(1, width / 2);
+      height = std::max<std::uint32_t>(1, height / 2);
+    }
+  }
+  return texture;
+}
+
+inline WGPUBindGroup create_texture_bind_group(WGPUTexture texture)
+{
+  WGPUTextureView view = wgpuTextureCreateView(texture, nullptr);
+  WGPUBindGroupEntry entries[2]{};
+  entries[0].binding = 0;
+  entries[0].textureView = view;
+  entries[1].binding = 1;
+  entries[1].sampler = g_renderer.texture_sampler;
+  WGPUBindGroupDescriptor desc{};
+  desc.layout = g_renderer.texture_layout;
+  desc.entryCount = 2;
+  desc.entries = entries;
+  WGPUBindGroup group = wgpuDeviceCreateBindGroup(g_renderer.device, &desc);
+  wgpuTextureViewRelease(view);
+  return group;
+}
+
+// The bind group for an object's texture. An image is requested the first time it is named, and the object
+// is drawn untextured until it arrives, or for good if it can't be loaded.
+inline WGPUBindGroup texture_for(const std::string& name)
+{
+  if (name.empty())
+    return g_renderer.white_texture;
+  auto [it, added] = g_renderer.textures.try_emplace(name);
+  auto& t = it->second;
+  if (added)
+  {
+    t.id = g_renderer.next_texture_id++;
+    // ":name" is one of GlowScript's own, which the build copies into textures/ (VCPP_TEXTURE_DIR)
+    const std::string url = name.starts_with(':') ? "textures/" + name.substr(1) : name;
+    js_load_texture(t.id, url.c_str());
+  }
+  if (t.loading)
+  {
+    const int width = js_texture_width(t.id);
+    if (width != 0)
+    {
+      t.loading = false;
+      if (width > 0)
+      {
+        const int height = js_texture_height(t.id);
+        std::vector<std::uint8_t> pixels(static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4);
+        js_texture_take(t.id, pixels.data());
+        t.texture =
+          create_texture(std::move(pixels), static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height));
+        t.bind_group = create_texture_bind_group(t.texture);
+      }
+    }
+  }
+  return t.bind_group ? t.bind_group : g_renderer.white_texture;
+}
+
+// Instances of one mesh, each with its texture's bind group
+struct instance_batch
+{
+  std::vector<instance_data> instances;
+  std::vector<WGPUBindGroup> textures;
+
+  void add(const instance_data& inst, WGPUBindGroup texture)
+  {
+    instances.push_back(inst);
+    textures.push_back(texture);
+  }
+};
+
+// Draws a batch with one draw per texture, writing its instances to ib (grown as needed)
+inline void draw_batch(WGPURenderPassEncoder pass, const renderer_state::mesh_data& mesh, WGPUBuffer& ib,
+                       std::size_t& ib_cap, const instance_batch& batch)
+{
+  if (batch.instances.empty())
+    return;
+  std::vector<std::size_t> order(batch.instances.size());
+  std::ranges::iota(order, std::size_t{0});
+  std::ranges::stable_sort(order, std::less<>{}, [&](std::size_t i) { return batch.textures[i]; });
+  std::vector<instance_data> sorted;
+  sorted.reserve(order.size());
+  for (const std::size_t i : order)
+    sorted.push_back(batch.instances[i]);
+
+  const std::size_t size = sorted.size() * sizeof(instance_data);
+  if (size > ib_cap)
+  {
+    if (ib)
+      wgpuBufferRelease(ib);
+    ib_cap = size * 2;
+    ib = create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), ib_cap);
+  }
+  wgpuQueueWriteBuffer(g_renderer.queue, ib, 0, sorted.data(), size);
+  wgpuRenderPassEncoderSetVertexBuffer(pass, 0, mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+  wgpuRenderPassEncoderSetVertexBuffer(pass, 1, ib, 0, WGPU_WHOLE_SIZE);
+  wgpuRenderPassEncoderSetIndexBuffer(pass, mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+  for (std::size_t first = 0; first < order.size();)
+  {
+    const WGPUBindGroup texture = batch.textures[order[first]];
+    std::size_t end = first;
+    while (end < order.size() && batch.textures[order[end]] == texture)
+      ++end;
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, texture, 0, nullptr);
+    wgpuRenderPassEncoderDrawIndexed(pass, mesh.index_count, static_cast<std::uint32_t>(end - first), 0, 0,
+                                     static_cast<std::uint32_t>(first));
+    first = end;
+  }
+  wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
+}
+
+// ============================================================================
 // Render Frame
 // ============================================================================
 
@@ -450,6 +680,7 @@ inline void render_frame()
   WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &pass_desc);
   wgpuRenderPassEncoderSetPipeline(pass, g_renderer.pipeline);
   wgpuRenderPassEncoderSetBindGroup(pass, 0, g_renderer.bind_group, 0, nullptr);
+  wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
 
   // Helper to build instance data
   auto build_instance = [](const object_base& obj, const vec3& scale_factors) -> instance_data {
@@ -462,77 +693,38 @@ inline void render_frame()
                        static_cast<float>(obj.m_effect_param0),
                        static_cast<float>(obj.m_effect_param1)};
     } else {
-      float has_tex = obj.m_texture.valid() ? 1.0f : 0.0f;
-      float tex_idx = obj.m_texture.valid() ? static_cast<float>(obj.m_texture.index) : 0.0f;
-      inst.material = {static_cast<float>(obj.m_shininess), 0.0f, tex_idx, has_tex};
+      inst.material = {static_cast<float>(obj.m_shininess), 0.0f, 0.0f, 0.0f};
     }
     return inst;
   };
 
   // Draw spheres
-  std::vector<instance_data> sphere_instances;
+  instance_batch sphere_instances;
   for (const auto& s : c.m_spheres)
   {
     if (!s.m_visible)
       continue;
     instance_data inst{};
-    gpu_mat4 tr = matrix::translate(static_cast<float>(s.m_pos.x()), static_cast<float>(s.m_pos.y()),
-                                    static_cast<float>(s.m_pos.z()));
-    float scale = static_cast<float>(s.m_radius * 2);
-    inst.model = matrix::multiply(tr, matrix::scale(scale, scale, scale));
+    // Turned by axis and up, as in GlowScript; it shows when the sphere is textured
+    const double d = s.m_radius * 2;
+    inst.model = compute_model_matrix(s.m_pos, s.m_axis, s.m_up, vec3{d, d, d});
     inst.color = to_gpu4(s.m_color, static_cast<float>(s.m_opacity));
     inst.material = {static_cast<float>(s.m_shininess), 0, 0, 0};
-    sphere_instances.push_back(inst);
+    sphere_instances.add(inst, texture_for(s.m_texture));
   }
 
-  if (!sphere_instances.empty())
-  {
-    std::size_t size = sphere_instances.size() * sizeof(instance_data);
-    if (size > g_renderer.sphere_ib_cap)
-    {
-      if (g_renderer.sphere_ib)
-        wgpuBufferRelease(g_renderer.sphere_ib);
-      g_renderer.sphere_ib_cap = size * 2;
-      g_renderer.sphere_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.sphere_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.sphere_ib, 0, sphere_instances.data(), size);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[0].vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.sphere_ib, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[0].index_buffer, WGPUIndexFormat_Uint32, 0,
-                                        WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[0].index_count,
-                                     static_cast<std::uint32_t>(sphere_instances.size()), 0, 0, 0);
-  }
+  draw_batch(pass, g_renderer.meshes[0], g_renderer.sphere_ib, g_renderer.sphere_ib_cap, sphere_instances);
 
   // Draw ellipsoids (reuse sphere mesh, index 0)
-  std::vector<instance_data> ellipsoid_instances;
+  instance_batch ellipsoid_instances;
   for (const auto& e : c.m_ellipsoids)
   {
     if (!e.m_visible)
       continue;
-    ellipsoid_instances.push_back(build_instance(e, vec3{e.m_length, e.m_height, e.m_width}));
+    ellipsoid_instances.add(build_instance(e, vec3{e.m_length, e.m_height, e.m_width}), texture_for(e.m_texture));
   }
 
-  if (!ellipsoid_instances.empty())
-  {
-    std::size_t size = ellipsoid_instances.size() * sizeof(instance_data);
-    if (size > g_renderer.ellipsoid_ib_cap)
-    {
-      if (g_renderer.ellipsoid_ib)
-        wgpuBufferRelease(g_renderer.ellipsoid_ib);
-      g_renderer.ellipsoid_ib_cap = size * 2;
-      g_renderer.ellipsoid_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.ellipsoid_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.ellipsoid_ib, 0, ellipsoid_instances.data(), size);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[0].vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.ellipsoid_ib, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[0].index_buffer, WGPUIndexFormat_Uint32, 0,
-                                        WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[0].index_count,
-                                     static_cast<std::uint32_t>(ellipsoid_instances.size()), 0, 0, 0);
-  }
+  draw_batch(pass, g_renderer.meshes[0], g_renderer.ellipsoid_ib, g_renderer.ellipsoid_ib_cap, ellipsoid_instances);
 
   // Draw rings: each mesh is in the ring's frame and rebuilt when its radius or thickness changes
   while (g_renderer.ring_meshes.size() < c.m_rings.size())
@@ -574,71 +766,37 @@ inline void render_frame()
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, cached.mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, texture_for(r.m_texture), 0, nullptr);
     wgpuRenderPassEncoderDrawIndexed(pass, cached.mesh.index_count, 1, 0, 0, 0);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
   // Draw pyramids: pos is the centre of the base, the apex is at pos + axis
-  std::vector<instance_data> pyramid_instances;
+  instance_batch pyramid_instances;
   for (const auto& p : c.m_pyramids)
   {
     if (!p.m_visible)
       continue;
-    pyramid_instances.push_back(build_instance(p, vec3{p.m_length, p.m_height, p.m_width}));
+    pyramid_instances.add(build_instance(p, vec3{p.m_length, p.m_height, p.m_width}), texture_for(p.m_texture));
   }
 
-  if (!pyramid_instances.empty())
-  {
-    std::size_t size = pyramid_instances.size() * sizeof(instance_data);
-    if (size > g_renderer.pyramid_ib_cap)
-    {
-      if (g_renderer.pyramid_ib)
-        wgpuBufferRelease(g_renderer.pyramid_ib);
-      g_renderer.pyramid_ib_cap = size * 2;
-      g_renderer.pyramid_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.pyramid_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.pyramid_ib, 0, pyramid_instances.data(), size);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[5].vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.pyramid_ib, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[5].index_buffer, WGPUIndexFormat_Uint32, 0,
-                                        WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[5].index_count,
-                                     static_cast<std::uint32_t>(pyramid_instances.size()), 0, 0, 0);
-  }
+  draw_batch(pass, g_renderer.meshes[5], g_renderer.pyramid_ib, g_renderer.pyramid_ib_cap, pyramid_instances);
 
   // Draw boxes
-  std::vector<instance_data> box_instances;
+  instance_batch box_instances;
   for (const auto& b : c.m_boxes)
   {
     if (!b.m_visible)
       continue;
     instance_data inst = build_instance(b, vec3{b.m_length, b.m_height, b.m_width});
     inst.material = {static_cast<float>(b.m_shininess), 0, 0, 0};
-    box_instances.push_back(inst);
+    box_instances.add(inst, texture_for(b.m_texture));
   }
 
-  if (!box_instances.empty())
-  {
-    std::size_t size = box_instances.size() * sizeof(instance_data);
-    if (size > g_renderer.box_ib_cap)
-    {
-      if (g_renderer.box_ib)
-        wgpuBufferRelease(g_renderer.box_ib);
-      g_renderer.box_ib_cap = size * 2;
-      g_renderer.box_ib = create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst),
-                                        g_renderer.box_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.box_ib, 0, box_instances.data(), size);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[1].vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.box_ib, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[1].index_buffer, WGPUIndexFormat_Uint32, 0,
-                                        WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[1].index_count,
-                                     static_cast<std::uint32_t>(box_instances.size()), 0, 0, 0);
-  }
+  draw_batch(pass, g_renderer.meshes[1], g_renderer.box_ib, g_renderer.box_ib_cap, box_instances);
 
-  std::vector<instance_data> cylinder_instances;
-  std::vector<instance_data> cone_instances;
+  instance_batch cylinder_instances;
+  instance_batch cone_instances;
 
   // Process m_cylinders
   for (const auto& obj : c.m_cylinders)
@@ -655,7 +813,7 @@ inline void render_frame()
     inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
     inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
-    cylinder_instances.push_back(inst);
+    cylinder_instances.add(inst, texture_for(obj.m_texture));
   }
 
   // Process m_cones
@@ -673,7 +831,7 @@ inline void render_frame()
     inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
     inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
-    cone_instances.push_back(inst);
+    cone_instances.add(inst, texture_for(obj.m_texture));
   }
 
   // Process m_arrows (Composite)
@@ -706,7 +864,7 @@ inline void render_frame()
       inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
       inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
       inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
-      cylinder_instances.push_back(inst);
+      cylinder_instances.add(inst, texture_for(obj.m_texture));
     }
 
     // Head (Cone)
@@ -720,51 +878,15 @@ inline void render_frame()
       inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
       inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
       inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
-      cone_instances.push_back(inst);
+      cone_instances.add(inst, texture_for(obj.m_texture));
     }
   }
 
   // Draw Cylinders
-  if (!cylinder_instances.empty())
-  {
-    std::size_t size = cylinder_instances.size() * sizeof(instance_data);
-    if (size > g_renderer.cylinder_ib_cap)
-    {
-      if (g_renderer.cylinder_ib)
-        wgpuBufferRelease(g_renderer.cylinder_ib);
-      g_renderer.cylinder_ib_cap = size * 2;
-      g_renderer.cylinder_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.cylinder_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.cylinder_ib, 0, cylinder_instances.data(), size);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[2].vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.cylinder_ib, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[2].index_buffer, WGPUIndexFormat_Uint32, 0,
-                                        WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[2].index_count,
-                                     static_cast<std::uint32_t>(cylinder_instances.size()), 0, 0, 0);
-  }
+  draw_batch(pass, g_renderer.meshes[2], g_renderer.cylinder_ib, g_renderer.cylinder_ib_cap, cylinder_instances);
 
   // Draw Cones
-  if (!cone_instances.empty())
-  {
-    std::size_t size = cone_instances.size() * sizeof(instance_data);
-    if (size > g_renderer.cone_ib_cap)
-    {
-      if (g_renderer.cone_ib)
-        wgpuBufferRelease(g_renderer.cone_ib);
-      g_renderer.cone_ib_cap = size * 2;
-      g_renderer.cone_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.cone_ib_cap);
-    }
-    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.cone_ib, 0, cone_instances.data(), size);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[3].vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.cone_ib, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[3].index_buffer, WGPUIndexFormat_Uint32, 0,
-                                        WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[3].index_count,
-                                     static_cast<std::uint32_t>(cone_instances.size()), 0, 0, 0);
-  }
+  draw_batch(pass, g_renderer.meshes[3], g_renderer.cone_ib, g_renderer.cone_ib_cap, cone_instances);
 
   // Draw Helices: a wire of radius thickness / 2, or radius / 20 when thickness is 0, as in GlowScript
   while (g_renderer.helix_meshes.size() < c.m_helixes.size())
@@ -812,7 +934,9 @@ inline void render_frame()
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, cached.mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, texture_for(h.m_texture), 0, nullptr);
     wgpuRenderPassEncoderDrawIndexed(pass, cached.mesh.index_count, 1, 0, 0, 0);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
   // Draw Curves (per-curve dynamic mesh generation)
@@ -1090,7 +1214,9 @@ inline void render_frame()
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, comp_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, texture_for(comp.m_texture), 0, nullptr);
     wgpuRenderPassEncoderDrawIndexed(pass, comp_mesh.index_count, 1, 0, 0, 0);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
   // Draw Trails. A trail of radius 0 is drawn about 4 pixels wide at the current view, as GlowScript draws
@@ -1199,7 +1325,9 @@ inline void render_frame()
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, ext_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, texture_for(ext.m_texture), 0, nullptr);
     wgpuRenderPassEncoderDrawIndexed(pass, ext_mesh.index_count, 1, 0, 0, 0);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
   // Draw 3D Text
@@ -1268,7 +1396,9 @@ inline void render_frame()
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, txt_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, texture_for(txt.m_texture), 0, nullptr);
     wgpuRenderPassEncoderDrawIndexed(pass, txt_mesh.index_count, 1, 0, 0, 0);
+    wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
   if (!g_renderer.single_instances.empty())
@@ -1504,6 +1634,31 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   bg_desc.entries = &bg_entry;
   g_renderer.bind_group = wgpuDeviceCreateBindGroup(g_renderer.device, &bg_desc);
 
+  WGPUBindGroupLayoutEntry tex_entries[2]{};
+  tex_entries[0].binding = 0;
+  tex_entries[0].visibility = WGPUShaderStage_Fragment;
+  tex_entries[0].texture = WGPU_TEXTURE_BINDING_LAYOUT_INIT;
+  tex_entries[0].texture.sampleType = WGPUTextureSampleType_Float;
+  tex_entries[0].texture.viewDimension = WGPUTextureViewDimension_2D;
+  tex_entries[1].binding = 1;
+  tex_entries[1].visibility = WGPUShaderStage_Fragment;
+  tex_entries[1].sampler.type = WGPUSamplerBindingType_Filtering;
+  WGPUBindGroupLayoutDescriptor tex_layout_desc{};
+  tex_layout_desc.entryCount = 2;
+  tex_layout_desc.entries = tex_entries;
+  g_renderer.texture_layout = wgpuDeviceCreateBindGroupLayout(g_renderer.device, &tex_layout_desc);
+
+  // GlowScript's texture sampling: repeating, linear, nearest mip level
+  WGPUSamplerDescriptor sampler_desc = WGPU_SAMPLER_DESCRIPTOR_INIT;
+  sampler_desc.addressModeU = WGPUAddressMode_Repeat;
+  sampler_desc.addressModeV = WGPUAddressMode_Repeat;
+  sampler_desc.addressModeW = WGPUAddressMode_Repeat;
+  sampler_desc.magFilter = WGPUFilterMode_Linear;
+  sampler_desc.minFilter = WGPUFilterMode_Linear;
+  sampler_desc.mipmapFilter = WGPUMipmapFilterMode_Nearest;
+  g_renderer.texture_sampler = wgpuDeviceCreateSampler(g_renderer.device, &sampler_desc);
+  g_renderer.white_texture = create_texture_bind_group(create_texture({255, 255, 255, 255}, 1, 1));
+
   WGPUShaderSourceWGSL wgsl_desc{};
   wgsl_desc.chain.sType = WGPUSType_ShaderSourceWGSL;
   wgsl_desc.code = {shader_source, WGPU_STRLEN};
@@ -1513,8 +1668,9 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   WGPUShaderModule shader = wgpuDeviceCreateShaderModule(g_renderer.device, &sm_desc);
 
   WGPUPipelineLayoutDescriptor pl_desc{};
-  pl_desc.bindGroupLayoutCount = 1;
-  pl_desc.bindGroupLayouts = &g_renderer.bind_group_layout;
+  const WGPUBindGroupLayout layouts[] = {g_renderer.bind_group_layout, g_renderer.texture_layout};
+  pl_desc.bindGroupLayoutCount = 2;
+  pl_desc.bindGroupLayouts = layouts;
   WGPUPipelineLayout pipeline_layout = wgpuDeviceCreatePipelineLayout(g_renderer.device, &pl_desc);
 
   WGPUVertexAttribute vertex_attrs[] = {

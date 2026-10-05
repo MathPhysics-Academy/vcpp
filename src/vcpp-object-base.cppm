@@ -54,8 +54,9 @@ struct object_base
   int m_interval{-1}; // with a handle's set_pos, a trail point every m_interval moves (-1 = once per render)
   vec3 m_trail_color{1, 1, 1};
 
-  // Texture
-  render::texture_handle m_texture{}; // null = no texture
+  // GlowScript's texture: an image's URL, or ":name" for one of GlowScript's own (see textures::); empty
+  // for none. The image multiplies the object's color.
+  std::string m_texture;
 
   // The axis before it was set to zero, restored when it becomes nonzero (GlowScript's __oldaxis)
   std::optional<vec3> m_axis_before_zero;
@@ -80,10 +81,25 @@ struct object_base
 
   constexpr bool get_visible() const noexcept { return m_visible; }
   constexpr void set_visible(bool v) noexcept { m_visible = v; }
-
-  constexpr render::texture_handle get_texture() const noexcept { return m_texture; }
-  constexpr void set_texture(render::texture_handle t) noexcept { m_texture = t; }
 };
+
+// GlowScript's own textures, named as in its textures table. The images are GlowScript's and aren't part
+// of vcpp: the web build copies them from VCPP_TEXTURE_DIR, and ":" names are looked up there.
+namespace textures
+{
+inline constexpr std::string_view earth = ":earth_texture.jpg";
+inline constexpr std::string_view flower = ":flower_texture.jpg";
+inline constexpr std::string_view granite = ":granite_texture.jpg";
+inline constexpr std::string_view gravel = ":gravel_texture.jpg";
+inline constexpr std::string_view metal = ":metal_texture.jpg";
+inline constexpr std::string_view rock = ":rock_texture.jpg";
+inline constexpr std::string_view rough = ":rough_texture.jpg";
+inline constexpr std::string_view rug = ":rug_texture.jpg";
+inline constexpr std::string_view stones = ":stones_texture.jpg";
+inline constexpr std::string_view stucco = ":stucco_texture.jpg";
+inline constexpr std::string_view wood = ":wood_texture.jpg";
+inline constexpr std::string_view wood_old = ":wood_old_texture.jpg";
+} // namespace textures
 
 // ============================================================================
 // common_params - Parameter specs for properties in object_base

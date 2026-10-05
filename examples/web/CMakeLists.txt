@@ -69,6 +69,18 @@ if(EMSCRIPTEN)
     add_link_options("SHELL:--embed-file ${VCPP_FONT_SANS}@/fonts/sans.ttf")
   endif()
 
+  # GlowScript's texture images (textures::wood and the rest) are third-party too: point this at a directory
+  # holding them, such as GlowScript's glowscript_data. They are copied to textures/ beside the page, which
+  # fetches them. Without it, those objects are drawn untextured.
+  set(VCPP_TEXTURE_DIR "" CACHE PATH "Directory of GlowScript's texture images")
+  if(VCPP_TEXTURE_DIR)
+    file(GLOB _texture_images "${VCPP_TEXTURE_DIR}/*_texture.jpg")
+    if(NOT _texture_images)
+      message(FATAL_ERROR "VCPP_TEXTURE_DIR: no *_texture.jpg files in ${VCPP_TEXTURE_DIR}")
+    endif()
+    file(COPY ${_texture_images} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/textures)
+  endif()
+
   add_link_options(
     --use-port=emdawnwebgpu
     -sASYNCIFY
@@ -95,6 +107,10 @@ if(EMSCRIPTEN)
     -Wl,--undefined=__em_js__js_init_label_canvas
     -Wl,--undefined=__em_js__js_clear_labels
     -Wl,--undefined=__em_js__js_draw_label
+    -Wl,--undefined=__em_js__js_load_texture
+    -Wl,--undefined=__em_js__js_texture_width
+    -Wl,--undefined=__em_js__js_texture_height
+    -Wl,--undefined=__em_js__js_texture_take
     -Wl,--export=__em_js__js_create_graph
     -Wl,--export=__em_js__js_create_plot
     -Wl,--export=__em_js__js_add_point
@@ -107,6 +123,10 @@ if(EMSCRIPTEN)
     -Wl,--export=__em_js__js_init_label_canvas
     -Wl,--export=__em_js__js_clear_labels
     -Wl,--export=__em_js__js_draw_label
+    -Wl,--export=__em_js__js_load_texture
+    -Wl,--export=__em_js__js_texture_width
+    -Wl,--export=__em_js__js_texture_height
+    -Wl,--export=__em_js__js_texture_take
   )
 
   # Release build: optimize and strip debug info for smaller/harder to reverse-engineer output

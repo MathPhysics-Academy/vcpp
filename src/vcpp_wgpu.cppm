@@ -491,9 +491,7 @@ inline void wgpu_renderer::render(canvas& c)
                        static_cast<float>(obj.m_effect_param0),
                        static_cast<float>(obj.m_effect_param1)};
     } else {
-      float has_tex = obj.m_texture.valid() ? 1.0f : 0.0f;
-      float tex_idx = obj.m_texture.valid() ? static_cast<float>(obj.m_texture.index) : 0.0f;
-      inst.material = {static_cast<float>(obj.m_shininess), 0.0f, tex_idx, has_tex};
+      inst.material = {static_cast<float>(obj.m_shininess), 0.0f, 0.0f, 0.0f}; // textures aren't loaded natively yet
     }
     return inst;
   };
@@ -540,8 +538,7 @@ inline void wgpu_renderer::render(canvas& c)
                                     static_cast<float>(obj.m_pos.z()));
     inst.model = matrix::multiply(tr, matrix::multiply(rot, sc));
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-    float has_tex = obj.m_texture.valid() ? 1.0f : 0.0f;
-    inst.material = {static_cast<float>(obj.m_shininess), obj.m_emissive ? 1.0f : 0.0f, 0, has_tex};
+    inst.material = {static_cast<float>(obj.m_shininess), obj.m_emissive ? 1.0f : 0.0f, 0, 0};
     cylinder_instances.push_back(inst);
   }
 
@@ -560,8 +557,7 @@ inline void wgpu_renderer::render(canvas& c)
                                     static_cast<float>(obj.m_pos.z()));
     inst.model = matrix::multiply(tr, matrix::multiply(rot, sc));
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-    float has_tex = obj.m_texture.valid() ? 1.0f : 0.0f;
-    inst.material = {static_cast<float>(obj.m_shininess), obj.m_emissive ? 1.0f : 0.0f, 0, has_tex};
+    inst.material = {static_cast<float>(obj.m_shininess), obj.m_emissive ? 1.0f : 0.0f, 0, 0};
     cone_instances.push_back(inst);
   }
 
