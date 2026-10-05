@@ -125,6 +125,42 @@ struct scene_entry
 };
 
 // ============================================================================
+// handle<T> - An object in a canvas, by position rather than address
+//
+// The canvas keeps objects in per-type vectors, which move when they grow, so a reference into one
+// dies as soon as another object of that type is added. A handle looks the object up on each use.
+// Using a handle after its canvas has been cleared throws.
+// ============================================================================
+
+class canvas;
+
+template<typename T>
+class handle
+{
+public:
+  handle() = default;
+
+  T& operator*() const;
+  T* operator->() const { return &**this; }
+
+  // The object's index in the canvas's scene entries, as used to key trails
+  std::size_t entry() const noexcept { return m_entry; }
+
+  explicit operator bool() const noexcept { return m_canvas != nullptr; }
+
+private:
+  friend class canvas;
+  handle(canvas* c, std::size_t index, std::size_t entry, std::uint64_t generation) noexcept
+    : m_canvas(c), m_index(index), m_entry(entry), m_generation(generation)
+  {}
+
+  canvas* m_canvas = nullptr;
+  std::size_t m_index = 0;
+  std::size_t m_entry = 0;
+  std::uint64_t m_generation = 0;
+};
+
+// ============================================================================
 // Canvas - The scene container
 //
 // Manages objects, camera, lights, and rendering state.
@@ -187,160 +223,107 @@ public:
   // ========== Dirty Tracking ==========
   bool m_scene_dirty{true};
 
+  template<typename T>
+  static constexpr object_type type_of()
+  {
+    if constexpr (std::same_as<T, sphere_object>)
+      return object_type::sphere;
+    else if constexpr (std::same_as<T, ellipsoid_object>)
+      return object_type::ellipsoid;
+    else if constexpr (std::same_as<T, box_object>)
+      return object_type::box;
+    else if constexpr (std::same_as<T, cylinder_object>)
+      return object_type::cylinder;
+    else if constexpr (std::same_as<T, cone_object>)
+      return object_type::cone;
+    else if constexpr (std::same_as<T, arrow_object>)
+      return object_type::arrow;
+    else if constexpr (std::same_as<T, ring_object>)
+      return object_type::ring;
+    else if constexpr (std::same_as<T, helix_object>)
+      return object_type::helix;
+    else if constexpr (std::same_as<T, pyramid_object>)
+      return object_type::pyramid;
+    else if constexpr (std::same_as<T, curve_object>)
+      return object_type::curve;
+    else if constexpr (std::same_as<T, points_object>)
+      return object_type::points;
+    else if constexpr (std::same_as<T, label_object>)
+      return object_type::label;
+    else if constexpr (std::same_as<T, triangle_object>)
+      return object_type::triangle;
+    else if constexpr (std::same_as<T, quad_object>)
+      return object_type::quad;
+    else if constexpr (std::same_as<T, compound_object>)
+      return object_type::compound;
+    else if constexpr (std::same_as<T, text3d_object>)
+      return object_type::text3d;
+    else
+      return object_type::extrusion;
+  }
+
+private:
+  std::uint64_t m_generation{0};
+
+public:
   // ========== Object Registration ==========
 
-  std::size_t add(sphere_object obj)
+  // Adds obj to the scene; the handle stays valid as more objects are added, until clear()
+  template<typename T>
+  handle<T> add(T obj)
   {
-    std::size_t idx = m_spheres.size();
-    m_spheres.push_back(std::move(obj));
-    m_entries.push_back({object_type::sphere, idx, true});
+    auto& store = objects<T>();
+    store.push_back(std::move(obj));
+    m_entries.push_back({type_of<T>(), store.size() - 1, true});
     m_scene_dirty = true;
-    return m_entries.size() - 1;
+    return handle<T>(this, store.size() - 1, m_entries.size() - 1, m_generation);
   }
 
-  std::size_t add(ellipsoid_object obj)
+  // The storage for one object type
+  template<typename T>
+  std::vector<T>& objects()
   {
-    std::size_t idx = m_ellipsoids.size();
-    m_ellipsoids.push_back(std::move(obj));
-    m_entries.push_back({object_type::ellipsoid, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
+    if constexpr (std::same_as<T, sphere_object>)
+      return m_spheres;
+    else if constexpr (std::same_as<T, ellipsoid_object>)
+      return m_ellipsoids;
+    else if constexpr (std::same_as<T, box_object>)
+      return m_boxes;
+    else if constexpr (std::same_as<T, cylinder_object>)
+      return m_cylinders;
+    else if constexpr (std::same_as<T, cone_object>)
+      return m_cones;
+    else if constexpr (std::same_as<T, arrow_object>)
+      return m_arrows;
+    else if constexpr (std::same_as<T, ring_object>)
+      return m_rings;
+    else if constexpr (std::same_as<T, helix_object>)
+      return m_helixes;
+    else if constexpr (std::same_as<T, pyramid_object>)
+      return m_pyramids;
+    else if constexpr (std::same_as<T, curve_object>)
+      return m_curves;
+    else if constexpr (std::same_as<T, points_object>)
+      return m_points;
+    else if constexpr (std::same_as<T, label_object>)
+      return m_labels;
+    else if constexpr (std::same_as<T, triangle_object>)
+      return m_triangles;
+    else if constexpr (std::same_as<T, quad_object>)
+      return m_quads;
+    else if constexpr (std::same_as<T, compound_object>)
+      return m_compounds;
+    else if constexpr (std::same_as<T, text3d_object>)
+      return m_text3ds;
+    else
+    {
+      static_assert(std::same_as<T, extrusion_object>, "vcpp: not a scene object type");
+      return m_extrusions;
+    }
   }
 
-  std::size_t add(box_object obj)
-  {
-    std::size_t idx = m_boxes.size();
-    m_boxes.push_back(std::move(obj));
-    m_entries.push_back({object_type::box, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(cylinder_object obj)
-  {
-    std::size_t idx = m_cylinders.size();
-    m_cylinders.push_back(std::move(obj));
-    m_entries.push_back({object_type::cylinder, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(cone_object obj)
-  {
-    std::size_t idx = m_cones.size();
-    m_cones.push_back(std::move(obj));
-    m_entries.push_back({object_type::cone, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(arrow_object obj)
-  {
-    std::size_t idx = m_arrows.size();
-    m_arrows.push_back(std::move(obj));
-    m_entries.push_back({object_type::arrow, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(ring_object obj)
-  {
-    std::size_t idx = m_rings.size();
-    m_rings.push_back(std::move(obj));
-    m_entries.push_back({object_type::ring, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(helix_object obj)
-  {
-    std::size_t idx = m_helixes.size();
-    m_helixes.push_back(std::move(obj));
-    m_entries.push_back({object_type::helix, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(pyramid_object obj)
-  {
-    std::size_t idx = m_pyramids.size();
-    m_pyramids.push_back(std::move(obj));
-    m_entries.push_back({object_type::pyramid, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(curve_object obj)
-  {
-    std::size_t idx = m_curves.size();
-    m_curves.push_back(std::move(obj));
-    m_entries.push_back({object_type::curve, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(points_object obj)
-  {
-    std::size_t idx = m_points.size();
-    m_points.push_back(std::move(obj));
-    m_entries.push_back({object_type::points, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(label_object obj)
-  {
-    std::size_t idx = m_labels.size();
-    m_labels.push_back(std::move(obj));
-    m_entries.push_back({object_type::label, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(triangle_object obj)
-  {
-    std::size_t idx = m_triangles.size();
-    m_triangles.push_back(std::move(obj));
-    m_entries.push_back({object_type::triangle, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(quad_object obj)
-  {
-    std::size_t idx = m_quads.size();
-    m_quads.push_back(std::move(obj));
-    m_entries.push_back({object_type::quad, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(compound_object obj)
-  {
-    std::size_t idx = m_compounds.size();
-    m_compounds.push_back(std::move(obj));
-    m_entries.push_back({object_type::compound, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(text3d_object obj)
-  {
-    std::size_t idx = m_text3ds.size();
-    m_text3ds.push_back(std::move(obj));
-    m_entries.push_back({object_type::text3d, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
-
-  std::size_t add(extrusion_object obj)
-  {
-    std::size_t idx = m_extrusions.size();
-    m_extrusions.push_back(std::move(obj));
-    m_entries.push_back({object_type::extrusion, idx, true});
-    m_scene_dirty = true;
-    return m_entries.size() - 1;
-  }
+  // Bumped by clear(), so handles from before it can be detected
+  std::uint64_t generation() const noexcept { return m_generation; }
 
   // ========== Accessors ==========
 
@@ -388,6 +371,7 @@ public:
     m_extrusions.clear();
     m_trails.clear();
     m_entries.clear();
+    ++m_generation;
     m_scene_dirty = true;
   }
 
@@ -453,6 +437,14 @@ public:
     }
   }
 };
+
+template<typename T>
+T& handle<T>::operator*() const
+{
+  if (!m_canvas || m_generation != m_canvas->generation())
+    throw std::logic_error("vcpp: handle used after its scene was cleared, or never set");
+  return m_canvas->objects<T>()[m_index];
+}
 
 // ============================================================================
 // Global Default Scene (like VPython's 'scene')

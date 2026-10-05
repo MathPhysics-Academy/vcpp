@@ -22,3 +22,8 @@ add_executable(test_orientation test_orientation.cpp)
 target_link_libraries(test_orientation PRIVATE vcpp)
 target_compile_features(test_orientation PRIVATE cxx_std_23)
 add_test(NAME test_orientation COMMAND test_orientation)
+
+add_executable(test_handles test_handles.cpp)
+target_link_libraries(test_handles PRIVATE vcpp)
+target_compile_features(test_handles PRIVATE cxx_std_23)
+add_test(NAME test_handles COMMAND test_handles)

@@ -88,10 +88,10 @@ namespace
       vcpp::vec3 corners[4];
       vcpp::vec3 axes[4];
       // Object indices
-      std::size_t loop_idxs[4];
-      std::size_t force_idxs[4];
-      std::size_t torque_idx;
-      
+      vcpp::handle<vcpp::arrow_object> loop_arrows[4];
+      vcpp::handle<vcpp::arrow_object> force_arrows[4];
+      vcpp::handle<vcpp::arrow_object> torque_arrow;
+
       bool active{false};
   } t_sim;
 
@@ -208,14 +208,14 @@ namespace
     t_sim.axes[3]    = vec3{0.0, -1.5, 0.0};  
     
     for(int i=0; i<4; ++i) {
-        t_sim.loop_idxs[i] = scene.add(arrow(pos=t_sim.corners[i], axis=t_sim.axes[i], shaftwidth=Ishaft));
+      t_sim.loop_arrows[i] = scene.add(arrow(pos = t_sim.corners[i], axis = t_sim.axes[i], shaftwidth = Ishaft));
     }
 
     for(int i=0; i<4; ++i) {
-        t_sim.force_idxs[i] = scene.add(arrow(pos=vec3{0,0,0}, axis=vec3{0,0,0}, color=colors::red));
+      t_sim.force_arrows[i] = scene.add(arrow(pos = vec3{0, 0, 0}, axis = vec3{0, 0, 0}, color = colors::red));
     }
-    
-    t_sim.torque_idx = scene.add(arrow(pos=vec3{0,0,0}, axis=vec3{0,0,0}, color=colors::yellow));
+
+    t_sim.torque_arrow = scene.add(arrow(pos = vec3{0, 0, 0}, axis = vec3{0, 0, 0}, color = colors::yellow));
     // The B-field is vertical (Y-axis).
     // A solenoid aligned with Y creates this field.
     // Let's place a large, subtle helix surrounding the loop to show the "source" of the B-field.
@@ -1141,18 +1141,14 @@ void update() {
           vec3 ax = rotate_y(t_sim.axes[i], t_sim.theta);
           
           // Update Loop Segment
-          if (t_sim.loop_idxs[i] < scene.m_arrows.size()) {
-              scene.m_arrows[t_sim.loop_idxs[i]].m_pos = p;
-              scene.m_arrows[t_sim.loop_idxs[i]].m_axis = ax;
-          }
-          
+          t_sim.loop_arrows[i]->m_pos = p;
+          t_sim.loop_arrows[i]->m_axis = ax;
+
           // Update Force
           // F = I * (L x B)
           vec3 F = cross(ax, Bdirect) * current;
-          if (t_sim.force_idxs[i] < scene.m_arrows.size()) {
-              scene.m_arrows[t_sim.force_idxs[i]].m_pos = p + ax * 0.5; // Center of segment
-              scene.m_arrows[t_sim.force_idxs[i]].m_axis = F;
-          }
+          t_sim.force_arrows[i]->m_pos = p + ax * 0.5; // Center of segment
+          t_sim.force_arrows[i]->m_axis = F;
       }
       
       // Update Torque Vector?
@@ -1160,12 +1156,9 @@ void update() {
       // Or just visualize total torque on the system (Y-axis vector).
       // tau_mag = -sin(theta). Vector along Y.
       vec3 tau_vec = vec3{0, alpha * 0.5, 0}; // Visual scale
-      if (t_sim.torque_idx < scene.m_arrows.size()) {
-          scene.m_arrows[t_sim.torque_idx].m_axis = tau_vec;
-          // Position it above?
-           scene.m_arrows[t_sim.torque_idx].m_pos = vec3{0, 2.0, 0};
-      }
-      
+      t_sim.torque_arrow->m_axis = tau_vec;
+      t_sim.torque_arrow->m_pos = vec3{0, 2.0, 0};
+
       scene.mark_dirty();
   }
   else if (is_raining_scene) {

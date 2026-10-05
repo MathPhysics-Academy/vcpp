@@ -14,14 +14,13 @@ namespace
 bool test_retain_counts_points()
 {
   canvas c;
-  std::size_t entry = c.add(sphere(make_trail = true, retain = 3));
-  auto& ball = c.m_spheres.back();
+  auto ball = c.add(sphere(make_trail = true, retain = 3));
   for (int i = 1; i <= 5; ++i)
   {
-    ball.m_pos = vec3{static_cast<double>(i), 0, 0};
+    ball->m_pos = vec3{static_cast<double>(i), 0, 0};
     c.update_trails();
   }
-  const auto& points = c.m_trails[entry].positions;
+  const auto& points = c.m_trails[ball.entry()].positions;
   return points.size() == 3 && points.front() == vec3{3, 0, 0} && points.back() == vec3{5, 0, 0};
 }
 
@@ -29,14 +28,13 @@ bool test_retain_counts_points()
 bool test_only_moves_add_points()
 {
   canvas c;
-  std::size_t entry = c.add(sphere(make_trail = true));
-  auto& ball = c.m_spheres.back();
+  auto ball = c.add(sphere(make_trail = true));
   c.update_trails();
   c.update_trails();
-  ball.m_visible = false;
-  ball.m_pos = vec3{1, 0, 0};
+  ball->m_visible = false;
+  ball->m_pos = vec3{1, 0, 0};
   c.update_trails();
-  return c.m_trails[entry].positions.size() == 1;
+  return c.m_trails[ball.entry()].positions.size() == 1;
 }
 
 // The trail takes the object's colour unless trail_color is given
