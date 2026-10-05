@@ -181,6 +181,8 @@ struct renderer_state
 
   WGPUBuffer ellipsoid_ib{nullptr};
   std::size_t ellipsoid_ib_cap{0};
+  WGPUBuffer pyramid_ib{nullptr};
+  std::size_t pyramid_ib_cap{0};
 
   WGPUBuffer box_ib{nullptr};
   std::size_t box_ib_cap{0};
@@ -204,6 +206,14 @@ struct renderer_state
   };
   std::vector<curve_mesh_data> curve_meshes;
 
+  // One mesh per ring: the tube's thickness relative to the radius differs between rings
+  struct ring_mesh_data
+  {
+    curve_mesh_data mesh;
+    double radius{-1};
+    double thickness{-1};
+  };
+  std::vector<ring_mesh_data> ring_meshes;
 
   // Objects drawn one at a time each get a slot here. Queue writes all land before the pass runs, so
   // sharing one instance buffer gave every such draw the last object's position and colour.
@@ -249,7 +259,7 @@ struct renderer_state
     WGPUBuffer index_buffer{nullptr};
     std::uint32_t index_count{0};
   };
-  mesh_data meshes[5]; // 0=sphere, 1=box, 2=cylinder, 3=cone, 4=helix
+  mesh_data meshes[6]; // 0=sphere, 1=box, 2=cylinder, 3=cone, 4=helix, 5=pyramid
 
   int width{800};
   int height{600};
@@ -401,8 +411,8 @@ inline void render_frame()
   pass_desc.colorAttachments = &color_att;
   pass_desc.depthStencilAttachment = &depth_att;
 
-  const std::size_t singles =
-    c.m_curves.size() + c.m_compounds.size() + c.m_trails.size() + c.m_extrusions.size() + c.m_text3ds.size();
+  const std::size_t singles = c.m_rings.size() + c.m_curves.size() + c.m_compounds.size() + c.m_trails.size() +
+                              c.m_extrusions.size() + c.m_text3ds.size();
   if (singles > g_renderer.single_ib_cap)
   {
     if (g_renderer.single_ib)
@@ -503,6 +513,78 @@ inline void render_frame()
                                         WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[0].index_count,
                                      static_cast<std::uint32_t>(ellipsoid_instances.size()), 0, 0, 0);
+  }
+
+  // Draw rings: each mesh is in the ring's frame and rebuilt when its radius or thickness changes
+  while (g_renderer.ring_meshes.size() < c.m_rings.size())
+    g_renderer.ring_meshes.push_back({});
+
+  for (std::size_t ring_idx = 0; ring_idx < c.m_rings.size(); ++ring_idx)
+  {
+    const auto& r = c.m_rings[ring_idx];
+    if (!r.m_visible)
+      continue;
+
+    auto& cached = g_renderer.ring_meshes[ring_idx];
+    if (cached.radius != r.m_radius || cached.thickness != r.m_thickness)
+    {
+      auto gen_mesh = mesh::generate_ring(static_cast<float>(r.m_radius), static_cast<float>(r.m_thickness));
+      std::size_t vb_size = gen_mesh.vertices.size() * sizeof(vertex);
+      std::size_t ib_size = gen_mesh.indices.size() * sizeof(std::uint32_t);
+      if (vb_size + ib_size > cached.mesh.buffer_capacity)
+      {
+        if (cached.mesh.vertex_buffer)
+          wgpuBufferRelease(cached.mesh.vertex_buffer);
+        if (cached.mesh.index_buffer)
+          wgpuBufferRelease(cached.mesh.index_buffer);
+        cached.mesh.buffer_capacity = vb_size + ib_size;
+        cached.mesh.vertex_buffer =
+          create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size);
+        cached.mesh.index_buffer =
+          create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size);
+      }
+      wgpuQueueWriteBuffer(g_renderer.queue, cached.mesh.vertex_buffer, 0, gen_mesh.vertices.data(), vb_size);
+      wgpuQueueWriteBuffer(g_renderer.queue, cached.mesh.index_buffer, 0, gen_mesh.indices.data(), ib_size);
+      cached.mesh.index_count = static_cast<std::uint32_t>(gen_mesh.indices.size());
+      cached.radius = r.m_radius;
+      cached.thickness = r.m_thickness;
+    }
+
+    instance_data inst = build_instance(r, vec3{1, 1, 1});
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, cached.mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
+                                         sizeof(instance_data));
+    wgpuRenderPassEncoderSetIndexBuffer(pass, cached.mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, cached.mesh.index_count, 1, 0, 0, 0);
+  }
+
+  // Draw pyramids: pos is the centre of the base, the apex is at pos + axis
+  std::vector<instance_data> pyramid_instances;
+  for (const auto& p : c.m_pyramids)
+  {
+    if (!p.m_visible)
+      continue;
+    pyramid_instances.push_back(build_instance(p, vec3{p.m_length, p.m_height, p.m_width}));
+  }
+
+  if (!pyramid_instances.empty())
+  {
+    std::size_t size = pyramid_instances.size() * sizeof(instance_data);
+    if (size > g_renderer.pyramid_ib_cap)
+    {
+      if (g_renderer.pyramid_ib)
+        wgpuBufferRelease(g_renderer.pyramid_ib);
+      g_renderer.pyramid_ib_cap = size * 2;
+      g_renderer.pyramid_ib = create_buffer(
+        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.pyramid_ib_cap);
+    }
+    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.pyramid_ib, 0, pyramid_instances.data(), size);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[5].vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.pyramid_ib, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[5].index_buffer, WGPUIndexFormat_Uint32, 0,
+                                        WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[5].index_count,
+                                     static_cast<std::uint32_t>(pyramid_instances.size()), 0, 0, 0);
   }
 
   // Draw boxes
@@ -1489,6 +1571,7 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   create_mesh_buffers(2, mesh::generate_cylinder());
   create_mesh_buffers(3, mesh::generate_cone());
   create_mesh_buffers(4, mesh::generate_helix());
+  create_mesh_buffers(5, mesh::generate_pyramid());
 
   // Register input callbacks
   emscripten_set_mousemove_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_move);

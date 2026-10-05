@@ -447,11 +447,10 @@ inline mesh_data generate_helix(int coils = 8, int tube_slices = 8, int steps_pe
 // Ring axis along X.
 // ============================================================================
 
-inline mesh_data generate_ring(int major_segments = 32, int minor_segments = 12)
+inline mesh_data generate_ring(float major_radius = 1.0f, float minor_radius = 0.1f, int major_segments = 32,
+                               int minor_segments = 12)
 {
   mesh_data mesh;
-  float major_radius = 1.0f;
-  float minor_radius = 0.1f;
 
   for (int i = 0; i <= major_segments; ++i)
   {
