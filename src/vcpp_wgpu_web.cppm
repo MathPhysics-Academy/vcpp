@@ -402,8 +402,9 @@ inline void render_frame()
   c.autoscale(g_renderer.width, g_renderer.height);
   cam.view = matrix::look_at(c.m_camera.m_pos, c.m_camera.m_center, c.m_camera.m_up);
   float fov_rad = static_cast<float>(c.m_camera.m_fov * 3.14159265 / 180.0);
-  cam.projection = matrix::perspective(fov_rad, static_cast<float>(g_renderer.width) / g_renderer.height,
-                                        static_cast<float>(c.m_camera.m_near), static_cast<float>(c.m_camera.m_far));
+  cam.projection =
+    matrix::perspective(fov_rad, static_cast<float>(g_renderer.width) / g_renderer.height,
+                        static_cast<float>(c.m_camera.near_plane()), static_cast<float>(c.m_camera.far_plane()));
   cam.view_projection = matrix::multiply(cam.projection, cam.view);
   cam.camera_pos = to_gpu(c.m_camera.m_pos);
   wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.camera_buffer, 0, &cam, sizeof(cam));
@@ -1092,12 +1093,17 @@ inline void render_frame()
     wgpuRenderPassEncoderDrawIndexed(pass, comp_mesh.index_count, 1, 0, 0, 0);
   }
 
-  // Draw Trails
+  // Draw Trails. A trail of radius 0 is drawn about 4 pixels wide at the current view, as GlowScript draws
+  // it (4 * range / width); its tube is rebuilt when the camera's distance changes
+  const double tan_hfov = std::tan(c.m_camera.m_fov * std::numbers::pi / 360.0);
+  const double thin_radius =
+    4 * mag(c.m_camera.m_pos - c.m_camera.m_center) * tan_hfov / std::max(g_renderer.css_width, g_renderer.css_height);
   for (auto& [entry_idx, trail] : c.m_trails)
   {
     auto& trail_mesh = g_renderer.trail_meshes[entry_idx];
     auto& tube = trail_mesh.tube;
-    if (tube.update(trail.positions, trail.added, trail.retain, static_cast<float>(trail.radius)))
+    const double radius = trail.radius > 0 ? trail.radius : thin_radius;
+    if (tube.update(trail.positions, trail.added, trail.retain, static_cast<float>(radius)))
     {
       if (trail_mesh.vertex_buffer)
         wgpuBufferRelease(trail_mesh.vertex_buffer);
@@ -1406,8 +1412,9 @@ inline void render_labels()
   render::camera_uniforms cam{};
   cam.view = matrix::look_at(c.m_camera.m_pos, c.m_camera.m_center, c.m_camera.m_up);
   float fov_rad = static_cast<float>(c.m_camera.m_fov * 3.14159265 / 180.0);
-  cam.projection = matrix::perspective(fov_rad, static_cast<float>(g_renderer.width) / g_renderer.height,
-                                        static_cast<float>(c.m_camera.m_near), static_cast<float>(c.m_camera.m_far));
+  cam.projection =
+    matrix::perspective(fov_rad, static_cast<float>(g_renderer.width) / g_renderer.height,
+                        static_cast<float>(c.m_camera.near_plane()), static_cast<float>(c.m_camera.far_plane()));
   cam.view_projection = matrix::multiply(cam.projection, cam.view);
 
   vcpp::label_bridge::clear();

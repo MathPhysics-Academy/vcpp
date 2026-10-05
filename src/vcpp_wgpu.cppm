@@ -366,8 +366,8 @@ inline void wgpu_renderer::update_camera_uniforms(const canvas& c)
   float aspect = static_cast<float>(c.m_width) / static_cast<float>(c.m_height);
   float fov_rad = static_cast<float>(c.m_camera.m_fov * 3.14159265 / 180.0);
   uniforms.view = matrix::look_at(c.m_camera.m_pos, c.m_camera.m_center, c.m_camera.m_up);
-  uniforms.projection =
-    matrix::perspective(fov_rad, aspect, static_cast<float>(c.m_camera.m_near), static_cast<float>(c.m_camera.m_far));
+  uniforms.projection = matrix::perspective(fov_rad, aspect, static_cast<float>(c.m_camera.near_plane()),
+                                            static_cast<float>(c.m_camera.far_plane()));
   uniforms.view_projection = matrix::multiply(uniforms.projection, uniforms.view);
   uniforms.camera_pos = to_gpu(c.m_camera.m_pos);
   wgpuQueueWriteBuffer(m_queue, m_camera_buffer, 0, &uniforms, sizeof(uniforms));

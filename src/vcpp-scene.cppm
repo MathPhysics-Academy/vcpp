@@ -31,8 +31,11 @@ struct camera
   vec3 m_center{0, 0, 0}; // look-at point
   vec3 m_up{0, 1, 0};     // up direction
   double m_fov{60.0};     // field of view (degrees)
-  double m_near{0.1};     // near clipping plane
-  double m_far{1000.0};   // far clipping plane
+
+  // Clipping planes scale with the camera's distance from center, as in GlowScript, so a scene in metres
+  // and one in astronomical units both show
+  double near_plane() const noexcept { return mag(m_pos - m_center) / 100; }
+  double far_plane() const noexcept { return mag(m_pos - m_center) * 10; }
 
   // Computed: forward direction
   constexpr vec3 forward() const noexcept { return hat(m_center - m_pos); }
@@ -224,7 +227,7 @@ public:
     int retain{-1};
     int moves{0}; // set_pos calls since the last point, for interval
     vec3 color{1, 1, 1};
-    double radius{0.02};
+    double radius{0}; // 0: a thin line a few pixels wide, as in GlowScript
   };
   std::unordered_map<std::size_t, trail_data> m_trails; // keyed by scene entry index
 
