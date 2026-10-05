@@ -160,20 +160,20 @@ ellipsoid,up,vector,,ellipsoid.html,,ellipsoid_object,up,wired,0,0,0,0
 ellipsoid,visible,boolean,: True,ellipsoid.html,,ellipsoid_object,visible,wired,0,0,0,0
 ellipsoid,width,scalar,,ellipsoid.html,,ellipsoid_object,width,wired,0,0,0,0
 extrusion,color,vector,color.white,extrusion.html,,extrusion_object,color,wired,25,0,0,5
-extrusion,end_normal,vector,,extrusion.html,,extrusion_object,end_normal,missing,0,0,0,0
+extrusion,end_normal,vector,,extrusion.html,,extrusion_object,end_normal,wired,0,0,0,0
 extrusion,group,object,,extrusion.html,,extrusion_object,group,declared-only,0,0,0,0
 extrusion,path,list,,extrusion.html,,extrusion_object,path,wired,30,0,0,5
-extrusion,scale,scalar or list,,extrusion.html,,extrusion_object,scale,field-only,1,0,0,1
+extrusion,scale,scalar or list,,extrusion.html,,extrusion_object,scale,wired,1,0,0,1
 extrusion,shape,list,,extrusion.html,,extrusion_object,shape,wired,30,0,0,5
-extrusion,sharp_joints,list,,extrusion.html,,extrusion_object,sharp_joints,missing,0,0,0,0
-extrusion,show_end_face,boolean,,extrusion.html,,extrusion_object,show_end_face,field-only,0,0,0,0
-extrusion,show_start_face,boolean,True,extrusion.html,,extrusion_object,show_start_face,field-only,0,0,0,0
-extrusion,smooth,scalar,: 0.95 (an angle of 18 degrees),extrusion.html,,extrusion_object,smooth,missing,0,0,0,0
-extrusion,smooth_joints,list,,extrusion.html,,extrusion_object,smooth_joints,missing,0,0,0,0
-extrusion,start_normal,vector,,extrusion.html,,extrusion_object,start_normal,missing,0,0,0,0
+extrusion,sharp_joints,list,,extrusion.html,,extrusion_object,sharp_joints,wired,0,0,0,0
+extrusion,show_end_face,boolean,,extrusion.html,,extrusion_object,show_end_face,wired,0,0,0,0
+extrusion,show_start_face,boolean,True,extrusion.html,,extrusion_object,show_start_face,wired,0,0,0,0
+extrusion,smooth,scalar,: 0.95 (an angle of 18 degrees),extrusion.html,,extrusion_object,smooth,wired,0,0,0,0
+extrusion,smooth_joints,list,,extrusion.html,,extrusion_object,smooth_joints,wired,0,0,0,0
+extrusion,start_normal,vector,,extrusion.html,,extrusion_object,start_normal,wired,0,0,0,0
 extrusion,twist,scalar or list,,extrusion.html,,extrusion_object,twist,wired,2,0,0,1
-extrusion,xscale,scalar or list,,extrusion.html,,extrusion_object,xscale,missing,0,0,0,0
-extrusion,yscale,scalar or list,,extrusion.html,,extrusion_object,yscale,missing,0,0,0,0
+extrusion,xscale,scalar or list,,extrusion.html,,extrusion_object,xscale,wired,0,0,0,0
+extrusion,yscale,scalar or list,,extrusion.html,,extrusion_object,yscale,wired,0,0,0,0
 gcurve,color,vector,color.black,graph.html,,gcurve_object,color,wired,130,0,0,13
 gcurve,data,list,,graph.html,,gcurve_object,data,field-only,0,4,0,1
 gcurve,dot,boolean,,graph.html,,gcurve_object,show_dot,wired,0,0,0,0

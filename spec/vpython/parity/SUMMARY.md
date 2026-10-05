@@ -6,13 +6,13 @@ Status: **wired** settable by name · **field-only** member exists, `obj(name=�
 
 ## Totals (411 object/attribute pairs)
 
-- wired: 241
-- field-only: 20
+- wired: 251
+- field-only: 17
 - declared-only: 16
-- missing: 51
+- missing: 44
 - no-object: 83
 
-The corpus uses 169 of these pairs; 117 are wired.
+The corpus uses 169 of these pairs; 118 are wired.
 
 ## Gaps ranked by real usage
 
@@ -53,11 +53,11 @@ The corpus uses 169 of these pairs; 117 are wired.
 | canvas | width | no-object | 1 | 1 | 0 | 0 |
 | checkbox | checked | no-object | 1 | 1 | 0 | 0 |
 | distant_light | color | no-object | 1 | 1 | 0 | 0 |
-| extrusion | scale | field-only | 1 | 1 | 0 | 0 |
 | gcurve | marker_color | missing | 1 | 1 | 0 | 0 |
 | gdots | size | declared-only | 1 | 1 | 0 | 0 |
 | graph | align | declared-only | 1 | 1 | 0 | 0 |
 | graph | scroll | missing | 1 | 1 | 0 | 0 |
+| gvbars | data | field-only | 1 | 0 | 1 | 0 |
 
 ## Per-object coverage
 
@@ -76,7 +76,7 @@ The corpus uses 169 of these pairs; 117 are wired.
 | cylinder | 20 | 17 | 8 | 8 |
 | distant_light | 2 | 0 | 2 | 0 |
 | ellipsoid | 21 | 18 | 3 | 3 |
-| extrusion | 15 | 4 | 5 | 4 |
+| extrusion | 15 | 14 | 5 | 5 |
 | gcurve | 12 | 10 | 7 | 5 |
 | gdots | 8 | 5 | 3 | 2 |
 | graph | 16 | 12 | 11 | 9 |
@@ -103,7 +103,7 @@ The corpus uses 169 of these pairs; 117 are wired.
 
 Declared in `vcpp-props.cppm` but not a documented attribute of any object (some exist in the runtime but are undocumented, e.g. `trail_color`; others are vcpp's own):
 
-`acceleration`, `ambient`, `center`, `charge`, `closed`, `dt`, `forward`, `fov`, `lights`, `marker_radius`, `mass`, `momentum`, `points`, `range`, `scale_end`, `target_canvas`, `trail_color`, `velocity`
+`acceleration`, `ambient`, `center`, `charge`, `closed`, `dt`, `forward`, `fov`, `lights`, `marker_radius`, `mass`, `momentum`, `points`, `range`, `target_canvas`, `trail_color`, `velocity`
 
 ## User-defined attributes (not in the spec) — the attribute-bag case
 

@@ -29,7 +29,7 @@ arrow,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 arrow,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
 arrow,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
 arrow,round,attribute,,,accessor,primitives.js:1017,,yes,yes,wired,round,0,0
-arrow,scale,attribute,,,accessor,primitives.js:1056,,yes,yes,missing,scale,0,0
+arrow,scale,attribute,,,accessor,primitives.js:1056,,yes,yes,declared-only,scale,0,0
 arrow,shaftwidth,attribute,,,accessor,primitives.js:1023,,yes,yes,wired,shaftwidth,2,2
 arrow,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 arrow,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,0,0
@@ -434,7 +434,7 @@ extrusion,compound_to_world,method,,,,primitives.js:1863,compound,yes,yes,missin
 extrusion,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
 extrusion,emissive,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,emissive,2,1
 extrusion,end_face_color,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,end_face_color,2,1
-extrusion,end_normal,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,end_normal,0,0
+extrusion,end_normal,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,end_normal,0,0
 extrusion,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
 extrusion,green,attribute,,,accessor,primitives.js:1839,compound,yes,yes,missing,green,0,0
 extrusion,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
@@ -455,19 +455,19 @@ extrusion,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,miss
 extrusion,red,attribute,,,accessor,primitives.js:1832,compound,yes,yes,missing,red,0,0
 extrusion,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
 extrusion,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,8,4
-extrusion,scale,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,scale,1,1
+extrusion,scale,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,scale,1,1
 extrusion,self,attribute,,,constructor option,primitives.js:1749,compound,no,no,missing,self,0,0
 extrusion,shape,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,shape,30,5
-extrusion,sharp_joints,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,sharp_joints,0,0
+extrusion,sharp_joints,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,sharp_joints,0,0
 extrusion,shininess,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,shininess,2,1
-extrusion,show_end_face,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,show_end_face,0,0
-extrusion,show_start_face,attribute,,,constructor option,extrude.js:523,,yes,yes,field-only,show_start_face,0,0
+extrusion,show_end_face,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,show_end_face,0,0
+extrusion,show_start_face,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,show_start_face,0,0
 extrusion,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,0,0
 extrusion,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
-extrusion,smooth,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,smooth,0,0
-extrusion,smooth_joints,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,smooth_joints,0,0
+extrusion,smooth,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,smooth,0,0
+extrusion,smooth_joints,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,smooth_joints,0,0
 extrusion,start_face_color,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,start_face_color,1,1
-extrusion,start_normal,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,start_normal,0,0
+extrusion,start_normal,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,start_normal,0,0
 extrusion,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,15,4
 extrusion,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
 extrusion,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
@@ -478,9 +478,9 @@ extrusion,visible,attribute,,,constructor option,primitives.js:1749,compound,yes
 extrusion,width,attribute,,,accessor,primitives.js:1825,compound,yes,yes,declared-only,width,0,0
 extrusion,world_to_compound,method,,,,primitives.js:1853,compound,yes,yes,missing,world_to_compound,0,0
 extrusion,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
-extrusion,xscale,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,xscale,0,0
+extrusion,xscale,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,xscale,0,0
 extrusion,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
-extrusion,yscale,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,yscale,0,0
+extrusion,yscale,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,yscale,0,0
 extrusion,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
 gcurve,color,attribute,,,accessor,graph.js:1221,gobject,yes,yes,wired,color,130,13
 gcurve,data,attribute,,,constructor option,graph.js:1503,,yes,yes,field-only,data,4,1

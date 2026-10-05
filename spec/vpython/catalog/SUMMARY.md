@@ -14,13 +14,13 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- missing: 365
-- wired: 363
+- wired: 373
+- missing: 357
 - no-object: 215
-- declared-only: 80
-- field-only: 38
+- declared-only: 81
+- field-only: 35
 
-Corpus uses 237 members; 146 are wired.
+Corpus uses 237 members; 147 are wired.
 
 ## Gaps ranked by real usage
 
@@ -94,7 +94,7 @@ Corpus uses 237 members; 146 are wired.
 | distant_light | 11 | 0 | 2 | 0 |
 | ellipsoid | 35 | 18 | 3 | 3 |
 | event | 13 | 0 | 0 | 0 |
-| extrusion | 53 | 17 | 15 | 10 |
+| extrusion | 53 | 27 | 15 | 11 |
 | gcurve | 19 | 10 | 7 | 5 |
 | gdots | 19 | 5 | 3 | 2 |
 | ghbars | 19 | 0 | 0 | 0 |
