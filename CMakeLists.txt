@@ -190,6 +190,12 @@ install(FILES
 )
 
 # Tests
+# VPython -> vcpp C++ translator
+option(VCPP_BUILD_TRANSPILER "Build the vpy2cpp transpiler" OFF)
+if(VCPP_BUILD_TRANSPILER)
+  add_subdirectory(transpiler)
+endif()
+
 option(VCPP_BUILD_TESTS "Build tests" OFF)
 if(VCPP_BUILD_TESTS)
   add_subdirectory(tests)

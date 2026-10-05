@@ -1,0 +1,15 @@
+# Translates PROGRAM with vpy_ast.py and vpy2cpp, and fails if the C++ differs from EXPECTED.
+# If a change to the output is intended, regenerate EXPECTED and review the diff.
+execute_process(COMMAND ${PYTHON} ${VPY_AST} ${PROGRAM} OUTPUT_FILE ${WORK}.json RESULT_VARIABLE parse_result)
+if(NOT parse_result EQUAL 0)
+  message(FATAL_ERROR "vpy_ast.py failed on ${PROGRAM}")
+endif()
+execute_process(COMMAND ${VPY2CPP} ${WORK}.json OUTPUT_FILE ${WORK}.cpp RESULT_VARIABLE translate_result)
+if(NOT translate_result EQUAL 0)
+  message(FATAL_ERROR "vpy2cpp failed on ${PROGRAM}")
+endif()
+file(READ ${WORK}.cpp got)
+file(READ ${EXPECTED} want)
+if(NOT got STREQUAL want)
+  message(FATAL_ERROR "${PROGRAM}: translation differs from ${EXPECTED}; see ${WORK}.cpp")
+endif()
