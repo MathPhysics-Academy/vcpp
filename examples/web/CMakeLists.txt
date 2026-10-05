@@ -58,6 +58,17 @@ if(EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".js")
 
   # WebGPU via emdawnwebgpu port (replaces old -sUSE_WEBGPU=1); compile flag set above
+  # Optional: a TrueType font for 3D text, embedded at /fonts/sans.ttf (GlowScript uses Roboto-Medium.ttf).
+  # Fonts are third-party, so point this at a file outside the repo. Without it, 3D text uses simplified
+  # built-in outlines.
+  set(VCPP_FONT_SANS "" CACHE FILEPATH "TrueType font for 3D text")
+  if(VCPP_FONT_SANS)
+    if(NOT EXISTS "${VCPP_FONT_SANS}")
+      message(FATAL_ERROR "VCPP_FONT_SANS: no file at ${VCPP_FONT_SANS}")
+    endif()
+    add_link_options("SHELL:--embed-file ${VCPP_FONT_SANS}@/fonts/sans.ttf")
+  endif()
+
   add_link_options(
     --use-port=emdawnwebgpu
     -sASYNCIFY
@@ -130,6 +141,7 @@ set(VCPP_MODULE_FILES
   ${VCPP_SRC_DIR}/vcpp-object-base.cppm
   ${VCPP_SRC_DIR}/vcpp-objects.cppm
   ${VCPP_SRC_DIR}/vcpp-shapes.cppm
+  ${VCPP_SRC_DIR}/vcpp-font.cppm
   ${VCPP_SRC_DIR}/vcpp-text-glyphs.cppm
   ${VCPP_SRC_DIR}/vcpp-label-bridge.cppm
   ${VCPP_SRC_DIR}/vcpp-scene.cppm

@@ -17,6 +17,7 @@ export module vcpp:text_glyphs;
 
 import :vec;
 import :mesh;
+import :font;
 
 export namespace vcpp::text_glyphs
 {
@@ -376,8 +377,119 @@ inline glyph_data get_glyph(char c)
 // Returns mesh_data with vertices and indices.
 // ============================================================================
 
+// ============================================================================
+// Text from a TrueType font, as GlowScript draws it
+//
+// The font is read once, from font_file_sans; set that before the first text is drawn. The web build
+// embeds a font there when configured with VCPP_FONT_SANS. Without a readable font, the simplified
+// outlines below are used.
+// ============================================================================
+
+inline std::string font_file_sans = "/fonts/sans.ttf";
+
+inline const truetype_font* sans_font()
+{
+  static const std::optional<truetype_font> font = truetype_font::load(font_file_sans);
+  return font ? &*font : nullptr;
+}
+
+// GlowScript scales text so that a lowercase h is `height` tall
+inline double h_height(const truetype_font& font)
+{
+  double top = 0;
+  for (const auto& contour : font.outline(U'h').contours)
+    for (const auto& p : contour)
+      top = std::max(top, p.y());
+  return top > 0 ? top : 0.7;
+}
+
+// Text along +x from the baseline at the origin, extruded from z = 0 to z = depth; lines are 1.5 h apart
+inline mesh::mesh_data generate_font_text_mesh(const truetype_font& font, const std::string& text, double height,
+                                               double depth)
+{
+  mesh::mesh_data mesh;
+  const double h = h_height(font);
+  const double scale = height / h;
+  double cursor = 0;
+  double baseline = 0;
+
+  auto add_vertex = [&](const vec2& p, double z, const vec3& normal) {
+    mesh::vertex v{};
+    v.position[0] = static_cast<float>(p.x());
+    v.position[1] = static_cast<float>(p.y());
+    v.position[2] = static_cast<float>(z);
+    v.normal[0] = static_cast<float>(normal.x());
+    v.normal[1] = static_cast<float>(normal.y());
+    v.normal[2] = static_cast<float>(normal.z());
+    mesh.vertices.push_back(v);
+    return static_cast<std::uint32_t>(mesh.vertices.size() - 1);
+  };
+  const vec3 front{0, 0, depth >= 0 ? 1.0 : -1.0};
+  const vec3 back{0, 0, -front.z()};
+
+  for (char ch : text)
+  {
+    if (ch == '\n')
+    {
+      cursor = 0;
+      baseline -= 1.5 * h;
+      continue;
+    }
+    auto glyph = font.outline(static_cast<unsigned char>(ch));
+    for (auto& contour : glyph.contours)
+      for (auto& p : contour)
+        p = vec2{(p.x() + cursor) * scale, (p.y() + baseline) * scale};
+    cursor += glyph.advance;
+    if (glyph.contours.empty())
+      continue;
+
+    // Faces: the triangulation's indices count the contours' points in order
+    const auto triangles = mesh::triangulate(glyph.contours);
+    std::vector<vec2> points;
+    for (const auto& contour : glyph.contours)
+      points.insert(points.end(), contour.begin(), contour.end());
+    for (const auto& [z, normal, flip] : {std::tuple{depth, front, false}, std::tuple{0.0, back, true}})
+    {
+      const auto first = static_cast<std::uint32_t>(mesh.vertices.size());
+      for (const auto& p : points)
+        add_vertex(p, z, normal);
+      for (std::size_t t = 0; t + 2 < triangles.size(); t += 3)
+        mesh.indices.insert(mesh.indices.end(), {first + triangles[t], first + triangles[t + (flip ? 2 : 1)],
+                                                 first + triangles[t + (flip ? 1 : 2)]});
+    }
+
+    // Side walls, each facing away from the solid letter: for a counter-clockwise outer contour or a
+    // clockwise hole that is to the right of each edge
+    for (std::size_t c = 0; c < glyph.contours.size(); ++c)
+    {
+      const auto& contour = glyph.contours[c];
+      int nesting = 0;
+      for (std::size_t o = 0; o < glyph.contours.size(); ++o)
+        if (o != c && mesh::detail::inside(glyph.contours[o], contour.front()))
+          ++nesting;
+      const bool hole = nesting % 2 != 0;
+      const double side = (mesh::detail::signed_area(contour) > 0) != hole ? 1.0 : -1.0;
+      for (std::size_t i = 0; i < contour.size(); ++i)
+      {
+        const vec2& a = contour[i];
+        const vec2& b = contour[(i + 1) % contour.size()];
+        const vec3 normal = hat(vec3{(b.y() - a.y()) * side, -(b.x() - a.x()) * side, 0});
+        const auto v0 = add_vertex(a, 0, normal);
+        const auto v1 = add_vertex(b, 0, normal);
+        const auto v2 = add_vertex(b, depth, normal);
+        const auto v3 = add_vertex(a, depth, normal);
+        mesh.indices.insert(mesh.indices.end(), {v0, v1, v2, v0, v2, v3});
+      }
+    }
+  }
+  return mesh;
+}
+
 inline mesh::mesh_data generate_text_mesh(const std::string& text, double height = 1.0, double depth = 0.2)
 {
+  if (const auto* font = sans_font())
+    return generate_font_text_mesh(*font, text, height, depth);
+
   std::vector<mesh::mesh_data> glyph_meshes;
   double cursor_x = 0.0;
 
@@ -393,11 +505,12 @@ inline mesh::mesh_data generate_text_mesh(const std::string& text, double height
         vec3{0, 0, depth},
       };
 
-      // Scale glyph to desired height and offset by cursor
+      // Scale glyph to desired height and offset by cursor. For a path along +z, generate_extrusion puts
+      // an outline's (x, y) at (-x, -y); negating keeps the text upright and reading along +x.
       std::vector<vec2> scaled_outline;
       for (const auto& p : glyph.outline)
       {
-        scaled_outline.push_back(vec2{(p.x() + cursor_x) * height, p.y() * height});
+        scaled_outline.push_back(vec2{-(p.x() + cursor_x) * height, -p.y() * height});
       }
 
       // Generate extrusion for this glyph
@@ -424,6 +537,13 @@ inline mesh::mesh_data generate_text_mesh(const std::string& text, double height
 
 inline double get_text_width(const std::string& text)
 {
+  if (const auto* font = sans_font())
+  {
+    double width = 0;
+    for (char c : text)
+      width += font->outline(static_cast<unsigned char>(c)).advance;
+    return width / h_height(*font);
+  }
   double width = 0.0;
   for (char c : text)
   {

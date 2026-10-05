@@ -37,6 +37,7 @@ target_sources(vcpp PUBLIC
     src/vcpp-object-base.cppm
     src/vcpp-objects.cppm
     src/vcpp-shapes.cppm
+    src/vcpp-font.cppm
     src/vcpp-text-glyphs.cppm
     src/vcpp-label-bridge.cppm
     src/vcpp-scene.cppm

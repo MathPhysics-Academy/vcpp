@@ -726,6 +726,199 @@ inline mesh_data generate_pyramid()
 // Used for compound objects. Concatenates vertices and adjusts indices.
 // ============================================================================
 
+// ============================================================================
+// triangulate - Fill closed contours, treating a contour inside an odd number of others as a hole
+//
+// Returns triangles (counter-clockwise in x/y) as indices into the contours' points, numbered in order
+// across all contours. Holes are joined to their outer contour by a bridge edge, then the polygon is cut
+// into triangles by ear clipping.
+// ============================================================================
+
+namespace detail
+{
+inline double cross2(const vec2& o, const vec2& a, const vec2& b)
+{ return (a.x() - o.x()) * (b.y() - o.y()) - (a.y() - o.y()) * (b.x() - o.x()); }
+
+inline double signed_area(const std::vector<vec2>& c)
+{
+  double area = 0;
+  for (std::size_t i = 0, j = c.size() - 1; i < c.size(); j = i++)
+    area += (c[j].x() - c[i].x()) * (c[j].y() + c[i].y());
+  return area / 2;
+}
+
+inline bool inside(const std::vector<vec2>& c, const vec2& p)
+{
+  bool in = false;
+  for (std::size_t i = 0, j = c.size() - 1; i < c.size(); j = i++)
+    if ((c[i].y() > p.y()) != (c[j].y() > p.y()) &&
+        p.x() < (c[j].x() - c[i].x()) * (p.y() - c[i].y()) / (c[j].y() - c[i].y()) + c[i].x())
+      in = !in;
+  return in;
+}
+
+inline bool in_triangle(const vec2& a, const vec2& b, const vec2& c, const vec2& p)
+{ return cross2(a, b, p) >= 0 && cross2(b, c, p) >= 0 && cross2(c, a, p) >= 0; }
+} // namespace detail
+
+inline std::vector<std::uint32_t> triangulate(const std::vector<std::vector<vec2>>& contours)
+{
+  using detail::cross2;
+  std::vector<vec2> pts;
+  std::vector<std::vector<std::uint32_t>> rings;
+  for (const auto& c : contours)
+  {
+    std::vector<std::uint32_t> ring;
+    for (const auto& p : c)
+    {
+      const auto id = static_cast<std::uint32_t>(pts.size());
+      pts.push_back(p);
+      if (ring.empty() || pts[ring.back()] != p)
+        ring.push_back(id);
+    }
+    while (ring.size() > 1 && pts[ring.back()] == pts[ring.front()])
+      ring.pop_back();
+    rings.push_back(std::move(ring));
+  }
+  auto points_of = [&](const std::vector<std::uint32_t>& ring) {
+    std::vector<vec2> out;
+    for (auto i : ring)
+      out.push_back(pts[i]);
+    return out;
+  };
+
+  const std::size_t n = rings.size();
+  std::vector<int> depth(n, 0);
+  for (std::size_t i = 0; i < n; ++i)
+    for (std::size_t j = 0; j < n; ++j)
+      if (i != j && rings[i].size() >= 3 && rings[j].size() >= 3 &&
+          detail::inside(points_of(rings[j]), pts[rings[i].front()]))
+        ++depth[i];
+
+  std::vector<std::uint32_t> triangles;
+  for (std::size_t outer = 0; outer < n; ++outer)
+  {
+    if (rings[outer].size() < 3 || depth[outer] % 2 != 0)
+      continue;
+    std::vector<std::uint32_t> poly = rings[outer];
+    if (detail::signed_area(points_of(poly)) < 0)
+      std::ranges::reverse(poly);
+
+    // This contour's holes, each made clockwise, bridged in from the leftmost
+    const auto outline = points_of(rings[outer]);
+    std::vector<std::vector<std::uint32_t>> holes;
+    for (std::size_t h = 0; h < n; ++h)
+      if (rings[h].size() >= 3 && depth[h] == depth[outer] + 1 && detail::inside(outline, pts[rings[h].front()]))
+      {
+        auto hole = rings[h];
+        if (detail::signed_area(points_of(hole)) > 0)
+          std::ranges::reverse(hole);
+        holes.push_back(std::move(hole));
+      }
+    auto leftmost = [&](const std::vector<std::uint32_t>& ring) {
+      return std::ranges::min_element(ring, {}, [&](std::uint32_t i) { return pts[i].x(); }) - ring.begin();
+    };
+    std::ranges::sort(holes, {}, [&](const auto& hole) { return pts[hole[leftmost(hole)]].x(); });
+
+    for (const auto& hole : holes)
+    {
+      const auto m = hole[leftmost(hole)];
+      const vec2 hp = pts[m];
+      // As earcut does: cast a ray from the hole's leftmost point toward -x. It can only cross downward
+      // edges of the counter-clockwise outline; the crossed edge's end with the smaller x is the bridge.
+      double best_x = -std::numeric_limits<double>::infinity();
+      std::optional<std::size_t> bridge;
+      for (std::size_t i = 0; i < poly.size(); ++i)
+      {
+        const vec2& a = pts[poly[i]];
+        const vec2& b = pts[poly[(i + 1) % poly.size()]];
+        if (!(hp.y() <= a.y() && hp.y() >= b.y() && a.y() != b.y()))
+          continue;
+        const double x = a.x() + (hp.y() - a.y()) * (b.x() - a.x()) / (b.y() - a.y());
+        if (x <= hp.x() && x > best_x)
+        {
+          best_x = x;
+          bridge = a.x() < b.x() ? i : (i + 1) % poly.size();
+        }
+      }
+      if (!bridge)
+        continue;
+      // A vertex inside the triangle (hole point, crossing, bridge end) would block the bridge; take the one
+      // closest in angle to the ray instead
+      const vec2 end = pts[poly[*bridge]];
+      const vec2 left{hp.y() < end.y() ? hp.x() : best_x, hp.y()};
+      const vec2 right{hp.y() < end.y() ? best_x : hp.x(), hp.y()};
+      double best_tan = std::numeric_limits<double>::infinity();
+      for (std::size_t i = 0; i < poly.size(); ++i)
+      {
+        const vec2& v = pts[poly[i]];
+        if (!(hp.x() >= v.x() && v.x() >= end.x() && hp.x() != v.x()))
+          continue;
+        if (!(detail::in_triangle(left, end, right, v) || detail::in_triangle(left, right, end, v)))
+          continue;
+        const double t = std::abs(hp.y() - v.y()) / (hp.x() - v.x());
+        if (t < best_tan)
+        {
+          best_tan = t;
+          bridge = i;
+        }
+      }
+      const std::size_t at = *bridge;
+      std::vector<std::uint32_t> joined(poly.begin(), poly.begin() + static_cast<std::ptrdiff_t>(at) + 1);
+      const auto start = static_cast<std::size_t>(std::ranges::find(hole, m) - hole.begin());
+      for (std::size_t k = 0; k <= hole.size(); ++k)
+        joined.push_back(hole[(start + k) % hole.size()]);
+      joined.push_back(poly[at]);
+      joined.insert(joined.end(), poly.begin() + static_cast<std::ptrdiff_t>(at) + 1, poly.end());
+      poly = std::move(joined);
+    }
+
+    // Ear clipping
+    while (poly.size() > 3)
+    {
+      bool clipped = false;
+      for (std::size_t i = 0; i < poly.size() && !clipped; ++i)
+      {
+        const std::size_t ip = (i + poly.size() - 1) % poly.size();
+        const std::size_t in = (i + 1) % poly.size();
+        const vec2& a = pts[poly[ip]];
+        const vec2& b = pts[poly[i]];
+        const vec2& c = pts[poly[in]];
+        const double turn = cross2(a, b, c);
+        if (turn < 0)
+          continue; // reflex
+        // Only a reflex vertex inside the triangle blocks the ear, as in earcut
+        bool ear = true;
+        if (turn > 0)
+          for (std::size_t k = 0; k < poly.size() && ear; ++k)
+          {
+            const vec2& p = pts[poly[k]];
+            if (k == ip || k == i || k == in || p == a || p == b || p == c)
+              continue;
+            const vec2& kp = pts[poly[(k + poly.size() - 1) % poly.size()]];
+            const vec2& kn = pts[poly[(k + 1) % poly.size()]];
+            ear = cross2(kp, p, kn) > 0 || !detail::in_triangle(a, b, c, p);
+          }
+        if (!ear)
+          continue;
+        if (turn > 0)
+          triangles.insert(triangles.end(), {poly[ip], poly[i], poly[in]});
+        poly.erase(poly.begin() + static_cast<std::ptrdiff_t>(i)); // a collinear vertex is dropped unfilled
+        clipped = true;
+      }
+      if (!clipped)
+      {
+        // Self-touching input left no clean ear; cut one anyway rather than loop forever
+        triangles.insert(triangles.end(), {poly[poly.size() - 1], poly[0], poly[1]});
+        poly.erase(poly.begin());
+      }
+    }
+    if (poly.size() == 3 && cross2(pts[poly[0]], pts[poly[1]], pts[poly[2]]) > 0)
+      triangles.insert(triangles.end(), {poly[0], poly[1], poly[2]});
+  }
+  return triangles;
+}
+
 inline mesh_data merge_meshes(const std::vector<mesh_data>& meshes)
 {
   mesh_data result;

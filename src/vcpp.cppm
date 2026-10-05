@@ -42,6 +42,7 @@ export import :objects;
 export import :shapes;
 
 // 3D Text glyphs
+export import :font;
 export import :text_glyphs;
 
 // Label rendering bridge
