@@ -337,34 +337,32 @@ inline mesh_data generate_cone(int slices = 16)
 // ============================================================================
 // Helix Mesh Generator
 //
-// Coiled tube along X axis.
-// Length 1.0, helix radius 1.0, tube radius 0.1.
+// A coiled tube along X from 0 to length, as GlowScript draws a helix: 60 steps per coil, starting at +z
+// and turning toward +y when ccw.
 // ============================================================================
 
-inline mesh_data generate_helix(int coils = 8, int tube_slices = 8, int steps_per_coil = 16)
+inline mesh_data generate_helix(float length = 1.0f, float helix_radius = 1.0f, float tube_radius = 0.1f, int coils = 8,
+                                bool ccw = true, int tube_slices = 8, int steps_per_coil = 60)
 {
   mesh_data mesh;
-  float length = 1.0f;
-  float helix_radius = 1.0f;
-  float tube_radius = 0.1f;
-
+  const float turn = ccw ? 1.0f : -1.0f;
   int total_steps = coils * steps_per_coil;
 
   for (int i = 0; i <= total_steps; ++i)
   {
     float t = static_cast<float>(i) / static_cast<float>(total_steps);
-    float angle = t * static_cast<float>(coils) * TWO_PI;
+    float angle = turn * t * static_cast<float>(coils) * TWO_PI;
     float x_center = t * length;
 
     // Helix path point
-    float y_center = helix_radius * std::cos(angle);
-    float z_center = helix_radius * std::sin(angle);
+    float y_center = helix_radius * std::sin(angle);
+    float z_center = helix_radius * std::cos(angle);
 
     // Tangent vector
-    float A = static_cast<float>(coils) * TWO_PI;
+    float A = turn * static_cast<float>(coils) * TWO_PI;
     float tx = length;
-    float ty = -helix_radius * A * std::sin(angle);
-    float tz = helix_radius * A * std::cos(angle);
+    float ty = helix_radius * A * std::cos(angle);
+    float tz = -helix_radius * A * std::sin(angle);
     float t_len = std::sqrt(tx * tx + ty * ty + tz * tz);
     tx /= t_len;
     ty /= t_len;
@@ -372,8 +370,8 @@ inline mesh_data generate_helix(int coils = 8, int tube_slices = 8, int steps_pe
 
     // Normal (radial direction)
     float nx = 0;
-    float ny = std::cos(angle);
-    float nz = std::sin(angle);
+    float ny = std::sin(angle);
+    float nz = std::cos(angle);
 
     // Binormal B = T x N
     float bx = ty * nz - tz * ny;

@@ -117,6 +117,14 @@ bool test_graph_params()
          c.m_label == "KE" && near(c.m_color, vec3{1, 0, 0}) && empty.m_id != g.m_id;
 }
 
+// As in GlowScript, a ring given only a radius is 0.1 x radius thick; an explicit thickness wins
+bool test_ring_thickness()
+{
+  auto r = ring(radius = 2.0);
+  auto t = ring(radius = 2.0, thickness = 0.05);
+  return near(r.m_thickness, 0.2) && near(t.m_thickness, 0.05) && near(t.m_radius, 2.0) && near(helix().m_thickness, 0);
+}
+
 // Untouched objects keep their defaults, including length == mag(axis)
 bool test_defaults_unchanged()
 {
@@ -160,6 +168,7 @@ int main()
   run_test("text3d params", test_text3d_params);
   run_test("extrusion params", test_extrusion_params);
   run_test("graph params", test_graph_params);
+  run_test("ring thickness", test_ring_thickness);
   run_test("defaults unchanged", test_defaults_unchanged);
 
   std::println("==========================");

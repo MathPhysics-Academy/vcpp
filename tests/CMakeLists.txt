@@ -37,3 +37,8 @@ add_executable(test_font test_font.cpp)
 target_link_libraries(test_font PRIVATE vcpp)
 target_compile_features(test_font PRIVATE cxx_std_23)
 add_test(NAME test_font COMMAND test_font)
+
+add_executable(test_meshes test_meshes.cpp)
+target_link_libraries(test_meshes PRIVATE vcpp)
+target_compile_features(test_meshes PRIVATE cxx_std_23)
+add_test(NAME test_meshes COMMAND test_meshes)

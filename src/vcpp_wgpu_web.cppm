@@ -193,8 +193,6 @@ struct renderer_state
   WGPUBuffer cone_ib{nullptr};
   std::size_t cone_ib_cap{0};
 
-  WGPUBuffer helix_ib{nullptr};
-  std::size_t helix_ib_cap{0};
 
   // Per-curve mesh data (curves have dynamic geometry, can't use standard instancing)
   struct curve_mesh_data
@@ -214,6 +212,18 @@ struct renderer_state
     double thickness{-1};
   };
   std::vector<ring_mesh_data> ring_meshes;
+
+  // One mesh per helix, rebuilt when its shape changes
+  struct helix_mesh_data
+  {
+    curve_mesh_data mesh;
+    double length{-1};
+    double radius{-1};
+    double wire_radius{-1};
+    int coils{-1};
+    bool ccw{true};
+  };
+  std::vector<helix_mesh_data> helix_meshes;
 
   // Objects drawn one at a time each get a slot here. Queue writes all land before the pass runs, so
   // sharing one instance buffer gave every such draw the last object's position and colour.
@@ -259,7 +269,7 @@ struct renderer_state
     WGPUBuffer index_buffer{nullptr};
     std::uint32_t index_count{0};
   };
-  mesh_data meshes[6]; // 0=sphere, 1=box, 2=cylinder, 3=cone, 4=helix, 5=pyramid
+  mesh_data meshes[6]; // 0=sphere, 1=box, 2=cylinder, 3=cone, 4=unused (helices get a mesh each), 5=pyramid
 
   int width{800};
   int height{600};
@@ -412,8 +422,8 @@ inline void render_frame()
   pass_desc.colorAttachments = &color_att;
   pass_desc.depthStencilAttachment = &depth_att;
 
-  const std::size_t singles = c.m_rings.size() + c.m_curves.size() + c.m_compounds.size() + c.m_trails.size() +
-                              c.m_extrusions.size() + c.m_text3ds.size();
+  const std::size_t singles = c.m_rings.size() + c.m_helixes.size() + c.m_curves.size() + c.m_compounds.size() +
+                              c.m_trails.size() + c.m_extrusions.size() + c.m_text3ds.size();
   if (singles > g_renderer.single_ib_cap)
   {
     if (g_renderer.single_ib)
@@ -621,7 +631,6 @@ inline void render_frame()
 
   std::vector<instance_data> cylinder_instances;
   std::vector<instance_data> cone_instances;
-  std::vector<instance_data> helix_instances;
 
   // Process m_cylinders
   for (const auto& obj : c.m_cylinders)
@@ -707,28 +716,6 @@ inline void render_frame()
     }
   }
 
-  // Process m_helixes
-  for (const auto& h : c.m_helixes)
-  {
-    if (!h.m_visible)
-      continue;
-
-    double len = mag(h.m_axis);
-    if (len < 1e-6)
-      continue;
-
-    instance_data inst{};
-    gpu_mat4 rot = matrix::align_x_to_axis(h.m_axis);
-    gpu_mat4 scale = matrix::scale(static_cast<float>(len), static_cast<float>(h.m_radius),
-                                   static_cast<float>(h.m_radius));
-    gpu_mat4 tr = matrix::translate(static_cast<float>(h.m_pos.x()), static_cast<float>(h.m_pos.y()),
-                                    static_cast<float>(h.m_pos.z()));
-    inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
-    inst.color = to_gpu4(h.m_color, static_cast<float>(h.m_opacity));
-    inst.material = {static_cast<float>(h.m_shininess), 0, 0, 0};
-    helix_instances.push_back(inst);
-  }
-
   // Draw Cylinders
   if (!cylinder_instances.empty())
   {
@@ -771,25 +758,53 @@ inline void render_frame()
                                      static_cast<std::uint32_t>(cone_instances.size()), 0, 0, 0);
   }
 
-  // Draw Helices
-  if (!helix_instances.empty())
+  // Draw Helices: a wire of radius thickness / 2, or radius / 20 when thickness is 0, as in GlowScript
+  while (g_renderer.helix_meshes.size() < c.m_helixes.size())
+    g_renderer.helix_meshes.push_back({});
+  for (std::size_t helix_idx = 0; helix_idx < c.m_helixes.size(); ++helix_idx)
   {
-    std::size_t size = helix_instances.size() * sizeof(instance_data);
-    if (size > g_renderer.helix_ib_cap)
+    const auto& h = c.m_helixes[helix_idx];
+    const double length = mag(h.m_axis);
+    if (!h.m_visible || length < 1e-6)
+      continue;
+    const double wire = h.m_thickness > 0 ? h.m_thickness / 2 : h.m_radius / 20;
+
+    auto& cached = g_renderer.helix_meshes[helix_idx];
+    if (cached.length != length || cached.radius != h.m_radius || cached.wire_radius != wire ||
+        cached.coils != h.m_coils || cached.ccw != h.m_ccw)
     {
-      if (g_renderer.helix_ib)
-        wgpuBufferRelease(g_renderer.helix_ib);
-      g_renderer.helix_ib_cap = size * 2;
-      g_renderer.helix_ib = create_buffer(
-        static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), g_renderer.helix_ib_cap);
+      auto gen_mesh = mesh::generate_helix(static_cast<float>(length), static_cast<float>(h.m_radius),
+                                           static_cast<float>(wire), h.m_coils, h.m_ccw);
+      std::size_t vb_size = gen_mesh.vertices.size() * sizeof(vertex);
+      std::size_t ib_size = gen_mesh.indices.size() * sizeof(std::uint32_t);
+      if (vb_size + ib_size > cached.mesh.buffer_capacity)
+      {
+        if (cached.mesh.vertex_buffer)
+          wgpuBufferRelease(cached.mesh.vertex_buffer);
+        if (cached.mesh.index_buffer)
+          wgpuBufferRelease(cached.mesh.index_buffer);
+        cached.mesh.buffer_capacity = vb_size + ib_size;
+        cached.mesh.vertex_buffer =
+          create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst), vb_size);
+        cached.mesh.index_buffer =
+          create_buffer(static_cast<WGPUBufferUsage>(WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst), ib_size);
+      }
+      wgpuQueueWriteBuffer(g_renderer.queue, cached.mesh.vertex_buffer, 0, gen_mesh.vertices.data(), vb_size);
+      wgpuQueueWriteBuffer(g_renderer.queue, cached.mesh.index_buffer, 0, gen_mesh.indices.data(), ib_size);
+      cached.mesh.index_count = static_cast<std::uint32_t>(gen_mesh.indices.size());
+      cached.length = length;
+      cached.radius = h.m_radius;
+      cached.wire_radius = wire;
+      cached.coils = h.m_coils;
+      cached.ccw = h.m_ccw;
     }
-    wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.helix_ib, 0, helix_instances.data(), size);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, g_renderer.meshes[4].vertex_buffer, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.helix_ib, 0, WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderSetIndexBuffer(pass, g_renderer.meshes[4].index_buffer, WGPUIndexFormat_Uint32, 0,
-                                        WGPU_WHOLE_SIZE);
-    wgpuRenderPassEncoderDrawIndexed(pass, g_renderer.meshes[4].index_count,
-                                     static_cast<std::uint32_t>(helix_instances.size()), 0, 0, 0);
+
+    instance_data inst = build_instance(h, vec3{1, 1, 1});
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, cached.mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
+                                         sizeof(instance_data));
+    wgpuRenderPassEncoderSetIndexBuffer(pass, cached.mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderPassEncoderDrawIndexed(pass, cached.mesh.index_count, 1, 0, 0, 0);
   }
 
   // Draw Curves (per-curve dynamic mesh generation)
@@ -1571,7 +1586,6 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   create_mesh_buffers(1, mesh::generate_box());
   create_mesh_buffers(2, mesh::generate_cylinder());
   create_mesh_buffers(3, mesh::generate_cone());
-  create_mesh_buffers(4, mesh::generate_helix());
   create_mesh_buffers(5, mesh::generate_pyramid());
 
   // Register input callbacks

@@ -297,10 +297,20 @@ struct ring_object : object_base
   constexpr void set_thickness(double t) noexcept { m_thickness = t; }
 };
 
+namespace detail
+{
+// As in GlowScript, a ring given only a radius is 0.1 x radius thick; a thickness given too is applied after
+constexpr void set_ring_radius(ring_object& r, double radius)
+{
+  r.m_radius = radius;
+  r.m_thickness = 0.1 * radius;
+}
+} // namespace detail
+
 template<>
 struct object_params<ring_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&ring_object::m_radius, decltype(radius)>{},
+  static constexpr auto value = std::tuple{param_spec<&detail::set_ring_radius, decltype(radius)>{},
                                            param_spec<&ring_object::m_thickness, decltype(thickness)>{}};
 };
 
@@ -317,7 +327,7 @@ constexpr ring_object ring(Binders... binders)
 struct helix_object : object_base
 {
   double m_radius{1.0};
-  double m_thickness{0.05}; // wire thickness
+  double m_thickness{0.0}; // wire diameter; 0 means radius / 10, as in GlowScript
   double m_length{1.0};
   int m_coils{5};
   bool m_ccw{true}; // counter-clockwise
