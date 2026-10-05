@@ -56,285 +56,152 @@ inline constexpr float PI = 3.14159265358979323846f;
 inline constexpr float TWO_PI = 2.0f * PI;
 
 // ============================================================================
-// Sphere Mesh Generator
-//
-// Unit sphere (radius 0.5, diameter 1.0) for scaling via instance matrix.
-// Poles at Y axis.
+// Sphere, box, cylinder, cone and pyramid: GlowScript's meshes (mesh.js), with its texture coordinates,
+// in which v = 1 is the top of the image
 // ============================================================================
 
-inline mesh_data generate_sphere(int slices = 32, int stacks = 24)
+inline vertex make_vertex(double px, double py, double pz, double nx, double ny, double nz, double u, double v)
+{
+  return {{static_cast<float>(px), static_cast<float>(py), static_cast<float>(pz)},
+          {static_cast<float>(nx), static_cast<float>(ny), static_cast<float>(nz)},
+          {static_cast<float>(u), static_cast<float>(v)}};
+}
+
+// Radius 0.5, poles on y. Latitudes run from the north pole, each starting at -z and turning toward -x.
+// The image wraps once around: u = 0 at -z, v = 1 at the north pole.
+inline mesh_data generate_sphere(int n = 30)
 {
   mesh_data mesh;
-
-  for (int i = 0; i <= stacks; ++i)
+  const double r = 0.5;
+  const int offset = n + 1;
+  const double sint = std::sin(std::numbers::pi / n);
+  const double cost = std::cos(std::numbers::pi / n);
+  const double sinp = std::sin(2 * std::numbers::pi / n);
+  const double cosp = std::cos(2 * std::numbers::pi / n);
+  double y1 = r;
+  double z1 = 0;
+  for (int i = 0; i <= n; ++i)
   {
-    float phi = PI * static_cast<float>(i) / static_cast<float>(stacks);
-    float y = std::cos(phi);
-    float r = std::sin(phi);
-
-    for (int j = 0; j <= slices; ++j)
+    const double y2 = y1 * cost + z1 * sint;
+    const double z2 = z1 * cost - y1 * sint;
+    double x = 0;
+    double z = z1;
+    for (int j = 0; j < offset; ++j)
     {
-      float theta = TWO_PI * static_cast<float>(j) / static_cast<float>(slices);
-      float x = r * std::cos(theta);
-      float z = r * std::sin(theta);
-
-      vertex v{};
-      v.position[0] = x * 0.5f;
-      v.position[1] = y * 0.5f;
-      v.position[2] = z * 0.5f;
-      v.normal[0] = x;
-      v.normal[1] = y;
-      v.normal[2] = z;
-      v.uv[0] = static_cast<float>(j) / static_cast<float>(slices);
-      v.uv[1] = static_cast<float>(i) / static_cast<float>(stacks);
-      mesh.vertices.push_back(v);
+      mesh.vertices.push_back(
+        make_vertex(x, y1, z, x / r, y1 / r, z / r, static_cast<double>(j) / n, 1 - static_cast<double>(i) / n));
+      const double nx = x * cosp + z * sinp;
+      z = z * cosp - x * sinp;
+      x = nx;
     }
+    y1 = y2;
+    z1 = z2;
   }
-
-  for (int i = 0; i < stacks; ++i)
-  {
-    for (int j = 0; j < slices; ++j)
+  for (int i = 0; i < n; ++i)
+    for (int j = 0; j < n; ++j)
     {
-      std::uint32_t a = static_cast<std::uint32_t>(i * (slices + 1) + j);
-      std::uint32_t b = a + static_cast<std::uint32_t>(slices + 1);
-
-      mesh.indices.push_back(a);
-      mesh.indices.push_back(b);
-      mesh.indices.push_back(a + 1);
-
-      mesh.indices.push_back(a + 1);
-      mesh.indices.push_back(b);
-      mesh.indices.push_back(b + 1);
+      const auto s = static_cast<std::uint32_t>(i * offset + j);
+      const auto o = static_cast<std::uint32_t>(offset);
+      mesh.indices.insert(mesh.indices.end(), {s, s + o, s + o + 1, s, s + o + 1, s + 1});
     }
-  }
-
   return mesh;
 }
 
-// ============================================================================
-// Box Mesh Generator
-//
-// Unit box (1x1x1) centered at origin.
-// ============================================================================
-
+// A 1x1x1 cube centred on the origin; each face shows the whole image
 inline mesh_data generate_box()
 {
   mesh_data mesh;
-  float n = 0.5f;
-
-  auto add_face = [&](float nx, float ny, float nz, float ax, float ay, float az, float bx, float by, float bz) {
-    float cx = nx * n, cy = ny * n, cz = nz * n;
-    float corners[4][3] = {{cx - ax - bx, cy - ay - by, cz - az - bz},
-                           {cx + ax - bx, cy + ay - by, cz + az - bz},
-                           {cx + ax + bx, cy + ay + by, cz + az + bz},
-                           {cx - ax + bx, cy - ay + by, cz - az + bz}};
-    float uvs[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
-
-    for (int i = 0; i < 4; ++i)
-    {
-      vertex v{};
-      v.position[0] = corners[i][0];
-      v.position[1] = corners[i][1];
-      v.position[2] = corners[i][2];
-      v.normal[0] = nx;
-      v.normal[1] = ny;
-      v.normal[2] = nz;
-      v.uv[0] = uvs[i][0];
-      v.uv[1] = uvs[i][1];
-      mesh.vertices.push_back(v);
-    }
+  const double s = 0.5;
+  const double pos[24][3] = {
+    {+s, +s, +s}, {+s, -s, +s}, {+s, -s, -s}, {+s, +s, -s}, // right
+    {-s, +s, -s}, {-s, -s, -s}, {-s, -s, +s}, {-s, +s, +s}, // left
+    {-s, -s, +s}, {-s, -s, -s}, {+s, -s, -s}, {+s, -s, +s}, // bottom
+    {-s, +s, -s}, {-s, +s, +s}, {+s, +s, +s}, {+s, +s, -s}, // top
+    {-s, +s, +s}, {-s, -s, +s}, {+s, -s, +s}, {+s, +s, +s}, // front
+    {+s, +s, -s}, {+s, -s, -s}, {-s, -s, -s}, {-s, +s, -s}, // back
   };
-
-  add_face(1, 0, 0, 0, n, 0, 0, 0, n);  // +X
-  add_face(-1, 0, 0, 0, n, 0, 0, 0, -n); // -X
-  add_face(0, 1, 0, n, 0, 0, 0, 0, n);  // +Y
-  add_face(0, -1, 0, n, 0, 0, 0, 0, -n); // -Y
-  add_face(0, 0, 1, n, 0, 0, 0, n, 0);  // +Z
-  add_face(0, 0, -1, -n, 0, 0, 0, n, 0); // -Z
-
+  const double normals[6][3] = {{1, 0, 0}, {-1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, 1}, {0, 0, -1}};
+  const double tex[4][2] = {{0, 1}, {0, 0}, {1, 0}, {1, 1}};
   for (std::uint32_t f = 0; f < 6; ++f)
   {
-    std::uint32_t base = f * 4;
-    mesh.indices.push_back(base);
-    mesh.indices.push_back(base + 1);
-    mesh.indices.push_back(base + 2);
-    mesh.indices.push_back(base);
-    mesh.indices.push_back(base + 2);
-    mesh.indices.push_back(base + 3);
+    for (std::uint32_t k = 0; k < 4; ++k)
+    {
+      const auto& p = pos[f * 4 + k];
+      const auto& nm = normals[f];
+      mesh.vertices.push_back(make_vertex(p[0], p[1], p[2], nm[0], nm[1], nm[2], tex[k][0], tex[k][1]));
+    }
+    const std::uint32_t b = f * 4;
+    mesh.indices.insert(mesh.indices.end(), {b, b + 1, b + 2, b, b + 2, b + 3});
   }
-
   return mesh;
 }
 
-// ============================================================================
-// Cylinder Mesh Generator
-//
-// Aligned along +X axis (0 to 1), radius 0.5 (diameter 1.0).
-// pos is base center, axis points to top.
-// ============================================================================
-
-inline mesh_data generate_cylinder(int slices = 16)
+// Along x from 0 to 1, radius 0.5. Around the side the image runs along the axis (u) and is mirrored about
+// the halfway point around (v goes 0 to 1 and back); each end shows it whole.
+inline mesh_data generate_cylinder(int sides = 50)
 {
   mesh_data mesh;
-
-  // Body
-  for (int i = 0; i <= slices; ++i)
+  const double r = 0.5;
+  const int k = 4 * sides;
+  const double sind = std::sin(2 * std::numbers::pi / sides);
+  const double cosd = std::cos(2 * std::numbers::pi / sides);
+  mesh.vertices.push_back(make_vertex(0, 0, 0, -1, 0, 0, 0.5, 0.5));
+  mesh.vertices.push_back(make_vertex(1, 0, 0, 1, 0, 0, 0.5, 0.5));
+  double y = -r;
+  double z = 0;
+  for (int i = 2; i <= 2 + k; i += 4)
   {
-    float theta = TWO_PI * static_cast<float>(i) / static_cast<float>(slices);
-    float y = std::cos(theta);
-    float z = std::sin(theta);
-    float u = static_cast<float>(i) / static_cast<float>(slices);
-
-    // Base vertex (x=0)
-    vertex v0{};
-    v0.position[0] = 0.0f;
-    v0.position[1] = y * 0.5f;
-    v0.position[2] = z * 0.5f;
-    v0.normal[0] = 0.0f;
-    v0.normal[1] = y;
-    v0.normal[2] = z;
-    v0.uv[0] = u;
-    v0.uv[1] = 0.0f;
-    mesh.vertices.push_back(v0);
-
-    // Top vertex (x=1)
-    vertex v1{};
-    v1.position[0] = 1.0f;
-    v1.position[1] = y * 0.5f;
-    v1.position[2] = z * 0.5f;
-    v1.normal[0] = 0.0f;
-    v1.normal[1] = y;
-    v1.normal[2] = z;
-    v1.uv[0] = u;
-    v1.uv[1] = 1.0f;
-    mesh.vertices.push_back(v1);
+    const double around =
+      i < 2 + 2 * sides ? (i - 2) / 4.0 / (sides / 2.0) : 1 - (i - 2 - 2 * sides) / 4.0 / (sides / 2.0);
+    mesh.vertices.push_back(make_vertex(0, y, z, -1, 0, 0, 0.5 * (1 + z / r), 0.5 + 0.5 * y / r));
+    mesh.vertices.push_back(make_vertex(0, y, z, 0, y, z, 0, around));
+    mesh.vertices.push_back(make_vertex(1, y, z, 1, 0, 0, 0.5 * (1 - z / r), 0.5 + 0.5 * y / r));
+    mesh.vertices.push_back(make_vertex(1, y, z, 0, y, z, 1, around));
+    if (i != 2 + k)
+    {
+      auto at = [&](int j) { return static_cast<std::uint32_t>((j - 2) % k + 2); };
+      const auto u = static_cast<std::uint32_t>(i);
+      mesh.indices.insert(mesh.indices.end(), {0, at(i), at(i + 4), u + 1, at(i + 3), at(i + 7), u + 1, at(i + 7),
+                                               at(i + 5), 1, at(i + 6), at(i + 2)});
+    }
+    const double ny = y * cosd + z * sind;
+    z = z * cosd - y * sind;
+    y = ny;
   }
-
-  // Base Cap center
-  std::uint32_t base_center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
-  mesh.vertices.push_back(vertex{{0, 0, 0}, {-1, 0, 0}, {0.5f, 0.5f}});
-  for (int i = 0; i <= slices; ++i)
-  {
-    float theta = TWO_PI * static_cast<float>(i) / static_cast<float>(slices);
-    float y = std::cos(theta);
-    float z = std::sin(theta);
-    mesh.vertices.push_back(
-      vertex{{0, y * 0.5f, z * 0.5f}, {-1, 0, 0}, {0.5f + y * 0.5f, 0.5f + z * 0.5f}});
-  }
-
-  // Top Cap center
-  std::uint32_t top_center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
-  mesh.vertices.push_back(vertex{{1, 0, 0}, {1, 0, 0}, {0.5f, 0.5f}});
-  for (int i = 0; i <= slices; ++i)
-  {
-    float theta = TWO_PI * static_cast<float>(i) / static_cast<float>(slices);
-    float y = std::cos(theta);
-    float z = std::sin(theta);
-    mesh.vertices.push_back(
-      vertex{{1, y * 0.5f, z * 0.5f}, {1, 0, 0}, {0.5f + y * 0.5f, 0.5f + z * 0.5f}});
-  }
-
-  // Body indices
-  for (int i = 0; i < slices; ++i)
-  {
-    std::uint32_t base = static_cast<std::uint32_t>(i * 2);
-    mesh.indices.push_back(base);
-    mesh.indices.push_back(base + 1);
-    mesh.indices.push_back(base + 2);
-    mesh.indices.push_back(base + 1);
-    mesh.indices.push_back(base + 3);
-    mesh.indices.push_back(base + 2);
-  }
-
-  // Base Cap indices (reversed winding)
-  for (int i = 0; i < slices; ++i)
-  {
-    mesh.indices.push_back(base_center_idx);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i) + 1);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i));
-  }
-
-  // Top Cap indices
-  for (int i = 0; i < slices; ++i)
-  {
-    mesh.indices.push_back(top_center_idx);
-    mesh.indices.push_back(top_center_idx + 1 + static_cast<std::uint32_t>(i));
-    mesh.indices.push_back(top_center_idx + 1 + static_cast<std::uint32_t>(i) + 1);
-  }
-
   return mesh;
 }
 
-// ============================================================================
-// Cone Mesh Generator
-//
-// Aligned along +X axis (0 to 1), base radius 0.5 (diameter 1.0).
-// Base at x=0, tip at x=1.
-// ============================================================================
-
-inline mesh_data generate_cone(int slices = 16)
+// Base at x = 0, radius 0.5, tip at x = 1. Around the side u goes from 1 to 0 and v from base to tip; the
+// base shows the image whole.
+inline mesh_data generate_cone(int sides = 200)
 {
   mesh_data mesh;
-
-  // Body vertices (base rim)
-  for (int i = 0; i <= slices; ++i)
+  const double r = 0.5;
+  const double kn = 1 / (r * std::sqrt(5.0));
+  const double sind = std::sin(2 * std::numbers::pi / sides);
+  const double cosd = std::cos(2 * std::numbers::pi / sides);
+  mesh.vertices.push_back(make_vertex(0, 0, 0, -1, 0, 0, 0.5, 0.5));
+  double y = 0;
+  double z = -r;
+  for (int i = 1; i <= 1 + 3 * sides; i += 3)
   {
-    float theta = TWO_PI * static_cast<float>(i) / static_cast<float>(slices);
-    float y = std::cos(theta);
-    float z = std::sin(theta);
-
-    // Normal calculation: perpendicular to cone surface
-    vec3 n{0.5, y, z};
-    n = hat(n);
-
-    vertex v{};
-    v.position[0] = 0.0f;
-    v.position[1] = y * 0.5f;
-    v.position[2] = z * 0.5f;
-    v.normal[0] = static_cast<float>(n.x());
-    v.normal[1] = static_cast<float>(n.y());
-    v.normal[2] = static_cast<float>(n.z());
-    v.uv[0] = static_cast<float>(i) / static_cast<float>(slices);
-    v.uv[1] = 0.0f;
-    mesh.vertices.push_back(v);
+    const double ny = y * cosd + z * sind;
+    const double nz = z * cosd - y * sind;
+    const double u = 1 - (i - 1) / 3.0 / sides;
+    mesh.vertices.push_back(make_vertex(0, y, z, -1, 0, 0, 0.5 * (1 + z / r), 0.5 * (1 + y / r)));
+    mesh.vertices.push_back(make_vertex(0, y, z, kn * r, 2 * kn * y, 2 * kn * z, u, 0));
+    mesh.vertices.push_back(make_vertex(1, 0, 0, kn * r, kn * (y + ny), kn * (z + nz), u, 1));
+    if (i != 1 + 3 * sides)
+    {
+      const auto v = static_cast<std::uint32_t>(i);
+      mesh.indices.insert(mesh.indices.end(), {0, v, v + 3, v + 1, v + 2, v + 4});
+    }
+    y = ny;
+    z = nz;
   }
-
-  // Tip vertex
-  std::uint32_t tip_idx = static_cast<std::uint32_t>(mesh.vertices.size());
-  mesh.vertices.push_back(vertex{{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}});
-
-  // Base Cap center
-  std::uint32_t base_center_idx = static_cast<std::uint32_t>(mesh.vertices.size());
-  mesh.vertices.push_back(vertex{{0, 0, 0}, {-1, 0, 0}, {0.5f, 0.5f}});
-  for (int i = 0; i <= slices; ++i)
-  {
-    float theta = TWO_PI * static_cast<float>(i) / static_cast<float>(slices);
-    float y = std::cos(theta);
-    float z = std::sin(theta);
-    mesh.vertices.push_back(
-      vertex{{0, y * 0.5f, z * 0.5f}, {-1, 0, 0}, {0.5f + y * 0.5f, 0.5f + z * 0.5f}});
-  }
-
-  // Body indices (triangles to tip)
-  for (int i = 0; i < slices; ++i)
-  {
-    mesh.indices.push_back(static_cast<std::uint32_t>(i));
-    mesh.indices.push_back(tip_idx);
-    mesh.indices.push_back(static_cast<std::uint32_t>(i + 1));
-  }
-
-  // Base Cap indices
-  for (int i = 0; i < slices; ++i)
-  {
-    mesh.indices.push_back(base_center_idx);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i) + 1);
-    mesh.indices.push_back(base_center_idx + 1 + static_cast<std::uint32_t>(i));
-  }
-
   return mesh;
 }
 
-// ============================================================================
 // Helix Mesh Generator
 //
 // A coiled tube along X from 0 to length, as GlowScript draws a helix: 60 steps per coil, starting at +z
@@ -725,101 +592,42 @@ private:
 };
 
 // ============================================================================
+// ============================================================================
 // Pyramid Mesh Generator
 //
-// Apex at x=1, base at x=0, base is 1x1 in YZ plane.
+// GlowScript's pyramid: base 1x1 at x = 0, apex at x = 1. The base shows the whole image; the four sides
+// share it, a quarter each.
 // ============================================================================
 
 inline mesh_data generate_pyramid()
 {
   mesh_data mesh;
-
-  // Apex
-  float apex_x = 1.0f;
-  // Base corners
-  float base_x = 0.0f;
-  float half = 0.5f;
-
-  // Base vertices (for base face)
-  vertex base_verts[4] = {
-    {{base_x, -half, -half}, {-1, 0, 0}, {0, 0}},
-    {{base_x, half, -half}, {-1, 0, 0}, {1, 0}},
-    {{base_x, half, half}, {-1, 0, 0}, {1, 1}},
-    {{base_x, -half, half}, {-1, 0, 0}, {0, 1}},
+  const double k = 1 / std::sqrt(5.0);
+  const double pos[16][3] = {
+    {0, .5, .5},   {0, .5, -.5},  {0, -.5, -.5}, {0, -.5, .5}, // base
+    {0, .5, -.5},  {0, .5, .5},   {1, 0, 0},                   // top
+    {0, -.5, -.5}, {0, .5, -.5},  {1, 0, 0},                   // back
+    {0, -.5, .5},  {0, -.5, -.5}, {1, 0, 0},                   // bottom
+    {0, .5, .5},   {0, -.5, .5},  {1, 0, 0},                   // front
   };
-
-  // Base face
-  std::uint32_t base_start = static_cast<std::uint32_t>(mesh.vertices.size());
-  for (int i = 0; i < 4; ++i)
-    mesh.vertices.push_back(base_verts[i]);
-  mesh.indices.push_back(base_start);
-  mesh.indices.push_back(base_start + 2);
-  mesh.indices.push_back(base_start + 1);
-  mesh.indices.push_back(base_start);
-  mesh.indices.push_back(base_start + 3);
-  mesh.indices.push_back(base_start + 2);
-
-  // Side faces
-  vec3 corners[4] = {
-    {base_x, -half, -half},
-    {base_x, half, -half},
-    {base_x, half, half},
-    {base_x, -half, half},
+  const double normals[16][3] = {
+    {-1, 0, 0},     {-1, 0, 0},     {-1, 0, 0},     {-1, 0, 0},     {k, 2 * k, 0},  {k, 2 * k, 0},
+    {k, 2 * k, 0},  {k, 0, -2 * k}, {k, 0, -2 * k}, {k, 0, -2 * k}, {k, -2 * k, 0}, {k, -2 * k, 0},
+    {k, -2 * k, 0}, {k, 0, 2 * k},  {k, 0, 2 * k},  {k, 0, 2 * k},
   };
-  vec3 apex_vec{apex_x, 0, 0};
-
-  for (int i = 0; i < 4; ++i)
-  {
-    int next = (i + 1) % 4;
-    vec3 v0 = corners[i];
-    vec3 v1 = corners[next];
-    vec3 edge1 = apex_vec - v0;
-    vec3 edge2 = v1 - v0;
-    vec3 n = hat(cross(edge2, edge1));
-
-    std::uint32_t tri_start = static_cast<std::uint32_t>(mesh.vertices.size());
-
-    vertex vv0{};
-    vv0.position[0] = static_cast<float>(v0.x());
-    vv0.position[1] = static_cast<float>(v0.y());
-    vv0.position[2] = static_cast<float>(v0.z());
-    vv0.normal[0] = static_cast<float>(n.x());
-    vv0.normal[1] = static_cast<float>(n.y());
-    vv0.normal[2] = static_cast<float>(n.z());
-    vv0.uv[0] = 0;
-    vv0.uv[1] = 0;
-    mesh.vertices.push_back(vv0);
-
-    vertex vv1{};
-    vv1.position[0] = static_cast<float>(v1.x());
-    vv1.position[1] = static_cast<float>(v1.y());
-    vv1.position[2] = static_cast<float>(v1.z());
-    vv1.normal[0] = static_cast<float>(n.x());
-    vv1.normal[1] = static_cast<float>(n.y());
-    vv1.normal[2] = static_cast<float>(n.z());
-    vv1.uv[0] = 1;
-    vv1.uv[1] = 0;
-    mesh.vertices.push_back(vv1);
-
-    vertex apex_v{};
-    apex_v.position[0] = static_cast<float>(apex_vec.x());
-    apex_v.position[1] = static_cast<float>(apex_vec.y());
-    apex_v.position[2] = static_cast<float>(apex_vec.z());
-    apex_v.normal[0] = static_cast<float>(n.x());
-    apex_v.normal[1] = static_cast<float>(n.y());
-    apex_v.normal[2] = static_cast<float>(n.z());
-    apex_v.uv[0] = 0.5f;
-    apex_v.uv[1] = 1;
-    mesh.vertices.push_back(apex_v);
-
-    mesh.indices.push_back(tri_start);
-    mesh.indices.push_back(tri_start + 1);
-    mesh.indices.push_back(tri_start + 2);
-  }
-
+  const double tex[16][2] = {
+    {1, 1},    {0, 1},    {0, 0},     {1, 0}, // base
+    {0, 0},    {0.25, 0}, {0.125, 1},         // top
+    {1, 0},    {0.75, 0}, {0.875, 1},         // back
+    {0.5, 0},  {0.75, 0}, {0.625, 1},         // bottom
+    {0.25, 0}, {0.5, 0},  {0.375, 1},         // front
+  };
+  for (int i = 0; i < 16; ++i)
+    mesh.vertices.push_back(
+      make_vertex(pos[i][0], pos[i][1], pos[i][2], normals[i][0], normals[i][1], normals[i][2], tex[i][0], tex[i][1]));
+  mesh.indices = {0, 1, 2, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   return mesh;
 }
-
 // ============================================================================
 // Merge Meshes - Combine multiple meshes into one
 //

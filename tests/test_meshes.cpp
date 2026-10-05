@@ -1,5 +1,6 @@
 /*
- *  test_meshes.cpp - Generated meshes have the shape their parameters describe
+ *  test_meshes.cpp - Generated meshes have the shape their parameters describe, and GlowScript's
+ *  texture coordinates
  */
 
 import vcpp;
@@ -108,6 +109,32 @@ bool test_tube_restart()
   return tube.update(points, 2, -1, 0.05f) && drawn_centers(tube).size() == 2;
 }
 
+// Texture coordinates are GlowScript's, where v = 1 is the top of the image. The sphere's first vertex is
+// the north pole at the image's top left; its equator starts at -z, the image's left edge; the box's front
+// face has the image's top left at its top left; the cylinder's side runs the image along its axis.
+bool test_texture_coordinates()
+{
+  auto near = [](float a, float b) { return std::abs(a - b) < 1e-4f; };
+  const auto sphere = mesh::generate_sphere(30);
+  const auto& pole = sphere.vertices[0];
+  const auto& equator = sphere.vertices[15 * 31];
+  const bool sphere_ok = near(pole.position[1], 0.5f) && near(pole.uv[0], 0) && near(pole.uv[1], 1) &&
+                         near(equator.position[2], -0.5f) && near(equator.uv[0], 0) && near(equator.uv[1], 0.5f);
+
+  const auto box = mesh::generate_box();
+  bool box_ok = false;
+  for (const auto& v : box.vertices)
+    if (near(v.normal[2], 1) && near(v.position[0], -0.5f) && near(v.position[1], 0.5f))
+      box_ok = near(v.uv[0], 0) && near(v.uv[1], 1);
+
+  const auto cylinder = mesh::generate_cylinder(50);
+  bool cylinder_ok = true;
+  for (const auto& v : cylinder.vertices)
+    if (v.normal[0] == 0) // the side
+      cylinder_ok = cylinder_ok && near(v.uv[0], v.position[0]);
+  return sphere_ok && box_ok && cylinder_ok;
+}
+
 } // namespace
 
 int main()
@@ -135,6 +162,7 @@ int main()
   run_test("tube ring buffer", test_tube_ring_buffer);
   run_test("tube growth", test_tube_growth);
   run_test("tube restart", test_tube_restart);
+  run_test("texture coordinates", test_texture_coordinates);
 
   std::println("===============");
   std::println("Passed: {}/{}", passed, passed + failed);
