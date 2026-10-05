@@ -21,6 +21,7 @@ double k{};
 double last_x{};
 double m{};
 double n{};
+std::string skin{};
 double t{};
 double t_start{};
 vec3 x0{};
@@ -74,7 +75,7 @@ task<void> vpython_program()
   k = 4.0;
   m = 0.5;
   x0 = vec3{1.0, 0.0, 0.0};
-  anchor = scene.add(box(pos = vec3{-2.0, 0.0, 0.0}, size = vec3{0.2, 1.0, 1.0}, color = colors::gray(0.5)));
+  anchor = scene.add(box(pos = vec3{-2.0, 0.0, 0.0}, size = vec3{0.2, 1.0, 1.0}, color = colors::gray(0.5), texture = textures::wood));
   ball = scene.add(sphere(pos = x0, radius = 0.2, color = colors::cyan, make_trail = true, retain = 100));
   ball__v = vec3{0.0, 0.5, 0.0};
   dt_ = 0.01;
@@ -118,4 +119,6 @@ task<void> vpython_program()
   }
   balls[balls.size() - 1]->m_radius = heights[0];
   co_await lift(balls, 0.5);
+  skin = textures::metal;
+  anchor->m_texture = skin;
 }

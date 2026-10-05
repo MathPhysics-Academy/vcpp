@@ -232,6 +232,7 @@ private:
       {"opacity", {"m_opacity", "", kind::number}},
       {"shininess", {"m_shininess", "", kind::number}},
       {"visible", {"m_visible", "", kind::boolean}},
+      {"texture", {"m_texture", "", kind::string}},
       {"make_trail", {"m_make_trail", "", kind::boolean}},
       {"emissive", {"m_emissive", "", kind::boolean}},
       {"retain", {"m_retain", "", kind::number}},
@@ -896,6 +897,8 @@ private:
 
     if (base["_type"].string() == "Name" && base["id"].string() == "color")
       return {std::format("colors::{}", attr), {kind::vector, {}}};
+    if (base["_type"].string() == "Name" && base["id"].string() == "textures")
+      return {std::format("textures::{}", attr), {kind::string, {}}};
 
     const expr owner = expression(base);
     if (owner.t.k == kind::object)

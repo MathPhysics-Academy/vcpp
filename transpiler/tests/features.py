@@ -10,7 +10,7 @@ scene.userzoom = False
 k = 4
 m = 0.5
 x0 = vector(1, 0, 0)
-anchor = box(pos=vector(-2, 0, 0), size=vector(0.2, 1, 1), color=color.gray(0.5))
+anchor = box(pos=vector(-2, 0, 0), size=vector(0.2, 1, 1), color=color.gray(0.5), texture=textures.wood)
 ball = sphere(pos=x0, radius=0.2, color=color.cyan, make_trail=True, retain=100)
 ball.v = vector(0, 0.5, 0)
 dt = 0.01
@@ -59,3 +59,6 @@ def lift(group, dy):
     group.append(sphere(pos=vector(0, 3, 0), radius=0.1))
 
 lift(balls, 0.5)
+
+skin = textures.metal
+anchor.texture = skin
