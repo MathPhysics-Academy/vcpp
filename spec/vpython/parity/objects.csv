@@ -6,7 +6,7 @@ arrow,emissive,boolean,False,arrow.html,,arrow_object,emissive,wired,1,0,0,1
 arrow,group,object,,arrow.html,,arrow_object,group,declared-only,0,0,0,0
 arrow,headlength,scalar,3*shaftwidth,arrow.html,,arrow_object,headlength,wired,0,0,0,0
 arrow,headwidth,scalar,2*shaftwidth,arrow.html,,arrow_object,headwidth,wired,0,0,0,0
-arrow,interval,scalar,,trail.html,,arrow_object,interval,missing,0,0,0,0
+arrow,interval,scalar,,trail.html,,arrow_object,interval,wired,0,0,0,0
 arrow,make_trail,boolean,,arrow.html,,arrow_object,make_trail,wired,0,0,0,0
 arrow,opacity,scalar,1.0,arrow.html,,arrow_object,opacity,wired,0,0,0,0
 arrow,pos,vector,"<0,0,0>",arrow.html,,arrow_object,pos,wired,5,2,5,5
@@ -16,8 +16,8 @@ arrow,round,boolean,False,arrow.html,,arrow_object,round,wired,0,0,0,0
 arrow,shaftwidth,scalar,0.1*(length of arrow),arrow.html,,arrow_object,shaftwidth,wired,2,0,0,2
 arrow,shininess,scalar,0.6,arrow.html,,arrow_object,shininess,wired,0,0,0,0
 arrow,texture,class element or path,None,arrow.html,,arrow_object,texture,wired,0,0,0,0
-arrow,trail_radius,scalar,0 (thin curve) for curve,trail.html,,arrow_object,trail_radius,declared-only,0,0,0,0
-arrow,trail_type,string,,trail.html,,arrow_object,trail_type,missing,0,0,0,0
+arrow,trail_radius,scalar,0 (thin curve) for curve,trail.html,,arrow_object,trail_radius,wired,0,0,0,0
+arrow,trail_type,string,,trail.html,,arrow_object,trail_type,wired,0,0,0,0
 arrow,up,vector,,arrow.html,,arrow_object,up,wired,0,0,0,0
 arrow,visible,boolean,: True,arrow.html,,arrow_object,visible,wired,0,0,0,0
 attach_arrow,color,vector,the color of the object to which the arrow is attached,attacharrow.html,,,color,no-object,0,0,0,0
@@ -31,7 +31,7 @@ box,color,vector,color.white,box.html,,box_object,color,wired,38,4,4,11
 box,emissive,boolean,False,box.html,,box_object,emissive,wired,2,0,0,1
 box,group,object,,box.html,,box_object,group,declared-only,2,0,0,1
 box,height,scalar,1,box.html,,box_object,height,wired,2,0,0,1
-box,interval,scalar,,trail.html,,box_object,interval,missing,0,0,0,0
+box,interval,scalar,,trail.html,,box_object,interval,wired,0,0,0,0
 box,length,scalar,1,box.html,,box_object,length,wired,2,0,0,1
 box,make_trail,boolean,,box.html,,box_object,make_trail,wired,0,0,0,0
 box,opacity,scalar,1.0,box.html,,box_object,opacity,wired,4,0,0,2
@@ -41,8 +41,8 @@ box,retain,scalar,to retain all,trail.html,,box_object,retain,wired,0,0,0,0
 box,shininess,scalar,0.6,box.html,,box_object,shininess,wired,1,0,0,1
 box,size,vector,,box.html,,box_object,size,wired,40,0,0,11
 box,texture,dictionary,,texture.html,,box_object,texture,wired,9,0,0,6
-box,trail_radius,scalar,0 (thin curve) for curve,trail.html,,box_object,trail_radius,declared-only,0,0,0,0
-box,trail_type,string,,trail.html,,box_object,trail_type,missing,0,0,0,0
+box,trail_radius,scalar,0 (thin curve) for curve,trail.html,,box_object,trail_radius,wired,0,0,0,0
+box,trail_type,string,,trail.html,,box_object,trail_type,wired,0,0,0,0
 box,up,vector,,box.html,,box_object,up,wired,0,0,0,0
 box,visible,boolean,: True,box.html,,box_object,visible,wired,1,0,0,1
 box,width,scalar,1,box.html,,box_object,width,wired,2,0,0,1
@@ -70,7 +70,7 @@ compound,axis,vector,"<1,0,0>",compound.html,,compound_object,axis,wired,0,2,2,1
 compound,canvas,object,scene,compound.html,,compound_object,canvas,missing,0,0,0,0
 compound,color,vector,color.white,compound.html,,compound_object,color,wired,0,0,0,0
 compound,emissive,boolean,False,compound.html,,compound_object,emissive,wired,0,0,0,0
-compound,interval,scalar,,trail.html,,compound_object,interval,missing,0,0,0,0
+compound,interval,scalar,,trail.html,,compound_object,interval,wired,0,0,0,0
 compound,make_trail,boolean,,compound.html,,compound_object,make_trail,wired,0,0,0,0
 compound,opacity,scalar,1.0,compound.html,,compound_object,opacity,wired,0,0,0,0
 compound,origin,vector,center of bounding box,compound.html,,compound_object,origin,missing,0,0,0,0
@@ -80,8 +80,8 @@ compound,retain,scalar,to retain all,trail.html,,compound_object,retain,wired,0,
 compound,shininess,scalar,0.6,compound.html,,compound_object,shininess,wired,0,0,0,0
 compound,size,vector,"<1,1,1>",compound.html,,compound_object,size,field-only,0,0,0,0
 compound,texture,class element or path,None,compound.html,,compound_object,texture,wired,2,1,0,2
-compound,trail_radius,scalar,0 (thin curve) for curve,trail.html,,compound_object,trail_radius,declared-only,0,0,0,0
-compound,trail_type,string,,trail.html,,compound_object,trail_type,missing,0,0,0,0
+compound,trail_radius,scalar,0 (thin curve) for curve,trail.html,,compound_object,trail_radius,wired,0,0,0,0
+compound,trail_type,string,,trail.html,,compound_object,trail_type,wired,0,0,0,0
 compound,up,vector,,compound.html,,compound_object,up,wired,0,0,0,0
 compound,visible,boolean,: True,compound.html,,compound_object,visible,wired,0,1,0,1
 cone,axis,vector,"<1,0,0>",cone.html,,cone_object,axis,wired,3,0,0,2
@@ -89,7 +89,7 @@ cone,canvas,object,scene,cone.html,,cone_object,canvas,missing,0,0,0,0
 cone,color,vector,color.white,cone.html,,cone_object,color,wired,3,0,0,3
 cone,emissive,boolean,False,cone.html,,cone_object,emissive,wired,0,0,0,0
 cone,group,object,,cone.html,,cone_object,group,declared-only,0,0,0,0
-cone,interval,scalar,,trail.html,,cone_object,interval,missing,0,0,0,0
+cone,interval,scalar,,trail.html,,cone_object,interval,wired,0,0,0,0
 cone,length,scalar,1,cone.html,,cone_object,length,wired,1,0,0,1
 cone,make_trail,boolean,,cone.html,,cone_object,make_trail,wired,0,0,0,0
 cone,opacity,scalar,1.0,cone.html,,cone_object,opacity,wired,1,0,0,1
@@ -100,8 +100,8 @@ cone,retain,scalar,to retain all,trail.html,,cone_object,retain,wired,0,0,0,0
 cone,shininess,scalar,0.6,cone.html,,cone_object,shininess,wired,0,0,0,0
 cone,size,vector,"<1,2,2>",cone.html,,cone_object,size,wired,4,0,0,3
 cone,texture,class element or path,None,cone.html,,cone_object,texture,wired,1,0,0,1
-cone,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cone_object,trail_radius,declared-only,0,0,0,0
-cone,trail_type,string,,trail.html,,cone_object,trail_type,missing,0,0,0,0
+cone,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cone_object,trail_radius,wired,0,0,0,0
+cone,trail_type,string,,trail.html,,cone_object,trail_type,wired,0,0,0,0
 cone,up,vector,,cone.html,,cone_object,up,wired,0,0,0,0
 cone,visible,boolean,: True,cone.html,,cone_object,visible,wired,1,0,0,1
 curve,axis,vector,"<1,0,0>",curve.html,,curve_object,axis,wired,0,0,0,0
@@ -121,7 +121,7 @@ cylinder,canvas,object,scene,cylinder.html,,cylinder_object,canvas,missing,0,0,0
 cylinder,color,vector,color.white,cylinder.html,,cylinder_object,color,wired,19,0,3,7
 cylinder,emissive,boolean,False,cylinder.html,,cylinder_object,emissive,wired,0,0,0,0
 cylinder,group,object,,cylinder.html,,cylinder_object,group,declared-only,0,0,0,0
-cylinder,interval,scalar,,trail.html,,cylinder_object,interval,missing,0,0,0,0
+cylinder,interval,scalar,,trail.html,,cylinder_object,interval,wired,0,0,0,0
 cylinder,length,scalar,1,cylinder.html,,cylinder_object,length,wired,1,0,0,1
 cylinder,make_trail,boolean,,cylinder.html,,cylinder_object,make_trail,wired,0,0,0,0
 cylinder,opacity,scalar,1.0,cylinder.html,,cylinder_object,opacity,wired,0,0,0,0
@@ -132,8 +132,8 @@ cylinder,retain,scalar,to retain all,trail.html,,cylinder_object,retain,wired,0,
 cylinder,shininess,scalar,0.6,cylinder.html,,cylinder_object,shininess,wired,0,0,0,0
 cylinder,size,vector,"<1,1,1>",cylinder.html,,cylinder_object,size,wired,10,0,3,3
 cylinder,texture,class element or path,None,cylinder.html,,cylinder_object,texture,wired,2,0,0,2
-cylinder,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cylinder_object,trail_radius,declared-only,0,0,0,0
-cylinder,trail_type,string,,trail.html,,cylinder_object,trail_type,missing,0,0,0,0
+cylinder,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cylinder_object,trail_radius,wired,0,0,0,0
+cylinder,trail_type,string,,trail.html,,cylinder_object,trail_type,wired,0,0,0,0
 cylinder,up,vector,,cylinder.html,,cylinder_object,up,wired,0,0,0,0
 cylinder,visible,boolean,: True,cylinder.html,,cylinder_object,visible,wired,1,0,0,1
 distant_light,color,vector,,light.html,,,color,no-object,1,0,0,1
@@ -144,7 +144,7 @@ ellipsoid,color,vector,color.white,ellipsoid.html,,ellipsoid_object,color,wired,
 ellipsoid,emissive,boolean,False,ellipsoid.html,,ellipsoid_object,emissive,wired,0,0,0,0
 ellipsoid,group,object,,ellipsoid.html,,ellipsoid_object,group,declared-only,0,0,0,0
 ellipsoid,height,scalar,,ellipsoid.html,,ellipsoid_object,height,wired,0,0,0,0
-ellipsoid,interval,scalar,,trail.html,,ellipsoid_object,interval,missing,0,0,0,0
+ellipsoid,interval,scalar,,trail.html,,ellipsoid_object,interval,wired,0,0,0,0
 ellipsoid,length,scalar,,ellipsoid.html,,ellipsoid_object,length,wired,0,0,0,0
 ellipsoid,make_trail,boolean,,ellipsoid.html,,ellipsoid_object,make_trail,wired,0,0,0,0
 ellipsoid,opacity,scalar,1.0,ellipsoid.html,,ellipsoid_object,opacity,wired,0,0,0,0
@@ -154,8 +154,8 @@ ellipsoid,retain,scalar,to retain all,trail.html,,ellipsoid_object,retain,wired,
 ellipsoid,shininess,scalar,0.6,ellipsoid.html,,ellipsoid_object,shininess,wired,0,0,0,0
 ellipsoid,size,vector,"<1,1,1> (a sphere)",ellipsoid.html,,ellipsoid_object,size,wired,1,0,0,1
 ellipsoid,texture,class element or path,None,ellipsoid.html,,ellipsoid_object,texture,wired,0,0,0,0
-ellipsoid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,ellipsoid_object,trail_radius,declared-only,0,0,0,0
-ellipsoid,trail_type,string,,trail.html,,ellipsoid_object,trail_type,missing,0,0,0,0
+ellipsoid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,ellipsoid_object,trail_radius,wired,0,0,0,0
+ellipsoid,trail_type,string,,trail.html,,ellipsoid_object,trail_type,wired,0,0,0,0
 ellipsoid,up,vector,,ellipsoid.html,,ellipsoid_object,up,wired,0,0,0,0
 ellipsoid,visible,boolean,: True,ellipsoid.html,,ellipsoid_object,visible,wired,0,0,0,0
 ellipsoid,width,scalar,,ellipsoid.html,,ellipsoid_object,width,wired,0,0,0,0
@@ -277,7 +277,7 @@ pyramid,color,vector,color.white,pyramid.html,,pyramid_object,color,wired,2,0,0,
 pyramid,emissive,boolean,False,pyramid.html,,pyramid_object,emissive,wired,0,0,0,0
 pyramid,group,object,,pyramid.html,,pyramid_object,group,declared-only,0,0,0,0
 pyramid,height,scalar,,pyramid.html,,pyramid_object,height,wired,0,0,0,0
-pyramid,interval,scalar,,trail.html,,pyramid_object,interval,missing,0,0,0,0
+pyramid,interval,scalar,,trail.html,,pyramid_object,interval,wired,0,0,0,0
 pyramid,length,scalar,,pyramid.html,,pyramid_object,length,wired,0,0,0,0
 pyramid,make_trail,boolean,,pyramid.html,,pyramid_object,make_trail,wired,0,0,0,0
 pyramid,opacity,scalar,1.0,pyramid.html,,pyramid_object,opacity,wired,0,0,0,0
@@ -287,8 +287,8 @@ pyramid,retain,scalar,to retain all,trail.html,,pyramid_object,retain,wired,0,0,
 pyramid,shininess,scalar,0.6,pyramid.html,,pyramid_object,shininess,wired,0,1,0,1
 pyramid,size,vector,"<1,1,1>",pyramid.html,,pyramid_object,size,wired,3,0,0,3
 pyramid,texture,class element or path,None,pyramid.html,,pyramid_object,texture,wired,1,1,0,2
-pyramid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,pyramid_object,trail_radius,declared-only,0,0,0,0
-pyramid,trail_type,string,,trail.html,,pyramid_object,trail_type,missing,0,0,0,0
+pyramid,trail_radius,scalar,0 (thin curve) for curve,trail.html,,pyramid_object,trail_radius,wired,0,0,0,0
+pyramid,trail_type,string,,trail.html,,pyramid_object,trail_type,wired,0,0,0,0
 pyramid,up,vector,,pyramid.html,,pyramid_object,up,wired,0,0,0,0
 pyramid,visible,boolean,: True,pyramid.html,,pyramid_object,visible,wired,1,0,0,1
 pyramid,width,scalar,,pyramid.html,,pyramid_object,width,wired,0,0,0,0
@@ -308,7 +308,7 @@ ring,canvas,object,scene,ring.html,,ring_object,canvas,missing,0,0,0,0
 ring,color,vector,color.white,ring.html,,ring_object,color,wired,4,0,0,4
 ring,emissive,boolean,False,ring.html,,ring_object,emissive,wired,0,0,0,0
 ring,group,object,,ring.html,,ring_object,group,declared-only,0,0,0,0
-ring,interval,scalar,,trail.html,,ring_object,interval,missing,0,0,0,0
+ring,interval,scalar,,trail.html,,ring_object,interval,wired,0,0,0,0
 ring,make_trail,boolean,,ring.html,,ring_object,make_trail,wired,0,0,0,0
 ring,opacity,scalar,1.0,ring.html,,ring_object,opacity,wired,0,0,0,0
 ring,pos,vector,"<0,0,0>",ring.html,,ring_object,pos,wired,4,0,1,4
@@ -319,8 +319,8 @@ ring,shininess,scalar,0.6,ring.html,,ring_object,shininess,wired,0,0,0,0
 ring,size,vector,"<0.2, 2,2, 2.2>",ring.html,,ring_object,size,field-only,1,0,0,1
 ring,texture,class element or path,None,ring.html,,ring_object,texture,wired,0,0,0,0
 ring,thickness,scalar,0.1*radius,ring.html,,ring_object,thickness,wired,4,0,0,4
-ring,trail_radius,scalar,0 (thin curve) for curve,trail.html,,ring_object,trail_radius,declared-only,0,0,0,0
-ring,trail_type,string,,trail.html,,ring_object,trail_type,missing,0,0,0,0
+ring,trail_radius,scalar,0 (thin curve) for curve,trail.html,,ring_object,trail_radius,wired,0,0,0,0
+ring,trail_type,string,,trail.html,,ring_object,trail_type,wired,0,0,0,0
 ring,up,vector,,ring.html,,ring_object,up,wired,0,0,0,0
 ring,visible,boolean,: True,ring.html,,ring_object,visible,wired,0,0,0,0
 simple_sphere,interval,scalar,,trail.html,,,interval,no-object,0,0,0,0
@@ -349,7 +349,7 @@ sphere,canvas,object,scene,sphere.html,,sphere_object,canvas,missing,0,0,0,0
 sphere,color,vector,color.white,sphere.html,,sphere_object,color,wired,47,2,0,24
 sphere,emissive,boolean,False,sphere.html,,sphere_object,emissive,wired,2,0,0,1
 sphere,group,object,,sphere.html,,sphere_object,group,declared-only,0,0,0,0
-sphere,interval,scalar,,trail.html,,sphere_object,interval,missing,2,0,0,1
+sphere,interval,scalar,,trail.html,,sphere_object,interval,wired,2,0,0,1
 sphere,make_trail,boolean,,sphere.html,,sphere_object,make_trail,wired,31,0,0,16
 sphere,opacity,scalar,1.0,sphere.html,,sphere_object,opacity,wired,3,0,0,2
 sphere,pos,vector,"<0,0,0>",sphere.html,,sphere_object,pos,wired,49,37,111,26
@@ -359,8 +359,8 @@ sphere,retain,scalar,to retain all,trail.html,,sphere_object,retain,wired,7,0,0,
 sphere,shininess,scalar,0.6,sphere.html,,sphere_object,shininess,wired,3,0,0,2
 sphere,size,vector,"<2,2,2>",sphere.html,,sphere_object,size,wired,8,0,0,4
 sphere,texture,class element or path,None,sphere.html,,sphere_object,texture,wired,0,0,0,0
-sphere,trail_radius,scalar,0 (thin curve) for curve,trail.html,,sphere_object,trail_radius,declared-only,2,1,0,3
-sphere,trail_type,string,,trail.html,,sphere_object,trail_type,missing,10,0,0,5
+sphere,trail_radius,scalar,0 (thin curve) for curve,trail.html,,sphere_object,trail_radius,wired,2,1,0,3
+sphere,trail_type,string,,trail.html,,sphere_object,trail_type,wired,10,0,0,5
 sphere,up,vector,,sphere.html,,sphere_object,up,wired,0,0,0,0
 sphere,visible,boolean,: True,sphere.html,,sphere_object,visible,wired,2,3,2,3
 text,align,string,‘left’,text.html,,text3d_object,align,wired,8,0,0,4

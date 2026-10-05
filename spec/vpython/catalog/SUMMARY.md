@@ -14,13 +14,13 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- missing: 405
-- wired: 312
+- missing: 365
+- wired: 363
 - no-object: 215
-- declared-only: 96
-- field-only: 33
+- declared-only: 80
+- field-only: 38
 
-Corpus uses 237 members; 143 are wired.
+Corpus uses 237 members; 146 are wired.
 
 ## Gaps ranked by real usage
 
@@ -29,7 +29,6 @@ Corpus uses 237 members; 143 are wired.
 | color | gray | function | missing | 14 | 30 |
 | button | text | attribute | no-object | 6 | 10 |
 | button | bind | attribute | no-object | 6 | 8 |
-| sphere | trail_type | attribute | missing | 5 | 10 |
 | textures | metal | constant | missing | 5 | 10 |
 | textures | rough | constant | missing | 4 | 11 |
 | extrusion | rotate | method | missing | 4 | 8 |
@@ -38,7 +37,6 @@ Corpus uses 237 members; 143 are wired.
 | textures | wood | constant | missing | 3 | 5 |
 | compound | rotate | method | missing | 3 | 3 |
 | quad | vs | attribute | missing | 3 | 3 |
-| sphere | trail_radius | attribute | declared-only | 3 | 3 |
 | textures | flower | constant | missing | 3 | 3 |
 | textures | rug | constant | missing | 3 | 3 |
 | textures | wood_old | constant | missing | 3 | 3 |
@@ -71,55 +69,57 @@ Corpus uses 237 members; 143 are wired.
 | button | color | attribute | no-object | 1 | 3 |
 | slider | value | attribute | no-object | 1 | 3 |
 | box | group | attribute | declared-only | 1 | 2 |
+| button | pos | attribute | no-object | 1 | 2 |
+| compound | length | attribute | declared-only | 1 | 2 |
 
 ## Per-owner coverage (user-facing members)
 
 | owner | members | wired | used | used & wired |
 |---|---|---|---|---|
-| arrow | 43 | 15 | 7 | 5 |
+| arrow | 43 | 18 | 7 | 5 |
 | attach_arrow | 5 | 0 | 0 | 0 |
 | attach_light | 5 | 0 | 0 | 0 |
 | attach_trail | 9 | 0 | 0 | 0 |
-| box | 35 | 15 | 14 | 12 |
+| box | 35 | 18 | 14 | 12 |
 | bumpmaps | 5 | 0 | 1 | 0 |
 | button | 7 | 0 | 5 | 0 |
 | camera | 4 | 0 | 0 | 0 |
-| canvas | 33 | 1 | 6 | 0 |
+| canvas | 33 | 4 | 6 | 0 |
 | checkbox | 6 | 0 | 3 | 0 |
 | color | 14 | 10 | 13 | 10 |
-| compound | 38 | 11 | 7 | 4 |
-| cone | 35 | 14 | 10 | 9 |
-| curve | 41 | 14 | 5 | 4 |
-| cylinder | 35 | 14 | 10 | 8 |
+| compound | 38 | 14 | 7 | 4 |
+| cone | 35 | 17 | 10 | 9 |
+| curve | 41 | 17 | 5 | 4 |
+| cylinder | 35 | 17 | 10 | 8 |
 | distant_light | 11 | 0 | 2 | 0 |
-| ellipsoid | 35 | 15 | 3 | 3 |
+| ellipsoid | 35 | 18 | 3 | 3 |
 | event | 13 | 0 | 0 | 0 |
-| extrusion | 53 | 14 | 15 | 10 |
+| extrusion | 53 | 17 | 15 | 10 |
 | gcurve | 19 | 10 | 7 | 5 |
 | gdots | 19 | 5 | 3 | 2 |
 | ghbars | 19 | 0 | 0 | 0 |
 | graph | 21 | 12 | 11 | 9 |
 | group | 38 | 0 | 1 | 0 |
 | gvbars | 19 | 5 | 4 | 3 |
-| helix | 38 | 17 | 8 | 8 |
+| helix | 38 | 20 | 8 | 8 |
 | label | 27 | 12 | 8 | 8 |
 | local_light | 11 | 0 | 0 | 0 |
 | menu | 7 | 0 | 4 | 0 |
 | mouse | 8 | 0 | 0 | 0 |
 | paths | 14 | 9 | 3 | 2 |
-| points | 42 | 14 | 2 | 1 |
-| pyramid | 35 | 15 | 7 | 7 |
-| quad | 40 | 11 | 2 | 1 |
+| points | 42 | 17 | 2 | 1 |
+| pyramid | 35 | 18 | 7 | 7 |
+| quad | 40 | 14 | 2 | 1 |
 | radio | 7 | 0 | 4 | 0 |
-| ring | 36 | 13 | 6 | 5 |
+| ring | 36 | 16 | 6 | 5 |
 | shapes | 16 | 10 | 7 | 6 |
 | simple_sphere | 29 | 0 | 0 | 0 |
 | slider | 17 | 0 | 7 | 0 |
-| sphere | 30 | 14 | 17 | 11 |
-| text | 45 | 16 | 14 | 8 |
+| sphere | 30 | 17 | 17 | 14 |
+| text | 45 | 19 | 14 | 8 |
 | texture | 6 | 0 | 0 | 0 |
 | textures | 12 | 0 | 12 | 0 |
-| triangle | 39 | 11 | 0 | 0 |
+| triangle | 39 | 14 | 0 | 0 |
 | vec | 15 | 15 | 2 | 2 |
 | vertex | 11 | 0 | 5 | 0 |
 | winput | 10 | 0 | 0 | 0 |

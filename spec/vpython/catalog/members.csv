@@ -15,7 +15,7 @@ arrow,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-on
 arrow,headlength,attribute,,,accessor,primitives.js:1037,,yes,yes,wired,headlength,0,0
 arrow,headwidth,attribute,,,accessor,primitives.js:1030,,yes,yes,wired,headwidth,0,0
 arrow,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
-arrow,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+arrow,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 arrow,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
 arrow,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 arrow,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -38,8 +38,8 @@ arrow,start,method,,,,primitives.js:1063,,yes,yes,missing,start,0,0
 arrow,stop,method,,,,primitives.js:1064,,yes,yes,missing,stop,0,0
 arrow,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 arrow,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-arrow,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-arrow,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+arrow,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+arrow,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 arrow,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 arrow,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
 arrow,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
@@ -78,7 +78,7 @@ box,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTr
 box,green,attribute,,,accessor,primitives.js:762,,yes,yes,missing,green,0,0
 box,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,2,1
 box,height,attribute,,,accessor,primitives.js:741,,yes,yes,wired,height,2,1
-box,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+box,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 box,length,attribute,,,accessor,primitives.js:718,,yes,yes,wired,length,2,1
 box,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 box,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -96,8 +96,8 @@ box,size,attribute,"<1,1,1>",,vector,primitives.js:717,,yes,yes,wired,size,40,11
 box,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 box,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,9,6
 box,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-box,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-box,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+box,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+box,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 box,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 box,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
 box,width,attribute,,,accessor,primitives.js:748,,yes,yes,wired,width,2,1
@@ -128,10 +128,10 @@ camera,rotate,method,,,,orbital_camera.js:48,,yes,yes,missing,rotate,0,0
 canvas,align,attribute,,,accessor,canvas.js:659,,yes,yes,missing,align,1,1
 canvas,all,attribute,,yes,accessor static,canvas.js:762,,yes,yes,missing,all,0,0
 canvas,ambient,attribute,"new vec(0.2,0.2,0.2)",,,canvas.js:611,,yes,yes,field-only,ambient,0,0
-canvas,append_to_caption,method,,,,canvas.js:508,,yes,yes,missing,append_to_caption,0,0
-canvas,append_to_title,method,,,,canvas.js:499,,no,no,missing,append_to_title,0,0
+canvas,append_to_caption,method,,,,canvas.js:508,,yes,yes,wired,append_to_caption,0,0
+canvas,append_to_title,method,,,,canvas.js:499,,no,no,wired,append_to_title,0,0
 canvas,aria_label,attribute,,,constructor option,canvas.js:87,,no,no,missing,aria_label,0,0
-canvas,autoscale,attribute,,,accessor,canvas.js:696,,yes,yes,missing,autoscale,0,0
+canvas,autoscale,attribute,,,accessor,canvas.js:696,,yes,yes,wired,autoscale,0,0
 canvas,axis,attribute,"<0,0,-1>",,vector,canvas.js:620,,yes,yes,missing,axis,0,0
 canvas,background,attribute,"new vec(0,0,0)",,,canvas.js:609,,yes,yes,wired,background,0,0
 canvas,bind,method,,,,canvas.js:517,,yes,yes,missing,bind,0,0
@@ -139,18 +139,18 @@ canvas,caption,attribute,,,accessor,canvas.js:491,,yes,yes,field-only,caption,1,
 canvas,caption_anchor,attribute,,,accessor,canvas.js:473,,yes,yes,missing,caption_anchor,0,0
 canvas,caption_aria_live,attribute,,,constructor option,canvas.js:87,,no,no,missing,caption_aria_live,0,0
 canvas,capture,method,,,,canvas.js:358,,yes,yes,missing,capture,0,0
-canvas,center,attribute,"<0,0,0>",,vector,canvas.js:619,,yes,yes,missing,center,0,0
+canvas,center,attribute,"<0,0,0>",,vector,canvas.js:619,,yes,yes,field-only,center,0,0
 canvas,container,attribute,,,accessor static,canvas.js:769,,no,no,missing,container,0,0
 canvas,delete,method,,,,canvas.js:289,,yes,yes,missing,delete,0,0
 canvas,forward,attribute,,,accessor,canvas.js:623,,yes,yes,missing,forward,0,0
-canvas,fov,attribute,60*Math.PI/180,,,canvas.js:647,,yes,yes,missing,fov,0,0
+canvas,fov,attribute,60*Math.PI/180,,,canvas.js:647,,yes,yes,field-only,fov,0,0
 canvas,get_selected,method,,,static,canvas.js:760,,yes,yes,missing,get_selected,0,0
 canvas,height,attribute,400,,typed,canvas.js:654,,yes,yes,field-only,height,1,1
-canvas,objects,attribute,,yes,accessor,canvas.js:736,,yes,yes,missing,objects,0,0
+canvas,objects,attribute,,yes,accessor,canvas.js:736,,yes,yes,wired,objects,0,0
 canvas,opacity,attribute,1,,,canvas.js:610,,yes,yes,missing,opacity,0,0
 canvas,pause,method,,,,canvas.js:401,,yes,yes,missing,pause,0,0
 canvas,pixel_to_world,attribute,,,accessor,canvas.js:719,,yes,yes,missing,pixel_to_world,0,0
-canvas,range,attribute,,,accessor,canvas.js:705,,yes,yes,missing,range,1,1
+canvas,range,attribute,,,accessor,canvas.js:705,,yes,yes,field-only,range,1,1
 canvas,resizable,attribute,true,,typed,canvas.js:685,,yes,yes,field-only,resizable,0,0
 canvas,screenshot,method,,,,canvas.js:338,,no,no,missing,screenshot,0,0
 canvas,select,method,,,,canvas.js:457,,yes,yes,missing,select,0,0
@@ -162,8 +162,8 @@ canvas,trigger,method,,,,canvas.js:555,,no,no,missing,trigger,0,0
 canvas,unbind,method,,,,canvas.js:530,,no,no,missing,unbind,0,0
 canvas,up,attribute,"<0,1,0>",,vector,canvas.js:621,,yes,yes,missing,up,0,0
 canvas,userpan,attribute,true,,,canvas.js:646,,yes,yes,missing,userpan,0,0
-canvas,userspin,attribute,true,,,canvas.js:645,,yes,yes,missing,userspin,0,0
-canvas,userzoom,attribute,true,,,canvas.js:644,,yes,yes,missing,userzoom,0,0
+canvas,userspin,attribute,true,,,canvas.js:645,,yes,yes,field-only,userspin,0,0
+canvas,userzoom,attribute,true,,,canvas.js:644,,yes,yes,field-only,userzoom,0,0
 canvas,waitfor,method,,,,canvas.js:370,,yes,yes,missing,waitfor,0,0
 canvas,width,attribute,640,,typed,canvas.js:649,,yes,yes,field-only,width,1,1
 checkbox,aria_describedby,attribute,"""""",,constructor option,primitives.js:3126,,no,no,no-object,,0,0
@@ -206,7 +206,7 @@ compound,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,
 compound,green,attribute,,,accessor,primitives.js:1839,,yes,yes,missing,green,0,0
 compound,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 compound,height,attribute,,,accessor,primitives.js:1818,,yes,yes,declared-only,height,0,0
-compound,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+compound,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 compound,length,attribute,,,accessor,primitives.js:1811,,yes,yes,declared-only,length,2,1
 compound,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 compound,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -226,8 +226,8 @@ compound,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-on
 compound,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 compound,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,3,2
 compound,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-compound,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-compound,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+compound,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+compound,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 compound,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 compound,visible,attribute,,,constructor option,primitives.js:1749,,yes,yes,wired,visible,1,1
 compound,width,attribute,,,accessor,primitives.js:1825,,yes,yes,declared-only,width,0,0
@@ -248,7 +248,7 @@ cone,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getT
 cone,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 cone,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 cone,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
-cone,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+cone,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 cone,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,1,1
 cone,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 cone,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -266,8 +266,8 @@ cone,size,attribute,"<1,2,2>",,vector,primitives.js:865,cylinder,yes,yes,wired,s
 cone,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 cone,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,1,1
 cone,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-cone,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-cone,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+cone,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+cone,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 cone,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 cone,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
 cone,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
@@ -286,7 +286,7 @@ curve,display,attribute,,,constructor option (shared init),primitives.js:init(),
 curve,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
 curve,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
 curve,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
-curve,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+curve,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 curve,length,attribute,,,constructor option,primitives.js:1893,,yes,yes,declared-only,length,0,0
 curve,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 curve,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -313,8 +313,8 @@ curve,slice,method,,,,primitives.js:2212,,yes,yes,missing,slice,0,0
 curve,splice,method,,,,primitives.js:2181,,yes,yes,missing,splice,0,0
 curve,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 curve,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-curve,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-curve,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+curve,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+curve,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 curve,unshift,method,,,,primitives.js:2174,,yes,yes,missing,unshift,0,0
 curve,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 curve,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
@@ -334,7 +334,7 @@ cylinder,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,
 cylinder,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 cylinder,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 cylinder,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
-cylinder,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+cylinder,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 cylinder,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,1,1
 cylinder,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 cylinder,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -352,8 +352,8 @@ cylinder,size,attribute,"<1,2,2>",,vector,primitives.js:865,,yes,yes,wired,size,
 cylinder,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 cylinder,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,2,2
 cylinder,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-cylinder,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-cylinder,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+cylinder,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+cylinder,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 cylinder,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 cylinder,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
 cylinder,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
@@ -384,7 +384,7 @@ ellipsoid,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing
 ellipsoid,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 ellipsoid,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 ellipsoid,height,attribute,,,accessor,primitives.js:741,box,yes,yes,wired,height,0,0
-ellipsoid,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+ellipsoid,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 ellipsoid,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,0,0
 ellipsoid,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 ellipsoid,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -402,8 +402,8 @@ ellipsoid,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,wired,s
 ellipsoid,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 ellipsoid,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 ellipsoid,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-ellipsoid,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-ellipsoid,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+ellipsoid,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+ellipsoid,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 ellipsoid,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 ellipsoid,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
 ellipsoid,width,attribute,,,accessor,primitives.js:748,box,yes,yes,wired,width,0,0
@@ -439,7 +439,7 @@ extrusion,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing
 extrusion,green,attribute,,,accessor,primitives.js:1839,compound,yes,yes,missing,green,0,0
 extrusion,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 extrusion,height,attribute,,,accessor,primitives.js:1818,compound,yes,yes,declared-only,height,0,0
-extrusion,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+extrusion,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 extrusion,last_normal,attribute,,,constructor option,extrude.js:523,,no,no,missing,last_normal,0,0
 extrusion,length,attribute,,,accessor,primitives.js:1811,compound,yes,yes,declared-only,length,0,0
 extrusion,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
@@ -470,8 +470,8 @@ extrusion,start_face_color,attribute,,,constructor option,extrude.js:523,,yes,ye
 extrusion,start_normal,attribute,,,constructor option,extrude.js:523,,yes,yes,missing,start_normal,0,0
 extrusion,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,15,4
 extrusion,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-extrusion,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-extrusion,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+extrusion,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+extrusion,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 extrusion,twist,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,twist,2,1
 extrusion,up,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,up,1,1
 extrusion,visible,attribute,,,constructor option,primitives.js:1749,compound,yes,yes,wired,visible,0,0
@@ -643,7 +643,7 @@ helix,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,get
 helix,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 helix,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 helix,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
-helix,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+helix,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 helix,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,3,2
 helix,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 helix,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -662,8 +662,8 @@ helix,size_units,attribute,,,constructor option (shared init),primitives.js:init
 helix,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 helix,thickness,attribute,0,,typed,primitives.js:2393,,yes,yes,wired,thickness,3,3
 helix,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-helix,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-helix,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+helix,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+helix,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 helix,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 helix,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
 helix,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
@@ -755,7 +755,7 @@ points,display,attribute,,,constructor option (shared init),primitives.js:init()
 points,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,0,0
 points,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
 points,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
-points,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+points,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 points,length,attribute,,,constructor option,primitives.js:2294,,yes,yes,declared-only,length,0,0
 points,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 points,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -783,8 +783,8 @@ points,slice,method,,,,primitives.js:2212,curve,yes,yes,missing,slice,0,0
 points,splice,method,,,,primitives.js:2181,curve,yes,yes,missing,splice,0,0
 points,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 points,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-points,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-points,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+points,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+points,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 points,unshift,method,,,,primitives.js:2174,curve,yes,yes,missing,unshift,0,0
 points,up,unsupported,,,getter throws,primitives.js:2357,,yes,yes,wired,up,0,0
 points,visible,attribute,,,accessor,primitives.js:2376,,yes,yes,wired,visible,0,0
@@ -804,7 +804,7 @@ pyramid,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,g
 pyramid,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 pyramid,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 pyramid,height,attribute,,,accessor,primitives.js:741,box,yes,yes,wired,height,0,0
-pyramid,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+pyramid,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 pyramid,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,0,0
 pyramid,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 pyramid,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -822,8 +822,8 @@ pyramid,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,wired,siz
 pyramid,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 pyramid,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,2,2
 pyramid,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-pyramid,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-pyramid,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+pyramid,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+pyramid,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 pyramid,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 pyramid,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,1,1
 pyramid,width,attribute,,,accessor,primitives.js:748,box,yes,yes,wired,width,0,0
@@ -843,7 +843,7 @@ quad,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getT
 quad,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 quad,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 quad,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
-quad,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+quad,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 quad,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
 quad,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 quad,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -861,8 +861,8 @@ quad,size,attribute,,,accessor,primitives.js:1580,,yes,yes,field-only,size,0,0
 quad,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 quad,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,1,1
 quad,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-quad,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-quad,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+quad,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+quad,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 quad,up,attribute,,,accessor,primitives.js:1588,,yes,yes,wired,up,0,0
 quad,v0,attribute,,,accessor,primitives.js:1528,,yes,yes,field-only,v0,0,0
 quad,v1,attribute,,,accessor,primitives.js:1536,,yes,yes,field-only,v1,0,0
@@ -898,7 +898,7 @@ ring,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getT
 ring,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 ring,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 ring,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
-ring,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+ring,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 ring,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
 ring,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 ring,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -917,8 +917,8 @@ ring,size_units,attribute,,,constructor option (shared init),primitives.js:init(
 ring,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 ring,thickness,attribute,,,accessor,primitives.js:2475,,yes,yes,wired,thickness,4,4
 ring,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-ring,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-ring,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+ring,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+ring,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 ring,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 ring,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,0,0
 ring,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,width,0,0
@@ -1021,7 +1021,7 @@ sphere,display,attribute,,,constructor option (shared init),primitives.js:init()
 sphere,emissive,attribute,false,,typed,primitives.js:298,Primitive,yes,yes,wired,emissive,2,1
 sphere,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
 sphere,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
-sphere,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,2,1
+sphere,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,2,1
 sphere,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 sphere,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,31,16
 sphere,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,3,2
@@ -1037,8 +1037,8 @@ sphere,size,attribute,"<2,2,2>",,vector,primitives.js:884,,yes,yes,wired,size,8,
 sphere,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 sphere,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 sphere,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,yes,wired,trail_color,2,2
-sphere,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,3,3
-sphere,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,10,5
+sphere,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,3,3
+sphere,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,10,5
 sphere,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 sphere,visible,attribute,,,accessor,primitives.js:442,Primitive,yes,yes,wired,visible,7,3
 sphere,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
@@ -1062,7 +1062,7 @@ text,font,attribute,,,accessor,primitives.js:1237,,yes,yes,wired,font,1,1
 text,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,getTransformedMesh,0,0
 text,group,attribute,,,constructor option,primitives.js:1067,,yes,yes,declared-only,group,1,1
 text,height,attribute,,,accessor,primitives.js:1181,,yes,yes,wired,height,8,4
-text,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+text,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 text,length,attribute,,,accessor,primitives.js:1173,,yes,yes,declared-only,length,0,0
 text,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 text,lines,attribute,,,accessor,primitives.js:1298,,yes,yes,missing,lines,0,0
@@ -1088,8 +1088,8 @@ text,start_face_color,attribute,,,accessor,primitives.js:1257,,yes,yes,missing,s
 text,text,attribute,,,accessor,primitives.js:1233,,yes,yes,wired,text,11,5
 text,texture,unsupported,,,getter throws,primitives.js:1229,,yes,yes,wired,texture,0,0
 text,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-text,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-text,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+text,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+text,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 text,up,attribute,"<0,1,0>",,vector,primitives.js:262,Primitive,yes,yes,wired,up,0,0
 text,upper_left,attribute,,,accessor,primitives.js:1277,,no,no,missing,upper_left,0,0
 text,upper_right,attribute,,,accessor,primitives.js:1286,,no,no,missing,upper_right,0,0
@@ -1129,7 +1129,7 @@ triangle,getTransformedMesh,method,,,,primitives.js:684,Primitive,no,no,missing,
 triangle,green,attribute,,,accessor,primitives.js:762,box,yes,yes,missing,green,0,0
 triangle,group,attribute,,,accessor,primitives.js:264,Primitive,yes,yes,declared-only,group,0,0
 triangle,height,attribute,,,accessor,primitives.js:741,box,yes,yes,declared-only,height,0,0
-triangle,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,missing,interval,0,0
+triangle,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,interval,0,0
 triangle,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,length,0,0
 triangle,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 triangle,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
@@ -1147,8 +1147,8 @@ triangle,size,attribute,,,accessor,primitives.js:1468,,yes,yes,field-only,size,0
 triangle,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
 triangle,texture,attribute,,,accessor,primitives.js:377,Primitive,yes,yes,wired,texture,0,0
 triangle,trail_color,attribute,,,accessor,primitives.js:337,Primitive,no,no,wired,trail_color,0,0
-triangle,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,declared-only,trail_radius,0,0
-triangle,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,missing,trail_type,0,0
+triangle,trail_radius,attribute,,,accessor,primitives.js:344,Primitive,yes,yes,wired,trail_radius,0,0
+triangle,trail_type,attribute,,,accessor,primitives.js:329,Primitive,yes,yes,wired,trail_type,0,0
 triangle,up,attribute,,,accessor,primitives.js:1476,,yes,yes,wired,up,0,0
 triangle,v0,attribute,,,accessor,primitives.js:1425,,yes,yes,field-only,v0,0,0
 triangle,v1,attribute,,,accessor,primitives.js:1433,,yes,yes,field-only,v1,0,0

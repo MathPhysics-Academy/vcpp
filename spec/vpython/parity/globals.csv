@@ -17,7 +17,7 @@ group,builtin (GScompiler.js vp_primitives),yes,1,1
 vec,builtin (GScompiler.js vp_primitives),yes,275,27
 vector,builtin (GScompiler.js vp_primitives),yes,257,21
 rate,builtin (GScompiler.js vp_primitives),yes,34,31
-sleep,builtin (GScompiler.js vp_primitives),no,1,1
+sleep,builtin (GScompiler.js vp_primitives),yes,1,1
 update,builtin (GScompiler.js vp_primitives),yes,0,0
 color,builtin (GScompiler.js vp_primitives),yes,0,0
 paths,builtin (GScompiler.js vp_primitives),no,0,0

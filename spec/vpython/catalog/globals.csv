@@ -82,7 +82,7 @@ shapes,primitives.js:3752,yes,yes,,no,0
 sign,api_misc.js:786,,,,no,0
 simple_sphere,primitives.js:3747,yes,yes,,no,0
 sin,api_misc.js:774,,yes,,no,47
-sleep,api_misc.js:796,,yes,,no,1
+sleep,api_misc.js:796,,yes,,yes,1
 slider,primitives.js:3776,yes,yes,,no,2
 sphere,primitives.js:3745,yes,yes,,yes,55
 sqrt,api_misc.js:771,,yes,,no,7
