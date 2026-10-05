@@ -99,11 +99,18 @@ inline constexpr symbol<> line{};       // draw line from pos to label (bool)
 // ============================================================================
 
 inline constexpr symbol<> path{};            // extrusion path (vector<vec3>)
-inline constexpr symbol<> shape{};           // 2D cross-section (vector<vec2>)
-inline constexpr symbol<> twist{};           // total twist angle (double)
-inline constexpr symbol<> scale_end{};       // end scale factor (double)
+inline constexpr symbol<> shape{};           // 2D cross-section: contour, contours, or list of those
+inline constexpr symbol<> twist{};           // turn of the shape at each joint (double or one per point)
+inline constexpr symbol<> scale{};           // shape scale (double or one per point)
+inline constexpr symbol<> xscale{};          // shape scale in x (double or one per point)
+inline constexpr symbol<> yscale{};          // shape scale in y (double or one per point)
 inline constexpr symbol<> show_start_face{}; // cap at start (bool)
 inline constexpr symbol<> show_end_face{};   // cap at end (bool)
+inline constexpr symbol<> start_normal{};    // outward normal of the start face (vec3)
+inline constexpr symbol<> end_normal{};      // outward normal of the end face (vec3)
+inline constexpr symbol<> smooth{};          // cosine above which a turn is smoothed (double)
+inline constexpr symbol<> sharp_joints{};    // path indexes drawn sharp (vector<size_t>)
+inline constexpr symbol<> smooth_joints{};   // path indexes drawn smooth (vector<size_t>)
 
 // ============================================================================
 // Vertex/Triangle/Quad Properties

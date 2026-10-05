@@ -428,13 +428,9 @@ private:
               o.z * double{c.m_vertices[i + 2]});
     });
     each(m_extrusions, [](extent& e, const extrusion_object& x) {
-      double reach = 0;
-      for (const auto& p : x.m_shape)
-        reach = std::max(reach, std::hypot(p.x(), p.y()));
-      reach *= std::max(1.0, x.m_scale);
       const auto o = orientation_of(x.m_axis, x.m_up);
-      for (const auto& p : x.m_path)
-        e.add_ball(x.m_pos + o.x * p.x() + o.y * p.y() + o.z * p.z(), reach);
+      for (const auto& v : x.m_mesh.vertices)
+        e.add(x.m_pos + o.x * double{v.position[0]} + o.y * double{v.position[1]} + o.z * double{v.position[2]});
     });
     for (const auto& [entry, trail] : m_trails)
     {

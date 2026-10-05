@@ -884,10 +884,509 @@ inline void transform_mesh(mesh_data& mesh, const vec3& pos, const vec3& axis, c
 }
 
 // ============================================================================
-// Extrusion Mesh Generator
-//
-// Extrudes a 2D shape along a 3D path with optional twist and scaling.
-// Uses Frenet frames (similar to generate_tube but with custom cross-section).
+// Extrusion: GlowScript's extrusion (extrude.js), a 2D shape swept along a path
+// ============================================================================
+
+// A shape is its outer contour followed by its holes; each contour is closed (its last point repeats its
+// first). Per-point values have one entry per path point, or are empty for the default.
+struct extrusion_spec
+{
+  std::vector<vec3> path; // closed when its last point equals its first
+  std::vector<std::vector<std::vector<vec2>>> shapes;
+  std::vector<double> xscale;
+  std::vector<double> yscale;
+  std::vector<double> twist; // the shape's total turn at each point, in radians
+  bool show_start_face = true;
+  bool show_end_face = true;
+  std::optional<vec3> start_normal;
+  std::optional<vec3> end_normal;
+  vec3 up{0, 1, 0};
+  double smooth = 0.95; // a turn whose cosine is below this is a sharp corner
+  std::vector<std::size_t> sharp_joints;
+  std::vector<std::size_t> smooth_joints;
+};
+
+namespace detail
+{
+// GlowScript's vector operations, whose edge cases the extrusion relies on
+inline vec3 gs_norm(const vec3& v)
+{
+  const double r = mag(v);
+  return r == 0 ? vec3{0, 0, 0} : v * (1 / r);
+}
+
+inline double gs_diff_angle(const vec3& a, const vec3& b)
+{
+  const double c = dot(gs_norm(a), gs_norm(b));
+  if (c > 1)
+    return 0;
+  if (c < -1)
+    return std::numbers::pi;
+  return std::acos(c);
+}
+
+inline vec3 gs_rotate(const vec3& v, double angle, const vec3& axis_in)
+{
+  if (angle == 0)
+    return v;
+  const vec3 axis = gs_norm(axis_in);
+  const vec3 parallel = axis * dot(axis, v);
+  vec3 perp = cross(axis, v);
+  const double pmag = mag(perp);
+  if (pmag == 0)
+    return v;
+  perp = perp * (1 / pmag);
+  const vec3 y = cross(perp, axis);
+  return parallel + y * (pmag * std::cos(angle)) + perp * (pmag * std::sin(angle));
+}
+} // namespace detail
+
+inline mesh_data generate_extrusion(extrusion_spec s)
+{
+  using detail::gs_diff_angle;
+  using detail::gs_norm;
+  using detail::gs_rotate;
+
+  std::vector<vec3>& p = s.path;
+  if (p.size() < 2)
+    throw std::invalid_argument("vcpp: an extrusion's path needs at least two points");
+  const bool closed = p.back() == p.front();
+  if (closed)
+    p.pop_back();
+  const std::size_t L = p.size();
+  if (L < 2)
+    throw std::invalid_argument("vcpp: an extrusion's path must contain more than one distinct point");
+  auto value_at = [](const std::vector<double>& v, std::size_t i, double fallback) {
+    return v.empty() ? fallback : v[i];
+  };
+  const double smoothangle = std::acos(s.smooth);
+
+  // x, y, z: the frame of the shape at a joint. z runs along the path and isn't a unit vector; a shape point
+  // [sx, sy] is at pos + sx*x + sy*y.
+  vec3 x;
+  vec3 y;
+  vec3 z;
+  vec3 start_normal;
+  vec3 end_normal;
+  vec3 extra; // the direction of an imagined segment past the end, whose joint has end_normal
+  if (!closed)
+  {
+    z = p[1] - p[0];
+    const double da = gs_diff_angle(z, s.up);
+    if (da == 0)
+    {
+      x = vec3{1, 0, 0};
+      y = vec3{0, 0, 1};
+    }
+    else if (da == std::numbers::pi)
+    {
+      x = vec3{-1, 0, 0};
+      y = vec3{0, 0, 1};
+    }
+    else
+    {
+      x = gs_norm(cross(z, s.up));
+      y = gs_norm(cross(x, z));
+    }
+    start_normal = s.start_normal ? *s.start_normal * -1.0 : z; // points inward
+    if (gs_norm(start_normal) != gs_norm(z))
+    {
+      const vec3 axis = cross(z, start_normal);
+      const double theta = 2 * gs_diff_angle(start_normal, z);
+      x = gs_rotate(x, theta, axis);
+      y = gs_rotate(y, theta, axis);
+      z = gs_rotate(z, theta, axis);
+    }
+    const vec3 a = p[L - 1] - p[L - 2];
+    end_normal = s.end_normal ? *s.end_normal : a;
+    extra = a;
+    if (gs_norm(end_normal) != gs_norm(a))
+      extra = gs_rotate(a, 2 * gs_diff_angle(a, end_normal), cross(a, end_normal));
+  }
+  else
+  {
+    z = p[0] - p[L - 1];
+    x = gs_norm(cross(z, s.up));
+    y = gs_norm(cross(x, z));
+  }
+
+  // The joints. turn, the sum of the unit directions in and out, is the normal of the plane the shape sits in
+  // there; ltex is the texture's u coordinate, the distance along the path since the last sharp joint as a
+  // fraction of the run.
+  struct joint
+  {
+    vec3 pos;
+    vec3 x;
+    vec3 y;
+    vec3 z;
+    vec3 turn;
+    bool sharp;
+    double twist;
+    double xscale;
+    double yscale;
+    double ltex;
+  };
+  std::vector<joint> joints;
+  double ltex = 0;
+  std::size_t lastzero = 0;
+  vec3 newz = z;
+  auto listed = [](const std::vector<std::size_t>& v, std::size_t i) { return std::ranges::contains(v, i); };
+  for (std::size_t ipath = 0; ipath < L; ++ipath)
+  {
+    if (ipath < L - 1)
+      newz = p[ipath + 1] - p[ipath];
+    if (!closed && ipath == L - 1)
+      newz = extra;
+    else if (closed && ipath == 0)
+      z = p[0] - p[L - 1];
+    else if (closed && ipath == L - 1)
+      newz = p[0] - p[ipath];
+    const vec3 axis = cross(z, newz);
+    const double theta = gs_diff_angle(newz, z);
+    const vec3 newx = gs_rotate(x, theta, axis);
+    const vec3 newy = gs_rotate(y, theta, axis);
+    bool sharp = theta >= smoothangle;
+    if (!closed && (ipath == 0 || ipath == L - 1))
+      sharp = false;
+    if (sharp)
+    {
+      if (listed(s.smooth_joints, ipath))
+        sharp = false;
+      if (listed(s.sharp_joints, ipath))
+        sharp = true;
+    }
+    else
+    {
+      if (listed(s.sharp_joints, ipath))
+        sharp = true;
+      if (listed(s.smooth_joints, ipath))
+        sharp = false;
+    }
+    if (ipath > 0 && (sharp || ipath == L - 1))
+    {
+      for (std::size_t k = lastzero + 1; k < ipath; ++k)
+        joints[k].ltex /= ltex;
+      lastzero = ipath;
+      ltex = 1;
+    }
+    joints.push_back({p[ipath], newx, newy, newz, gs_norm(z) + gs_norm(newz), sharp, value_at(s.twist, ipath, 0),
+                      value_at(s.xscale, ipath, 1), value_at(s.yscale, ipath, 1), ltex});
+    ltex += mag(z);
+    x = newx;
+    y = newy;
+    z = newz;
+  }
+
+  // GlowScript requires closed contours; this closes them instead
+  for (auto& shape : s.shapes)
+    for (auto& contour : shape)
+      if (contour.size() > 1 && contour.back() != contour.front())
+        contour.push_back(contour.front());
+
+  // The texture's coordinates on the end faces come from the bounding box of the outer contours
+  double xmin = std::numeric_limits<double>::infinity();
+  double xmax = -xmin;
+  double ymin = xmin;
+  double ymax = -xmin;
+  for (const auto& shape : s.shapes)
+    for (std::size_t j = 0; j + 1 < shape[0].size(); ++j)
+    {
+      xmin = std::min(xmin, shape[0][j].x());
+      xmax = std::max(xmax, shape[0][j].x());
+      ymin = std::min(ymin, shape[0][j].y());
+      ymax = std::max(ymax, shape[0][j].y());
+    }
+
+  // Vertices made so far. Quads share them, as GlowScript's quads share vertex objects, so where a joint or a
+  // corner of the shape is smooth, the normals of the faces that meet there add up.
+  struct point
+  {
+    vec3 pos;
+    vec3 normal;
+    vec2 tex;
+    bool sharp;
+  };
+  std::vector<point> vertices;
+  std::vector<std::array<std::size_t, 4>> quads;
+  std::vector<std::array<std::size_t, 3>> triangles;
+
+  struct shape_point
+  {
+    vec3 pos;
+    bool sharp;
+    double length; // the texture's v coordinate
+  };
+  std::vector<shape_point> shapeinfo;
+  std::vector<vec3> start_vertices;
+  std::vector<vec3> end_vertices;
+  std::size_t starting_quad = 0;
+
+  // The contour's points, made counter-clockwise. v runs from 0 at the lowest corner to 1 halfway round and
+  // back to 0, so two copies of the texture meet along the sides with matching pixels.
+  auto find_shape_info = [&](std::vector<vec2>& contour) {
+    double curl = 0;
+    for (std::size_t i = 0; i + 1 < contour.size(); ++i)
+      curl +=
+        contour[i].x() * (contour[i + 1].y() - contour[i].y()) - contour[i].y() * (contour[i + 1].x() - contour[i].x());
+    if (curl < 0)
+      std::ranges::reverse(contour);
+    std::vector<vec3> slist;
+    for (const auto& c : contour)
+      slist.push_back(vec3{c.x(), c.y(), 0});
+    const std::size_t ls = slist.size();
+    double totallength = 0;
+    std::vector<vec3> vs;
+    std::vector<double> lengths;
+    double miny = 0;
+    std::size_t minyi = 0;
+    for (std::size_t i = 0; i + 1 < ls; ++i)
+    {
+      if (i == 0 || slist[i].y() < miny)
+      {
+        miny = slist[i].y();
+        minyi = i;
+      }
+      vs.push_back(slist[i + 1] - slist[i]);
+      lengths.push_back(mag(vs.back()));
+      totallength += lengths.back();
+    }
+    const std::size_t n = lengths.size();
+    std::vector<double> texval(n, 0);
+    for (auto& len : lengths)
+      len /= totallength;
+    double d = 0;
+    std::size_t np = 0;
+    std::size_t j = 0;
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      j = (minyi + i) % n;
+      d += lengths[j];
+      if (d > 0.5)
+      {
+        d -= lengths[j];
+        break;
+      }
+      ++np;
+    }
+    double d2 = 0;
+    for (std::size_t i = 0; i < np; ++i)
+    {
+      const std::size_t k = (minyi + i + 1) % n;
+      d2 += lengths[k];
+      texval[k] = d2 / d;
+    }
+    d2 = 0;
+    for (std::size_t i = 0; i < n - np; ++i)
+    {
+      const std::size_t k = (j + i + 1) % n;
+      d2 += lengths[k];
+      texval[k] = 1 - d2 / (1 - d);
+    }
+    shapeinfo.clear();
+    vec3 previous = vs.back();
+    for (std::size_t i = 0; i + 1 < ls; ++i)
+    {
+      const bool sharp = dot(gs_norm(vs[i]), gs_norm(previous)) <= s.smooth;
+      shapeinfo.push_back({slist[i], sharp, texval[i]});
+      previous = vs[i];
+    }
+  };
+
+  // The quads of one segment, from joint ipath to the next
+  auto generate_vertices = [&](std::size_t ipath) {
+    const std::size_t ls = shapeinfo.size();
+    std::vector<point> verts; // the shape placed at both joints
+    vec3 lastv;
+    for (std::size_t i = ipath; i < ipath + 2; ++i)
+    {
+      const joint& jn = (i == L && closed) ? joints[0] : joints[i];
+      const vec3 jx = gs_rotate(jn.x, -jn.twist, jn.z);
+      const vec3 jy = gs_rotate(jn.y, -jn.twist, jn.z);
+      const vec3& n = jn.turn;
+      for (std::size_t k = 0; k < ls; ++k)
+      {
+        const vec3& r = shapeinfo[k].pos;
+        const double zcomp = -(dot(n, jx) * r.x() * jn.xscale + dot(n, jy) * r.y() * jn.yscale) / dot(n, gs_norm(jn.z));
+        const vec3 v = jx * (r.x() * jn.xscale) + jy * (r.y() * jn.yscale) + gs_norm(jn.z) * zcomp + jn.pos;
+        auto record = [&](std::vector<vec3>& face) {
+          if (k == 0 || (v != lastv && !std::ranges::contains(face, v)))
+          {
+            face.push_back(v);
+            lastv = v;
+          }
+        };
+        if (i == 0 && !closed && s.show_start_face)
+          record(start_vertices);
+        else if (i == L - 1 && !closed && s.show_end_face)
+          record(end_vertices);
+        verts.push_back({v, vec3{0, 0, 0}, vec2{jn.ltex, shapeinfo[k].length}, shapeinfo[k].sharp});
+      }
+    }
+
+    // A quad corner names an entry of verts, or a vertex already made
+    struct ref
+    {
+      bool made;
+      std::size_t index;
+    };
+    auto at = [&](ref r) -> point& { return r.made ? vertices[r.index] : verts[r.index]; };
+    auto make = [&](ref r) -> ref {
+      vertices.push_back(at(r));
+      return {true, vertices.size() - 1};
+    };
+    auto plain = [](std::size_t i) { return ref{false, i}; };
+    auto made = [](std::size_t i) { return ref{true, i}; };
+
+    for (std::size_t k = 0; k < ls; ++k)
+    {
+      const std::size_t lq = quads.size();
+      ref v0 = plain(k);
+      ref v1 = plain(ls + k);
+      ref v2 = k == ls - 1 ? plain(ls) : plain(ls + k + 1);
+      ref v3 = k == ls - 1 ? plain(0) : plain(k + 1);
+      const vec3 n0 = gs_norm(cross(at(v1).pos - at(v0).pos, at(v3).pos - at(v0).pos));
+      const vec3 n1 = gs_norm(cross(at(v2).pos - at(v1).pos, at(v0).pos - at(v1).pos));
+      const vec3 n2 = gs_norm(cross(at(v3).pos - at(v2).pos, at(v1).pos - at(v2).pos));
+      const vec3 n3 = gs_norm(cross(at(v0).pos - at(v3).pos, at(v2).pos - at(v3).pos));
+      at(v0).normal = n0;
+      at(v1).normal = n1;
+      at(v2).normal = n2;
+      at(v3).normal = n3;
+      bool adjusted = false;
+      if (ipath > 0 && !joints[ipath].sharp) // a smooth joint: continue the previous segment's vertices
+      {
+        adjusted = true;
+        v0 = made(quads[lq - ls][1]);
+        at(v0).normal = n0 + at(v0).normal;
+        v3 = made(quads[lq - ls][2]);
+        at(v3).normal = n3 + at(v3).normal;
+      }
+      if (k == 0)
+      {
+        v0 = make(v0);
+        v1 = make(v1);
+        v2 = make(v2);
+        v3 = make(v3);
+      }
+      else if (k == ls - 1)
+      {
+        // GlowScript takes a third branch when the shape's point 1 is a sharp corner, but it names a vertex
+        // twice there and leaves a gap in the surface; this uses the corners it means
+        if (verts[k].sharp || vertices[quads[lq - ls + 1][0]].sharp)
+        {
+          v0 = make(plain(k));
+          v1 = make(plain(k + ls));
+          v2 = make(plain(ls));
+          v3 = make(plain(0));
+        }
+        else
+        {
+          if (!adjusted)
+          {
+            v0 = made(quads[lq - 1][3]);
+            at(v0).normal = n0 + at(v0).normal;
+            v3 = made(quads[lq - ls + 1][0]);
+            at(v3).normal = n3 + at(v3).normal;
+          }
+          v1 = made(quads[lq - 1][2]);
+          at(v1).normal = n1 + at(v1).normal;
+          v2 = made(quads[lq - ls + 1][1]);
+          at(v2).normal = n2 + at(v2).normal;
+        }
+      }
+      else if (verts[k].sharp)
+      {
+        if (!adjusted)
+        {
+          v0 = make(plain(k));
+          v3 = make(plain(k + 1));
+          at(v0).tex = vec2{0, at(v0).tex.y()};
+          at(v3).tex = vec2{0, at(v3).tex.y()};
+        }
+        v1 = make(plain(k + ls));
+        v2 = make(plain(k + ls + 1));
+      }
+      else
+      {
+        if (!adjusted)
+        {
+          v0 = made(quads[lq - 1][3]);
+          at(v0).normal = n0 + at(v0).normal;
+          v3 = make(plain(k + 1));
+        }
+        v1 = made(quads[lq - 1][2]);
+        at(v1).normal = n1 + at(v1).normal;
+        v2 = make(plain(k + ls + 1));
+      }
+      if (ipath == L - 1 && closed && !joints[0].sharp) // close the loop onto the first segment
+      {
+        v1 = made(quads[starting_quad + k][0]);
+        at(v1).normal = n1 + at(v1).normal;
+        v2 = made(quads[starting_quad + k][3]);
+        at(v2).normal = n2 + at(v2).normal;
+      }
+      quads.push_back({v0.index, v1.index, v2.index, v3.index});
+    }
+  };
+
+  auto make_quads = [&](std::vector<vec2>& contour, bool outside) {
+    if (!outside && closed)
+      return; // as in GlowScript, a closed path draws no sides for holes
+    find_shape_info(contour);
+    starting_quad = quads.size();
+    for (std::size_t ipath = 0; ipath + 1 < L; ++ipath)
+      generate_vertices(ipath);
+    if (closed)
+      generate_vertices(L - 1);
+  };
+
+  // The end faces: the shape's outline with its holes, filled
+  auto endfaces = [&](const std::vector<std::vector<vec2>>& shape) {
+    if (closed || (!s.show_start_face && !s.show_end_face))
+      return;
+    std::vector<std::vector<vec2>> open;
+    for (const auto& c : shape)
+      open.emplace_back(c.begin(), c.end() - 1);
+    const std::vector<std::uint32_t> tris = triangulate(open);
+    auto face = [&](const std::vector<vec3>& corners, const vec3& normal) {
+      const std::size_t base = vertices.size();
+      for (const vec3& v : corners)
+        vertices.push_back({v, normal, vec2{(v.x() - xmin) / (xmax - xmin), (v.y() - ymin) / (ymax - ymin)}, false});
+      for (std::size_t t = 0; t + 2 < tris.size(); t += 3)
+        triangles.push_back({base + tris[t], base + tris[t + 1], base + tris[t + 2]});
+    };
+    if (s.show_start_face)
+      face(start_vertices, start_normal * -1.0);
+    if (s.show_end_face)
+      face(end_vertices, end_normal);
+  };
+
+  for (auto& shape : s.shapes)
+  {
+    start_vertices.clear();
+    end_vertices.clear();
+    for (std::size_t nc = 0; nc < shape.size(); ++nc)
+      make_quads(shape[nc], nc == 0);
+    endfaces(shape);
+  }
+
+  mesh_data mesh;
+  for (const point& v : vertices)
+    mesh.vertices.push_back(
+      {{static_cast<float>(v.pos.x()), static_cast<float>(v.pos.y()), static_cast<float>(v.pos.z())},
+       {static_cast<float>(v.normal.x()), static_cast<float>(v.normal.y()), static_cast<float>(v.normal.z())},
+       {static_cast<float>(v.tex.x()), static_cast<float>(v.tex.y())}});
+  for (const auto& q : quads)
+    for (const std::size_t i : {q[0], q[1], q[2], q[0], q[2], q[3]})
+      mesh.indices.push_back(static_cast<std::uint32_t>(i));
+  for (const auto& t : triangles)
+    for (const std::size_t i : t)
+      mesh.indices.push_back(static_cast<std::uint32_t>(i));
+  return mesh;
+}
+
+// ============================================================================
+// A simpler sweep of one outline along a path, with Frenet frames; 3D text's built-in glyphs use it
 // ============================================================================
 
 inline mesh_data generate_extrusion(const std::vector<vec3>& path, const std::vector<vec2>& shape, double twist = 0.0,

@@ -101,11 +101,15 @@ bool test_text3d_params()
   return t.m_text == "VPython" && t.m_align == "center" && t.m_font == "serif";
 }
 
+// As for GlowScript's compound, pos is the centre of the extrusion's bounding box unless it is given
 bool test_extrusion_params()
 {
-  auto e = extrusion(path = std::vector<vec3>{{0, 0, 0}, {0, 1, 0}}, shape = std::vector<vec2>{{0, 0}, {1, 0}, {0, 1}},
-                     twist = 0.5, scale_end = 0.25);
-  return e.m_path.size() == 2 && e.m_shape.size() == 3 && near(e.m_twist, 0.5) && near(e.m_scale, 0.25);
+  const std::vector<vec3> line{{0, 0, 0}, {0, 0, -2}};
+  const std::vector<vec2> square{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+  auto e = extrusion(path = line, shape = square, twist = 0.5, scale = 0.25);
+  auto placed = extrusion(path = line, shape = square, pos = vec3{5, 0, 0});
+  return e.m_path.size() == 2 && e.m_shape.shapes[0][0].size() == 5 && near(*e.m_twist.single, 0.5) &&
+         near(*e.m_scale.single, 0.25) && near(e.m_pos, vec3{0, 0, -1}) && near(placed.m_pos, vec3{5, 0, 0});
 }
 
 bool test_graph_params()

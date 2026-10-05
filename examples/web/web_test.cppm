@@ -1003,63 +1003,40 @@ namespace
     scene.background(vec3{0.08, 0.08, 0.12});
 
     // Circular extrusion along spiral path
-    extrusion_object ext1;
-    ext1.m_color = colors::cyan;
-    ext1.set_shape(shapes::circle(0.3, 16).points());
-
-    // Spiral path
+    std::vector<vec3> spiral;
     for (int i = 0; i < 50; ++i) {
       double t = static_cast<double>(i) / 49.0;
       double angle = t * 4.0 * 3.14159265;
       double r = 1.0 + t * 1.5;
-      double x = r * std::cos(angle) - 4.0;
-      double y = t * 3.0 - 1.5;
-      double z = r * std::sin(angle);
-      ext1.append_path(vec3{x, y, z});
+      spiral.push_back(vec3{r * std::cos(angle) - 4.0, t * 3.0 - 1.5, r * std::sin(angle)});
     }
-    scene.add(ext1);
+    scene.add(extrusion(path = spiral, shape = shapes::circle(0.3, 64).points(), color = colors::cyan));
 
-    // Star-shaped extrusion along straight path
-    extrusion_object ext2;
-    ext2.m_color = colors::yellow;
-    ext2.m_twist = 3.14159265; // 180 degree twist
-    ext2.set_shape(shapes::star(5, 0.4, 0.2).points());
+    // Star-shaped extrusion along straight path, turning 180 degrees in all
+    std::vector<vec3> line;
+    for (int i = 0; i < 20; ++i)
+      line.push_back(vec3{0, static_cast<double>(i) / 19.0 * 4.0 - 2.0, 0});
+    scene.add(extrusion(path = line, shape = shapes::star(5, 0.4, 0.2).points(), color = colors::yellow,
+                        twist = 3.14159265 / 19));
 
-    for (int i = 0; i < 20; ++i) {
-      double t = static_cast<double>(i) / 19.0;
-      ext2.append_path(vec3{0, t * 4.0 - 2.0, 0});
-    }
-    scene.add(ext2);
-
-    // Rectangular extrusion along curved path
-    extrusion_object ext3;
-    ext3.m_color = colors::magenta;
-    ext3.m_scale = 0.5; // Taper to half size
-    ext3.set_shape(shapes::rectangle(0.5, 0.3).points());
-
+    // Rectangular extrusion along curved path, tapering to half size
+    std::vector<vec3> arc;
+    std::vector<double> taper;
     for (int i = 0; i < 30; ++i) {
       double t = static_cast<double>(i) / 29.0;
-      double x = 3.0 + std::sin(t * 3.14159265) * 2.0;
-      double y = t * 3.0 - 1.5;
-      double z = std::cos(t * 3.14159265) - 1.0;
-      ext3.append_path(vec3{x, y, z});
+      arc.push_back(vec3{3.0 + std::sin(t * 3.14159265) * 2.0, t * 3.0 - 1.5, std::cos(t * 3.14159265) - 1.0});
+      taper.push_back(1.0 - 0.5 * t);
     }
-    scene.add(ext3);
+    scene.add(
+      extrusion(path = arc, shape = shapes::rectangle(0.5, 0.3).points(), color = colors::magenta, scale = taper));
 
-    // Hexagon extrusion (pipe/tube)
-    extrusion_object ext4;
-    ext4.m_color = colors::green;
-    ext4.set_shape(shapes::hexagon(0.25).points());
-
-    // Sine wave path
+    // Hexagon extrusion (pipe/tube) along a sine wave
+    std::vector<vec3> wave;
     for (int i = 0; i < 40; ++i) {
       double t = static_cast<double>(i) / 39.0;
-      double x = t * 6.0 - 3.0;
-      double y = -2.5;
-      double z = std::sin(t * 4.0 * 3.14159265) * 0.5 + 2.0;
-      ext4.append_path(vec3{x, y, z});
+      wave.push_back(vec3{t * 6.0 - 3.0, -2.5, std::sin(t * 4.0 * 3.14159265) * 0.5 + 2.0});
     }
-    scene.add(ext4);
+    scene.add(extrusion(path = wave, shape = shapes::hexagon(0.25).points(), color = colors::green));
 
     std::cout << "Loaded Extrusion Demo Scene (Press ])" << std::endl;
     std::cout << "  Cyan: Circular cross-section along spiral" << std::endl;

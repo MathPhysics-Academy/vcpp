@@ -761,46 +761,161 @@ text3d_object text3d(Binders... binders)
 
 // ============================================================================
 // EXTRUSION (2D shape along 3D path)
+//
+// GlowScript's extrusion. Its surface is built when it is made, centred on its bounding box: pos is that
+// centre unless pos is given, which moves the centre there, as for GlowScript's compound.
 // ============================================================================
+
+// One contour, a contour followed by its holes, or several of those: GlowScript's three forms of shape
+struct extrusion_shape
+{
+  std::vector<std::vector<std::vector<vec2>>> shapes;
+
+  extrusion_shape() = default;
+  extrusion_shape(std::vector<vec2> contour) : shapes{{std::move(contour)}} {}
+  extrusion_shape(std::vector<std::vector<vec2>> contours) : shapes{std::move(contours)} {}
+  extrusion_shape(std::vector<std::vector<std::vector<vec2>>> s) : shapes(std::move(s)) {}
+};
+
+// A value for every point of the path: one number for all, or a list with one per point
+struct per_point
+{
+  std::optional<double> single;
+  std::vector<double> values;
+
+  per_point() = default;
+  per_point(double v) : single(v) {}
+  per_point(std::vector<double> v) : values(std::move(v)) {}
+
+  bool given() const { return single || !values.empty(); }
+};
 
 struct extrusion_object : object_base
 {
-  std::vector<vec3> m_path;         // Path points
-  std::vector<vec2> m_shape;        // 2D cross-section (outer contour)
-  double m_twist{0.0};              // Total twist angle (radians)
-  double m_scale{1.0};              // End scale factor
-  bool m_show_start_face{true};     // Cap at start
-  bool m_show_end_face{true};       // Cap at end
+  std::vector<vec3> m_path;
+  extrusion_shape m_shape;
+  per_point m_scale;
+  per_point m_xscale;
+  per_point m_yscale;
+  per_point m_twist;
+  bool m_show_start_face{true};
+  bool m_show_end_face{true};
+  std::optional<vec3> m_start_normal;
+  std::optional<vec3> m_end_normal;
+  double m_smooth{0.95};
+  std::vector<std::size_t> m_sharp_joints;
+  std::vector<std::size_t> m_smooth_joints;
+
+  mesh::mesh_data m_mesh; // the surface, centred on pos
   mutable bool m_geometry_dirty{true};
-  mutable std::vector<float> m_cached_vertices;
-  mutable std::vector<std::uint32_t> m_cached_indices;
-
-  void append_path(const vec3& p)
-  {
-    m_path.push_back(p);
-    m_geometry_dirty = true;
-  }
-
-  void set_shape(const std::vector<vec2>& s)
-  {
-    m_shape = s;
-    m_geometry_dirty = true;
-  }
 };
 
 template<>
 struct object_params<extrusion_object>
 {
-  static constexpr auto value = std::tuple{param_spec<&extrusion_object::m_path, decltype(path)>{},
-                                           param_spec<&extrusion_object::m_shape, decltype(shape)>{},
-                                           param_spec<&extrusion_object::m_twist, decltype(twist)>{},
-                                           param_spec<&extrusion_object::m_scale, decltype(scale_end)>{}};
+  static constexpr auto value =
+    std::tuple{param_spec<&extrusion_object::m_path, decltype(path)>{},
+               param_spec<&extrusion_object::m_shape, decltype(shape)>{},
+               param_spec<&extrusion_object::m_scale, decltype(scale)>{},
+               param_spec<&extrusion_object::m_xscale, decltype(xscale)>{},
+               param_spec<&extrusion_object::m_yscale, decltype(yscale)>{},
+               param_spec<&extrusion_object::m_twist, decltype(twist)>{},
+               param_spec<&extrusion_object::m_show_start_face, decltype(show_start_face)>{},
+               param_spec<&extrusion_object::m_show_end_face, decltype(show_end_face)>{},
+               param_spec<&extrusion_object::m_start_normal, decltype(start_normal)>{},
+               param_spec<&extrusion_object::m_end_normal, decltype(end_normal)>{},
+               param_spec<&extrusion_object::m_smooth, decltype(smooth)>{},
+               param_spec<&extrusion_object::m_sharp_joints, decltype(sharp_joints)>{},
+               param_spec<&extrusion_object::m_smooth_joints, decltype(smooth_joints)>{}};
 };
+
+namespace detail
+{
+// A per-point value as a list with one entry per point, checked as GlowScript checks it
+inline std::vector<double> per_point_values(const per_point& v, std::size_t n, bool closed, const char* name)
+{
+  if (v.single)
+    return std::vector<double>(n, *v.single);
+  if (v.values.size() != n)
+    throw std::invalid_argument(
+      std::format("vcpp: the extrusion's {} list has {} values for a path of {} points", name, v.values.size(), n));
+  if (closed && v.values.back() != v.values.front())
+    throw std::invalid_argument(std::format("vcpp: with a closed path, the last {} must equal the first", name));
+  return v.values;
+}
+
+// Builds the surface from the parameters; with keep_pos false, pos becomes the centre of its bounding box
+inline void build_extrusion(extrusion_object& x, bool keep_pos)
+{
+  mesh::extrusion_spec s;
+  s.path = x.m_path;
+  s.shapes = x.m_shape.shapes;
+  const std::size_t n = s.path.size();
+  const bool closed = n > 1 && s.path.back() == s.path.front();
+  if (x.m_scale.given())
+  {
+    if (x.m_xscale.given() || x.m_yscale.given())
+      throw std::invalid_argument("vcpp: an extrusion can't take both scale and xscale or yscale");
+    s.xscale = per_point_values(x.m_scale, n, closed, "scale");
+    for (double& v : s.xscale)
+      if (v == 0)
+        v = 1e-7; // as GlowScript does
+    s.yscale = s.xscale;
+  }
+  else
+  {
+    if (x.m_xscale.given())
+      s.xscale = per_point_values(x.m_xscale, n, closed, "xscale");
+    if (x.m_yscale.given())
+      s.yscale = per_point_values(x.m_yscale, n, closed, "yscale");
+  }
+  // One twist adds that turn at each joint after the first; a list adds its own value at every joint
+  if (x.m_twist.single)
+    for (std::size_t i = 0; i < n; ++i)
+      s.twist.push_back(static_cast<double>(i) * *x.m_twist.single);
+  else if (!x.m_twist.values.empty())
+  {
+    double total = 0;
+    for (double t : per_point_values(x.m_twist, n, false, "twist"))
+      s.twist.push_back(total += t);
+  }
+  s.show_start_face = x.m_show_start_face;
+  s.show_end_face = x.m_show_end_face;
+  s.start_normal = x.m_start_normal;
+  s.end_normal = x.m_end_normal;
+  s.smooth = x.m_smooth;
+  s.sharp_joints = x.m_sharp_joints;
+  s.smooth_joints = x.m_smooth_joints;
+  s.up = hat(x.m_up);
+  x.m_up = vec3{0, 1, 0}; // up orients the shape along the path, not the finished object, as in GlowScript
+
+  x.m_mesh = mesh::generate_extrusion(std::move(s));
+  std::array<double, 3> lo;
+  std::array<double, 3> hi;
+  lo.fill(std::numeric_limits<double>::infinity());
+  hi.fill(-std::numeric_limits<double>::infinity());
+  for (const auto& v : x.m_mesh.vertices)
+    for (std::size_t i = 0; i < 3; ++i)
+    {
+      lo[i] = std::min(lo[i], double{v.position[i]});
+      hi[i] = std::max(hi[i], double{v.position[i]});
+    }
+  const std::array<double, 3> centre{(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2};
+  for (auto& v : x.m_mesh.vertices)
+    for (std::size_t i = 0; i < 3; ++i)
+      v.position[i] -= static_cast<float>(centre[i]);
+  if (!keep_pos)
+    x.m_pos = vec3{centre[0], centre[1], centre[2]};
+}
+} // namespace detail
 
 template<typename... Binders>
 extrusion_object extrusion(Binders... binders)
 {
-  return make<extrusion_object>(binders...);
+  extrusion_object x = make<extrusion_object>(binders...);
+  constexpr bool pos_given = (std::same_as<typename Binders::symbol_type, std::remove_cvref_t<decltype(pos)>> || ...);
+  detail::build_extrusion(x, pos_given);
+  return x;
 }
 
 } // namespace vcpp

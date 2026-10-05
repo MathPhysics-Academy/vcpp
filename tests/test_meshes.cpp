@@ -135,6 +135,27 @@ bool test_texture_coordinates()
   return sphere_ok && box_ok && cylinder_ok;
 }
 
+// A 2 x 1 rectangle along -z for 2: GlowScript puts the shape's x and y on the world's x and y, and draws
+// four sides (two triangles each) and two end faces (two each)
+bool test_extrusion_shape()
+{
+  mesh::extrusion_spec s;
+  s.path = {vec3{0, 0, 0}, vec3{0, 0, -2}};
+  s.shapes = {{{vec2{-1, -0.5}, vec2{1, -0.5}, vec2{1, 0.5}, vec2{-1, 0.5}, vec2{-1, -0.5}}}};
+  const auto m = mesh::generate_extrusion(s);
+  std::array<float, 3> lo{1e9f, 1e9f, 1e9f};
+  std::array<float, 3> hi{-1e9f, -1e9f, -1e9f};
+  for (const auto& v : m.vertices)
+    for (std::size_t i = 0; i < 3; ++i)
+    {
+      lo[i] = std::min(lo[i], v.position[i]);
+      hi[i] = std::max(hi[i], v.position[i]);
+    }
+  auto near = [](float a, float b) { return std::abs(a - b) < 1e-5f; };
+  return m.triangle_count() == 12 && near(lo[0], -1) && near(hi[0], 1) && near(lo[1], -0.5f) && near(hi[1], 0.5f) &&
+         near(lo[2], -2) && near(hi[2], 0);
+}
+
 } // namespace
 
 int main()
@@ -163,6 +184,7 @@ int main()
   run_test("tube growth", test_tube_growth);
   run_test("tube restart", test_tube_restart);
   run_test("texture coordinates", test_texture_coordinates);
+  run_test("extrusion shape", test_extrusion_shape);
 
   std::println("===============");
   std::println("Passed: {}/{}", passed, passed + failed);

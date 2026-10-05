@@ -1331,24 +1331,21 @@ inline void render_frame()
   }
   draw_batch(pass, g_renderer.meshes[0], g_renderer.trail_points_ib, g_renderer.trail_points_ib_cap, trail_points);
 
-  // Draw Extrusions (similar to curves but with custom cross-section)
+  // Draw Extrusions: each surface was built when the extrusion was made
   while (g_renderer.extrusion_meshes.size() < c.m_extrusions.size())
     g_renderer.extrusion_meshes.push_back({});
 
   for (std::size_t ext_idx = 0; ext_idx < c.m_extrusions.size(); ++ext_idx)
   {
     const auto& ext = c.m_extrusions[ext_idx];
-    if (!ext.m_visible || ext.m_path.size() < 2 || ext.m_shape.empty())
+    if (!ext.m_visible || ext.m_mesh.indices.empty())
       continue;
 
     auto& ext_mesh = g_renderer.extrusion_meshes[ext_idx];
 
     if (ext.m_geometry_dirty)
     {
-      // Generate extrusion mesh
-      auto gen_mesh = mesh::generate_extrusion(ext.m_path, ext.m_shape, ext.m_twist, ext.m_scale,
-                                               ext.m_show_start_face, ext.m_show_end_face);
-
+      const auto& gen_mesh = ext.m_mesh;
       if (!gen_mesh.indices.empty())
       {
         std::size_t vb_size = gen_mesh.vertices.size() * sizeof(vertex);
@@ -1380,8 +1377,6 @@ inline void render_frame()
       continue;
 
     instance_data inst = build_instance(ext, vec3{1, 1, 1});
-
-
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, ext_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
