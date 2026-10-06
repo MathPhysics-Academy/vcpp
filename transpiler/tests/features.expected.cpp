@@ -22,8 +22,10 @@ double last_x{};
 double m{};
 double n{};
 std::string skin{};
+handle<box_object> spinner{};
 double t{};
 double t_start{};
+vec3 tilted{};
 handle<sphere_object> trailing{};
 vec3 x0{};
 } // namespace
@@ -126,5 +128,14 @@ task<void> vpython_program()
   scene.append_to_title(" {braces}");
   scene.append_to_caption(std::format("{} {} {}", "t =", t, "steps"));
   trailing = scene.add(sphere(pos = vec3{0.0, -1.0, 0.0}, radius = 0.1, make_trail = true, trail_type = "points"));
+  spinner = scene.add(box(pos = vec3{2.0, 2.0, 0.0}, axis = vec3{1.0, 1.0, 0.0}));
+  for (i = 0.0; i < 3.0; i += 1.0)
+  {
+    spinner.rotate(0.1, vec3{0.0, 0.0, 1.0});
+  }
+  spinner.rotate(0.2, vec3{0.0, 1.0, 0.0}, vec3{0.0, 0.0, 0.0});
+  spinner.rotate((std::numbers::pi / 4.0));
+  tilted = rotate(vec3{1.0, 0.0, 0.0}, 0.5, vec3{0.0, 1.0, 0.0});
+  tilted = rotate(tilted, 0.5);
   co_return;
 }

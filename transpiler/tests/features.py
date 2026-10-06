@@ -67,3 +67,11 @@ scene.title = f"{len(balls)} balls, the first at x = {balls[0].pos.x:.2f}"
 scene.append_to_title(" {braces}")
 scene.append_to_caption("t =", t, "steps")
 trailing = sphere(pos=vector(0, -1, 0), radius=0.1, make_trail=True, trail_type="points")
+
+spinner = box(pos=vector(2, 2, 0), axis=vector(1, 1, 0))
+for i in range(3):
+    spinner.rotate(angle=0.1, axis=vector(0, 0, 1))
+spinner.rotate(0.2, vector(0, 1, 0), vector(0, 0, 0))
+spinner.rotate(angle=pi / 4)
+tilted = vector(1, 0, 0).rotate(angle=0.5, axis=vector(0, 1, 0))
+tilted = rotate(tilted, angle=0.5)

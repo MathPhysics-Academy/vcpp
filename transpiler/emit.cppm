@@ -185,7 +185,7 @@ private:
       "trail_color", "trail_radius", "trail_type", "twist", "up", "v0", "v1", "v2", "v3", "velocity", "visible",
       "width", "xmax", "xmin", "xoffset", "xscale", "xtitle", "ymax", "ymin", "yoffset", "yscale", "ytitle",
       // vcpp functions and objects the generated code uses
-      "scene", "rate", "sleep", "vec3", "vec2", "colors", "mag", "hat", "norm", "cross", "dot", "task",
+      "scene", "rate", "sleep", "vec3", "vec2", "colors", "mag", "hat", "norm", "cross", "dot", "task", "rotate",
       // C++ keywords that are valid Python names
       "auto", "bool", "break", "case", "catch", "char", "class", "const", "default", "delete", "do", "double", "enum",
       "explicit", "extern", "float", "friend", "goto", "inline", "int", "long", "mutable", "namespace", "new",
@@ -1046,6 +1046,8 @@ private:
         return {std::format("colors::{}({})", func["attr"].string(), arguments(e)), {kind::vector, {}}};
       if (func["attr"].string() == "append" && expression(base).t.k == kind::list)
         return append(e);
+      if (func["attr"].string() == "rotate")
+        return rotate_call(e, &base);
       if (base["_type"].string() == "Name" && base["id"].string() == "scene" &&
           (func["attr"].string() == "append_to_title" || func["attr"].string() == "append_to_caption"))
         return append_text(e);
@@ -1061,6 +1063,8 @@ private:
       return {std::format("vec3{{{}}}", arguments(e)), {kind::vector, {}}};
     if (f == "rate" || f == "sleep")
       return {std::format("{}({})", f, arguments(e)), {}};
+    if (f == "rotate")
+      return rotate_call(e, nullptr);
     if (f == "len")
     {
       if (e["args"].items().size() != 1 || expression(e["args"].items()[0]).t.k != kind::list)
@@ -1099,6 +1103,48 @@ private:
     if (!unify(list->element[0], value.t))
       unsupported(e, "a list of different types");
     return {std::format("{}.push_back({})", expression(base).code, value.code), {}};
+  }
+
+  // obj.rotate(angle, axis, origin) turns an object; v.rotate(angle, axis) and rotate(v, angle, axis) turn a
+  // vector. Each argument may be given by position or by name, as in GlowScript.
+  expr rotate_call(const json& e, const json* owner_node)
+  {
+    std::vector<const json*> given;
+    const json* owner = owner_node;
+    for (const auto& a : e["args"].items())
+      if (!owner)
+        owner = &a; // rotate(v, ...)
+      else
+        given.push_back(&a);
+    const std::array<std::string_view, 3> names{"angle", "axis", "origin"};
+    given.resize(3, nullptr);
+    for (const auto& k : e["keywords"].items())
+    {
+      const auto it = std::ranges::find(names, k["arg"].is_null() ? "" : k["arg"].string());
+      if (it == names.end())
+        unsupported(e, "this argument to rotate()");
+      given[static_cast<std::size_t>(it - names.begin())] = &k["value"];
+    }
+    if (!owner || !given[0])
+      unsupported(e, "rotate() without an angle");
+    const expr target = expression(*owner);
+    std::vector<std::string> args{expression(*given[0]).code};
+    for (std::size_t i = 1; i < 3; ++i)
+      args.push_back(given[i] ? expression(*given[i]).code : "{}");
+    while (args.back() == "{}")
+      args.pop_back();
+    std::string list;
+    for (const auto& a : args)
+      list += (list.empty() ? "" : ", ") + a;
+    if (target.t.k == kind::object)
+      return {std::format("{}.rotate({})", target.code, list), {}};
+    if (target.t.k == kind::vector)
+    {
+      if (given[2])
+        unsupported(e, "rotating a vector about an origin");
+      return {std::format("rotate({}, {})", target.code, list), {kind::vector, {}}};
+    }
+    unsupported(e, "rotating this kind of value");
   }
 
   // scene.append_to_title(a, b, ...) adds the arguments' text, separated by spaces, as GlowScript does
