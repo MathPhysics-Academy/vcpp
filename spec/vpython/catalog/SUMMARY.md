@@ -14,13 +14,13 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- wired: 373
-- missing: 357
+- wired: 382
+- missing: 348
 - no-object: 215
 - declared-only: 81
 - field-only: 35
 
-Corpus uses 237 members; 147 are wired.
+Corpus uses 237 members; 149 are wired.
 
 ## Gaps ranked by real usage
 
@@ -48,7 +48,6 @@ Corpus uses 237 members; 147 are wired.
 | color | hsv_to_rgb | function | missing | 2 | 3 |
 | cylinder | clone | method | missing | 2 | 3 |
 | cylinder | rotate | method | missing | 2 | 3 |
-| paths | arc | function | missing | 2 | 3 |
 | checkbox | bind | attribute | no-object | 2 | 2 |
 | checkbox | text | attribute | no-object | 2 | 2 |
 | menu | bind | attribute | no-object | 2 | 2 |
@@ -71,6 +70,7 @@ Corpus uses 237 members; 147 are wired.
 | box | group | attribute | declared-only | 1 | 2 |
 | button | pos | attribute | no-object | 1 | 2 |
 | compound | length | attribute | declared-only | 1 | 2 |
+| extrusion | end_face_color | attribute | missing | 1 | 2 |
 
 ## Per-owner coverage (user-facing members)
 
@@ -106,13 +106,13 @@ Corpus uses 237 members; 147 are wired.
 | local_light | 11 | 0 | 0 | 0 |
 | menu | 7 | 0 | 4 | 0 |
 | mouse | 8 | 0 | 0 | 0 |
-| paths | 14 | 9 | 3 | 2 |
+| paths | 14 | 13 | 3 | 3 |
 | points | 42 | 17 | 2 | 1 |
 | pyramid | 35 | 18 | 7 | 7 |
 | quad | 40 | 14 | 2 | 1 |
 | radio | 7 | 0 | 4 | 0 |
 | ring | 36 | 16 | 6 | 5 |
-| shapes | 16 | 10 | 7 | 6 |
+| shapes | 16 | 15 | 7 | 7 |
 | simple_sphere | 29 | 0 | 0 | 0 |
 | slider | 17 | 0 | 7 | 0 |
 | sphere | 30 | 17 | 17 | 14 |

@@ -452,9 +452,12 @@ def vcpp_index():
             wired[st] |= common
     free = set(re.findall(r"^(?:inline |constexpr |static )*[\w:<>]+\s+(\w+)\s*\(", allsrc, re.M))
     colors = set(re.findall(r"inline constexpr vec3\s+(\w+)", src.get("vcpp-color.cppm", "")))
-    shapes = set(re.findall(r"inline shape2d\s+(\w+)\s*\(", src.get("vcpp-shapes.cppm", "")))
+    # shapes:: and paths:: are function templates taking named parameters; paths:: follows shapes:: in the file
+    shape_src, _, path_src = src.get("vcpp-shapes.cppm", "").partition("export namespace vcpp::paths")
+    shapes = set(re.findall(r"^outline\s+(\w+)\(const Binders", shape_src, re.M))
+    paths = set(re.findall(r"^std::vector<vec3>\s+(\w+)\(const Binders", path_src, re.M))
     return dict(declared=declared, structs=structs, fields=fields, methods=all_methods, wired=wired,
-                factories=factories, free=free, colors=colors, shapes=shapes)
+                factories=factories, free=free, colors=colors, shapes=shapes, paths=paths)
 
 
 def match_vcpp(owner, member, kind, V):
@@ -469,7 +472,7 @@ def match_vcpp(owner, member, kind, V):
     if owner in ("color",):
         return ("wired" if member in V["colors"] else "missing"), f"colors::{member}"
     if owner in ("shapes", "paths"):
-        return ("wired" if member in V["shapes"] else "missing"), f"shapes::{member}"
+        return ("wired" if member in V[owner] else "missing"), f"{owner}::{member}"
     if owner == "vec":
         if member in VEC_OPERATORS:
             return "wired", VEC_OPERATORS[member]
