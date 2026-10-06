@@ -425,7 +425,7 @@ def vcpp_index():
     for m in re.finditer(r"(?:struct|class)\s+(\w+)\s*(?::\s*(?:public\s+)?(\w+))?\s*\{(.*?)\n\};", allsrc, re.S):
         name, base, body = m.group(1), m.group(2), m.group(3)
         structs[name] = (base, set(re.findall(r"\bm_(\w+)\s*(?:\{|=|;)", body)))
-        for mm in re.finditer(r"^\s+(?:constexpr |inline |static |virtual |friend )*[\w:<>&*,\s]+?\b(\w+)\s*\([^;{)]*\)\s*"
+        for mm in re.finditer(r"^\s+(?:constexpr |inline |static |virtual |friend )*[\w:<>&*,\s]+?\b(\w+)\s*\((?:[^;{)]|\{\})*\)\s*"
                               r"(?:const\s*)?(?:noexcept\s*)?[{;]", body, re.M):
             if mm.group(1) not in ("if", "for", "while", "switch", "return", "sizeof", name):
                 methods[name].add(mm.group(1))
@@ -482,8 +482,8 @@ def match_vcpp(owner, member, kind, V):
     st = V["factories"].get(VCPP_FACTORY.get(owner, owner))
     if not st:
         return "no-object", ""
-    if kind == "method":
-        return ("wired" if name in V["methods"](st) else "missing"), name
+    if kind == "method":  # a scene object's methods are its struct's and those of handle<T>, which reaches it
+        return ("wired" if name in V["methods"](st) | V["methods"]("handle") else "missing"), name
     if name in V["wired"][st]:
         return "wired", name
     if name in V["fields"](st):

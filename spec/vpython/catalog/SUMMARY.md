@@ -14,13 +14,13 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- wired: 382
-- missing: 348
+- wired: 397
+- missing: 333
 - no-object: 215
 - declared-only: 81
 - field-only: 35
 
-Corpus uses 237 members; 149 are wired.
+Corpus uses 237 members; 158 are wired.
 
 ## Gaps ranked by real usage
 
@@ -31,23 +31,19 @@ Corpus uses 237 members; 149 are wired.
 | button | bind | attribute | no-object | 6 | 8 |
 | textures | metal | constant | missing | 5 | 10 |
 | textures | rough | constant | missing | 4 | 11 |
-| extrusion | rotate | method | missing | 4 | 8 |
 | wtext | text | attribute | no-object | 3 | 10 |
 | vertex | pos | attribute | no-object | 3 | 6 |
 | textures | wood | constant | missing | 3 | 5 |
-| compound | rotate | method | missing | 3 | 3 |
 | quad | vs | attribute | missing | 3 | 3 |
 | textures | flower | constant | missing | 3 | 3 |
 | textures | rug | constant | missing | 3 | 3 |
 | textures | wood_old | constant | missing | 3 | 3 |
-| box | rotate | method | missing | 2 | 6 |
 | extrusion | clone | method | missing | 2 | 6 |
 | text | billboard | attribute | declared-only | 2 | 6 |
 | vertex | color | attribute | no-object | 2 | 5 |
 | distant_light | direction | attribute | no-object | 2 | 4 |
 | color | hsv_to_rgb | function | missing | 2 | 3 |
 | cylinder | clone | method | missing | 2 | 3 |
-| cylinder | rotate | method | missing | 2 | 3 |
 | checkbox | bind | attribute | no-object | 2 | 2 |
 | checkbox | text | attribute | no-object | 2 | 2 |
 | menu | bind | attribute | no-object | 2 | 2 |
@@ -56,7 +52,6 @@ Corpus uses 237 members; 149 are wired.
 | slider | length | attribute | no-object | 2 | 2 |
 | slider | max | attribute | no-object | 2 | 2 |
 | slider | min | attribute | no-object | 2 | 2 |
-| sphere | rotate | method | missing | 2 | 2 |
 | textures | granite | constant | missing | 2 | 2 |
 | textures | rock | constant | missing | 2 | 2 |
 | textures | stones | constant | missing | 2 | 2 |
@@ -71,55 +66,60 @@ Corpus uses 237 members; 149 are wired.
 | button | pos | attribute | no-object | 1 | 2 |
 | compound | length | attribute | declared-only | 1 | 2 |
 | extrusion | end_face_color | attribute | missing | 1 | 2 |
+| group | pos | attribute | no-object | 1 | 2 |
+| radio | bind | attribute | no-object | 1 | 2 |
+| radio | name | attribute | no-object | 1 | 2 |
+| radio | text | attribute | no-object | 1 | 2 |
+| text | start | attribute | missing | 1 | 2 |
 
 ## Per-owner coverage (user-facing members)
 
 | owner | members | wired | used | used & wired |
 |---|---|---|---|---|
-| arrow | 43 | 18 | 7 | 5 |
+| arrow | 43 | 19 | 7 | 6 |
 | attach_arrow | 5 | 0 | 0 | 0 |
 | attach_light | 5 | 0 | 0 | 0 |
 | attach_trail | 9 | 0 | 0 | 0 |
-| box | 35 | 18 | 14 | 12 |
+| box | 35 | 19 | 14 | 13 |
 | bumpmaps | 5 | 0 | 1 | 0 |
 | button | 7 | 0 | 5 | 0 |
 | camera | 4 | 0 | 0 | 0 |
 | canvas | 33 | 4 | 6 | 0 |
 | checkbox | 6 | 0 | 3 | 0 |
 | color | 14 | 10 | 13 | 10 |
-| compound | 38 | 14 | 7 | 4 |
-| cone | 35 | 17 | 10 | 9 |
-| curve | 41 | 17 | 5 | 4 |
-| cylinder | 35 | 17 | 10 | 8 |
+| compound | 38 | 15 | 7 | 5 |
+| cone | 35 | 18 | 10 | 10 |
+| curve | 41 | 18 | 5 | 5 |
+| cylinder | 35 | 18 | 10 | 9 |
 | distant_light | 11 | 0 | 2 | 0 |
-| ellipsoid | 35 | 18 | 3 | 3 |
+| ellipsoid | 35 | 19 | 3 | 3 |
 | event | 13 | 0 | 0 | 0 |
-| extrusion | 53 | 27 | 15 | 11 |
+| extrusion | 53 | 28 | 15 | 12 |
 | gcurve | 19 | 10 | 7 | 5 |
 | gdots | 19 | 5 | 3 | 2 |
 | ghbars | 19 | 0 | 0 | 0 |
 | graph | 21 | 12 | 11 | 9 |
 | group | 38 | 0 | 1 | 0 |
 | gvbars | 19 | 5 | 4 | 3 |
-| helix | 38 | 20 | 8 | 8 |
+| helix | 38 | 21 | 8 | 8 |
 | label | 27 | 12 | 8 | 8 |
 | local_light | 11 | 0 | 0 | 0 |
 | menu | 7 | 0 | 4 | 0 |
 | mouse | 8 | 0 | 0 | 0 |
 | paths | 14 | 13 | 3 | 3 |
 | points | 42 | 17 | 2 | 1 |
-| pyramid | 35 | 18 | 7 | 7 |
-| quad | 40 | 14 | 2 | 1 |
+| pyramid | 35 | 19 | 7 | 7 |
+| quad | 40 | 15 | 2 | 1 |
 | radio | 7 | 0 | 4 | 0 |
-| ring | 36 | 16 | 6 | 5 |
+| ring | 36 | 17 | 6 | 5 |
 | shapes | 16 | 15 | 7 | 7 |
 | simple_sphere | 29 | 0 | 0 | 0 |
 | slider | 17 | 0 | 7 | 0 |
-| sphere | 30 | 17 | 17 | 14 |
-| text | 45 | 19 | 14 | 8 |
+| sphere | 30 | 18 | 17 | 15 |
+| text | 45 | 20 | 14 | 9 |
 | texture | 6 | 0 | 0 | 0 |
 | textures | 12 | 0 | 12 | 0 |
-| triangle | 39 | 14 | 0 | 0 |
+| triangle | 39 | 15 | 0 | 0 |
 | vec | 15 | 15 | 2 | 2 |
 | vertex | 11 | 0 | 5 | 0 |
 | winput | 10 | 0 | 0 | 0 |

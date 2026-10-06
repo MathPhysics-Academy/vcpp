@@ -27,7 +27,7 @@ arrow,radius,attribute,,,constructor option (shared init),primitives.js:init(),,
 arrow,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 arrow,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 arrow,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-arrow,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+arrow,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,1,1
 arrow,round,attribute,,,accessor,primitives.js:1017,,yes,yes,wired,round,0,0
 arrow,scale,attribute,,,accessor,primitives.js:1056,,yes,yes,declared-only,scale,0,0
 arrow,shaftwidth,attribute,,,accessor,primitives.js:1023,,yes,yes,wired,shaftwidth,2,2
@@ -90,7 +90,7 @@ box,radius,attribute,,,constructor option (shared init),primitives.js:init(),,ye
 box,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 box,red,attribute,,,accessor,primitives.js:755,,yes,yes,missing,red,0,0
 box,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-box,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,6,2
+box,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,6,2
 box,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,1,1
 box,size,attribute,"<1,1,1>",,vector,primitives.js:717,,yes,yes,wired,size,40,11
 box,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -219,7 +219,7 @@ compound,radius,attribute,,,constructor option (shared init),primitives.js:init(
 compound,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 compound,red,attribute,,,accessor,primitives.js:1832,,yes,yes,missing,red,0,0
 compound,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-compound,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,3,3
+compound,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,3,3
 compound,self,attribute,,,constructor option,primitives.js:1749,,no,no,missing,self,0,0
 compound,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 compound,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,field-only,size,0,0
@@ -260,7 +260,7 @@ cone,radius,attribute,,,accessor,primitives.js:866,cylinder,yes,yes,wired,radius
 cone,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 cone,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 cone,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-cone,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+cone,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,1,1
 cone,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 cone,size,attribute,"<1,2,2>",,vector,primitives.js:865,cylinder,yes,yes,wired,size,4,3
 cone,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -304,7 +304,7 @@ curve,pypop,method,,,,primitives.js:2139,,no,no,missing,pypop,0,0
 curve,radius,attribute,,,accessor,primitives.js:1929,,yes,yes,wired,radius,14,5
 curve,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 curve,retain,attribute,,,accessor,primitives.js:1936,,yes,yes,wired,retain,0,0
-curve,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+curve,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,1,1
 curve,shift,method,,,,primitives.js:2171,,yes,yes,missing,shift,0,0
 curve,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 curve,size,attribute,"<1,1,1>",,vector,primitives.js:260,Primitive,yes,yes,field-only,size,0,0
@@ -346,7 +346,7 @@ cylinder,radius,attribute,,,accessor,primitives.js:866,,yes,yes,wired,radius,16,
 cylinder,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 cylinder,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 cylinder,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-cylinder,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,3,2
+cylinder,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,3,2
 cylinder,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 cylinder,size,attribute,"<1,2,2>",,vector,primitives.js:865,,yes,yes,wired,size,13,3
 cylinder,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -396,7 +396,7 @@ ellipsoid,radius,unsupported,,,getter throws,primitives.js:904,,yes,yes,declared
 ellipsoid,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 ellipsoid,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 ellipsoid,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-ellipsoid,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+ellipsoid,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,0,0
 ellipsoid,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 ellipsoid,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,wired,size,1,1
 ellipsoid,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -454,7 +454,7 @@ extrusion,radius,attribute,,,constructor option (shared init),primitives.js:init
 extrusion,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 extrusion,red,attribute,,,accessor,primitives.js:1832,compound,yes,yes,missing,red,0,0
 extrusion,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-extrusion,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,8,4
+extrusion,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,8,4
 extrusion,scale,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,scale,1,1
 extrusion,self,attribute,,,constructor option,primitives.js:1749,compound,no,no,missing,self,0,0
 extrusion,shape,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,shape,30,5
@@ -655,7 +655,7 @@ helix,radius,attribute,,,accessor,primitives.js:866,cylinder,yes,yes,wired,radiu
 helix,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 helix,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 helix,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-helix,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+helix,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,0,0
 helix,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 helix,size,attribute,"<1,2,2>",,vector,primitives.js:865,cylinder,yes,yes,wired,size,2,1
 helix,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -816,7 +816,7 @@ pyramid,radius,attribute,,,constructor option (shared init),primitives.js:init()
 pyramid,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 pyramid,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 pyramid,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-pyramid,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+pyramid,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,0,0
 pyramid,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,1,1
 pyramid,size,attribute,"<1,1,1>",,vector,primitives.js:717,box,yes,yes,wired,size,3,3
 pyramid,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -855,7 +855,7 @@ quad,radius,attribute,,,constructor option (shared init),primitives.js:init(),,y
 quad,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 quad,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 quad,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-quad,rotate,method,,,,primitives.js:1607,,yes,yes,missing,rotate,0,0
+quad,rotate,method,,,,primitives.js:1607,,yes,yes,wired,rotate,0,0
 quad,shininess,attribute,,,accessor,primitives.js:1596,,yes,yes,wired,shininess,0,0
 quad,size,attribute,,,accessor,primitives.js:1580,,yes,yes,field-only,size,0,0
 quad,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -910,7 +910,7 @@ ring,radius,attribute,,,accessor,primitives.js:2484,,yes,yes,wired,radius,4,4
 ring,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 ring,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 ring,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-ring,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,0,0
+ring,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,0,0
 ring,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,0,0
 ring,size,attribute,"<0.2,2.2,2.2>",,vector,primitives.js:2474,,yes,yes,field-only,size,1,1
 ring,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -1031,7 +1031,7 @@ sphere,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,
 sphere,radius,attribute,,,accessor,primitives.js:885,,yes,yes,wired,radius,49,22
 sphere,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 sphere,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,7,6
-sphere,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,2,2
+sphere,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,2,2
 sphere,shininess,attribute,0.6,,typed,primitives.js:297,Primitive,yes,yes,wired,shininess,3,2
 sphere,size,attribute,"<2,2,2>",,vector,primitives.js:884,,yes,yes,wired,size,8,4
 sphere,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
@@ -1077,7 +1077,7 @@ text,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,
 text,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
 text,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 text,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-text,rotate,method,,,,primitives.js:618,Primitive,yes,yes,missing,rotate,1,1
+text,rotate,method,,,,primitives.js:618,Primitive,yes,yes,wired,rotate,1,1
 text,shininess,attribute,,,accessor,primitives.js:1215,,yes,yes,wired,shininess,0,0
 text,show_end_face,attribute,,,accessor,primitives.js:1253,,yes,yes,declared-only,show_end_face,0,0
 text,show_start_face,attribute,,,accessor,primitives.js:1249,,yes,yes,declared-only,show_start_face,0,0
@@ -1141,7 +1141,7 @@ triangle,radius,attribute,,,constructor option (shared init),primitives.js:init(
 triangle,ready,attribute,,yes,accessor,primitives.js:300,Primitive,yes,yes,missing,ready,0,0
 triangle,red,attribute,,,accessor,primitives.js:755,box,yes,yes,missing,red,0,0
 triangle,retain,attribute,,,accessor,primitives.js:315,Primitive,yes,yes,wired,retain,0,0
-triangle,rotate,method,,,,primitives.js:1499,,yes,yes,missing,rotate,0,0
+triangle,rotate,method,,,,primitives.js:1499,,yes,yes,wired,rotate,0,0
 triangle,shininess,attribute,,,accessor,primitives.js:1484,,yes,yes,wired,shininess,0,0
 triangle,size,attribute,,,accessor,primitives.js:1468,,yes,yes,field-only,size,0,0
 triangle,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
