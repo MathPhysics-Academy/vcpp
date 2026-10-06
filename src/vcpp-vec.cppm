@@ -105,9 +105,11 @@ constexpr double comp(const vec3& a, const vec3& b) noexcept
   return dot(a, b) / mb;
 }
 
-// Rotation around axis (Rodrigues' formula)
+// Rotation around axis (Rodrigues' formula). As in GlowScript, a zero angle or a zero axis leaves v as it is.
 constexpr vec3 rotate(const vec3& v, double angle, const vec3& axis = vec3{0, 0, 1}) noexcept
 {
+  if (angle == 0 || mag2(axis) == 0)
+    return v;
   vec3 k = hat(axis);
   double c = std::cos(angle);
   double s = std::sin(angle);

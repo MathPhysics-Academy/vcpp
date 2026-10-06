@@ -130,6 +130,22 @@ bool test_set_size()
   return near(cyl->m_axis, vec3{0, 4, 0}) && cyl->m_length == 4 && cyl->m_radius == 0.5;
 }
 
+// rotate turns axis and up together, and pos about an origin; the expected values are GlowScript's. An arrow
+// along up starts from GlowScript's up for it, (-1, 0, 0), not the (0, 1, 0) it was given.
+bool test_rotate()
+{
+  canvas c;
+  auto moved = c.add(box(pos = vec3{1, 0, 0}));
+  moved.rotate(std::numbers::pi / 2, vec3{0, 0, 1}, vec3{0, 0, 0});
+  auto spun = c.add(box());
+  spun.rotate(0.3);
+  auto upright = c.add(arrow(axis = vec3{0, 2, 0}));
+  upright.rotate(0.5, vec3{1, 0, 0});
+  return near(moved->m_pos, vec3{0, 1, 0}) && near(moved->m_axis, vec3{0, 1, 0}) && near(moved->m_up, vec3{-1, 0, 0}) &&
+         near(spun->m_axis, vec3{1, 0, 0}) && near(spun->m_up, vec3{0, std::cos(0.3), std::sin(0.3)}) &&
+         near(upright->m_axis, vec3{0, 1.7551651237807455, 0.958851077208406}) && near(upright->m_up, vec3{-1, 0, 0});
+}
+
 } // namespace
 
 int main()
@@ -163,6 +179,7 @@ int main()
   run_test("axis turns with up", test_axis_turns_with_up);
   run_test("length and axis", test_length_and_axis);
   run_test("set_size", test_set_size);
+  run_test("rotate", test_rotate);
 
   std::println("=================");
   std::println("Passed: {}/{}", passed, passed + failed);

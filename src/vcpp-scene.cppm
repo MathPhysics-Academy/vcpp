@@ -158,6 +158,10 @@ public:
     requires length_follows_axis<T>;
   void set_size(const vec3& size) const;
 
+  // GlowScript's rotate: axis and up turn together by angle about rotation_axis, the object's own axis by
+  // default; given an origin other than pos, pos turns about it too
+  void rotate(double angle, std::optional<vec3> rotation_axis = {}, std::optional<vec3> origin = {}) const;
+
   explicit operator bool() const noexcept { return m_canvas != nullptr; }
 
 private:
@@ -755,6 +759,23 @@ void handle<T>::set_axis(const vec3& v) const
     obj.m_axis_before_zero.reset();
   }
   detail::turn_with(obj.m_up, from, v);
+}
+
+template<typename T>
+void handle<T>::rotate(double angle, std::optional<vec3> rotation_axis, std::optional<vec3> origin) const
+{
+  if (angle == 0)
+    return;
+  T& obj = **this;
+  const vec3 about = rotation_axis.value_or(obj.m_axis);
+  if (origin && *origin != obj.m_pos)
+    set_pos(*origin + vcpp::rotate(obj.m_pos - *origin, angle, about));
+  // up starts as the up the object is drawn with, which is GlowScript's: made perpendicular to axis when axis
+  // was set. Axis and up then turn together, not through set_axis and set_up, which would each turn the other.
+  const vec3 up = orientation_of(obj.m_axis, obj.m_up).y;
+  if (diff_angle(obj.m_axis, about) > 1e-6)
+    obj.m_axis = vcpp::rotate(obj.m_axis, angle, about);
+  obj.m_up = vcpp::rotate(up, angle, about);
 }
 
 // GlowScript's up setter: the axis turns with up
