@@ -1010,13 +1010,13 @@ namespace
       double r = 1.0 + t * 1.5;
       spiral.push_back(vec3{r * std::cos(angle) - 4.0, t * 3.0 - 1.5, r * std::sin(angle)});
     }
-    scene.add(extrusion(path = spiral, shape = shapes::circle(0.3, 64).points(), color = colors::cyan));
+    scene.add(extrusion(path = spiral, shape = shapes::circle(radius = 0.3), color = colors::cyan));
 
     // Star-shaped extrusion along straight path, turning 180 degrees in all
     std::vector<vec3> line;
     for (int i = 0; i < 20; ++i)
       line.push_back(vec3{0, static_cast<double>(i) / 19.0 * 4.0 - 2.0, 0});
-    scene.add(extrusion(path = line, shape = shapes::star(5, 0.4, 0.2).points(), color = colors::yellow,
+    scene.add(extrusion(path = line, shape = shapes::star(radius = 0.4, shapes::iradius = 0.2), color = colors::yellow,
                         twist = 3.14159265 / 19));
 
     // Rectangular extrusion along curved path, tapering to half size
@@ -1027,8 +1027,8 @@ namespace
       arc.push_back(vec3{3.0 + std::sin(t * 3.14159265) * 2.0, t * 3.0 - 1.5, std::cos(t * 3.14159265) - 1.0});
       taper.push_back(1.0 - 0.5 * t);
     }
-    scene.add(
-      extrusion(path = arc, shape = shapes::rectangle(0.5, 0.3).points(), color = colors::magenta, scale = taper));
+    scene.add(extrusion(path = arc, shape = shapes::rectangle(width = 0.5, height = 0.3), color = colors::magenta,
+                        scale = taper));
 
     // Hexagon extrusion (pipe/tube) along a sine wave
     std::vector<vec3> wave;
@@ -1036,7 +1036,7 @@ namespace
       double t = static_cast<double>(i) / 39.0;
       wave.push_back(vec3{t * 6.0 - 3.0, -2.5, std::sin(t * 4.0 * 3.14159265) * 0.5 + 2.0});
     }
-    scene.add(extrusion(path = wave, shape = shapes::hexagon(0.25).points(), color = colors::green));
+    scene.add(extrusion(path = wave, shape = shapes::hexagon(length = 0.25), color = colors::green));
 
     std::cout << "Loaded Extrusion Demo Scene (Press ])" << std::endl;
     std::cout << "  Cyan: Circular cross-section along spiral" << std::endl;

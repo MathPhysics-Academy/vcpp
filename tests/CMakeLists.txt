@@ -42,3 +42,8 @@ add_executable(test_meshes test_meshes.cpp)
 target_link_libraries(test_meshes PRIVATE vcpp)
 target_compile_features(test_meshes PRIVATE cxx_std_23)
 add_test(NAME test_meshes COMMAND test_meshes)
+
+add_executable(test_shapes test_shapes.cpp)
+target_link_libraries(test_shapes PRIVATE vcpp)
+target_compile_features(test_shapes PRIVATE cxx_std_23)
+add_test(NAME test_shapes COMMAND test_shapes)
