@@ -146,6 +146,39 @@ bool test_rotate()
          near(upright->m_axis, vec3{0, 1.7551651237807455, 0.958851077208406}) && near(upright->m_up, vec3{-1, 0, 0});
 }
 
+// Attributes read and write the object as in VPython. pos keeps GlowScript's rule (a trail point per
+// move, with interval 1); copies name the same object; after clear() an attribute throws like the handle.
+bool test_attributes()
+{
+  canvas c;
+  auto ball = c.add(sphere(pos = vec3{0, 4, 0}, radius = 0.5, make_trail = true, interval = 1));
+  const vec3 v{1, 0, 0};
+  const double dt = 0.5;
+  ball.pos = ball.pos + v * dt;
+  ball.pos += v;
+  auto same = ball;
+  same.color = colors::red;
+  ball.radius = ball.radius * 2;
+  std::vector<handle<sphere_object>> balls{ball};
+  balls[0].opacity = 0.5;
+  auto other = c.add(sphere(pos = vec3{9, 9, 9}));
+  other = ball;
+  other.visible = false;
+  const bool before = near(ball.pos.value(), vec3{1.5, 4, 0}) && ball.pos.y() == 4 && mag(ball.pos - v) > 0 &&
+                      near(ball->m_color, colors::red) && ball->m_radius == 1 && ball->m_opacity == 0.5 &&
+                      !ball->m_visible && c.m_trails[ball.entry()].positions.size() == 2;
+  c.clear();
+  try
+  {
+    ball.pos = vec3{0, 0, 0};
+  }
+  catch (const std::logic_error&)
+  {
+    return before;
+  }
+  return false;
+}
+
 } // namespace
 
 int main()
@@ -180,6 +213,7 @@ int main()
   run_test("length and axis", test_length_and_axis);
   run_test("set_size", test_set_size);
   run_test("rotate", test_rotate);
+  run_test("attributes", test_attributes);
 
   std::println("=================");
   std::println("Passed: {}/{}", passed, passed + failed);

@@ -483,7 +483,8 @@ def match_vcpp(owner, member, kind, V):
     if not st:
         return "no-object", ""
     if kind == "method":  # a scene object's methods are its struct's and those of handle<T>, which reaches it
-        return ("wired" if name in V["methods"](st) | V["methods"]("handle") else "missing"), name
+        handle = V["methods"]("handle") | V["methods"]("handle_base")
+        return ("wired" if name in V["methods"](st) | handle else "missing"), name
     if name in V["wired"][st]:
         return "wired", name
     if name in V["fields"](st):

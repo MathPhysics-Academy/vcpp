@@ -129,20 +129,23 @@ struct scene_entry
 };
 
 // ============================================================================
-// handle<T> - An object in a canvas, by position rather than address
+// handle_base<T> - An object in a canvas, by position rather than address
 //
 // The canvas keeps objects in per-type vectors, which move when they grow, so a reference into one
 // dies as soon as another object of that type is added. A handle looks the object up on each use.
-// Using a handle after its canvas has been cleared throws.
+// Using a handle after its canvas has been cleared throws. handle<T>, below, adds the attributes.
 // ============================================================================
 
 class canvas;
 
 template<typename T>
-class handle
+class handle;
+
+template<typename T>
+class handle_base
 {
 public:
-  handle() = default;
+  handle_base() = default;
 
   T& operator*() const;
   T* operator->() const { return &**this; }
@@ -166,7 +169,7 @@ public:
 
 private:
   friend class canvas;
-  handle(canvas* c, std::size_t index, std::size_t entry, std::uint64_t generation) noexcept
+  handle_base(canvas* c, std::size_t index, std::size_t entry, std::uint64_t generation) noexcept
     : m_canvas(c), m_index(index), m_entry(entry), m_generation(generation)
   {}
 
@@ -457,7 +460,7 @@ public:
     store.push_back(std::move(obj));
     m_entries.push_back({type_of<T>(), store.size() - 1, true});
     m_scene_dirty = true;
-    return handle<T>(this, store.size() - 1, m_entries.size() - 1, m_generation);
+    return handle<T>(handle_base<T>(this, store.size() - 1, m_entries.size() - 1, m_generation));
   }
 
   // The storage for one object type
@@ -690,7 +693,7 @@ public:
 };
 
 template<typename T>
-T& handle<T>::operator*() const
+T& handle_base<T>::operator*() const
 {
   if (!m_canvas || m_generation != m_canvas->generation())
     throw std::logic_error("vcpp: handle used after its scene was cleared, or never set");
@@ -718,7 +721,7 @@ inline void turn_with(vec3& other, const vec3& from, const vec3& to)
 // GlowScript's __update_trail: with an interval, every interval-th assignment adds a trail point,
 // and the first assignment always does
 template<typename T>
-void handle<T>::set_pos(const vec3& v) const
+void handle_base<T>::set_pos(const vec3& v) const
 {
   T& obj = **this;
   obj.m_pos = v;
@@ -740,7 +743,7 @@ void handle<T>::set_pos(const vec3& v) const
 // GlowScript's axis setter: up turns with the axis; for the box family the length follows; a zero
 // axis is remembered and its predecessor used as the starting point once the axis is nonzero again
 template<typename T>
-void handle<T>::set_axis(const vec3& v) const
+void handle_base<T>::set_axis(const vec3& v) const
 {
   T& obj = **this;
   vec3 from = obj.m_axis;
@@ -762,7 +765,7 @@ void handle<T>::set_axis(const vec3& v) const
 }
 
 template<typename T>
-void handle<T>::rotate(double angle, std::optional<vec3> rotation_axis, std::optional<vec3> origin) const
+void handle_base<T>::rotate(double angle, std::optional<vec3> rotation_axis, std::optional<vec3> origin) const
 {
   if (angle == 0)
     return;
@@ -780,7 +783,7 @@ void handle<T>::rotate(double angle, std::optional<vec3> rotation_axis, std::opt
 
 // GlowScript's up setter: the axis turns with up
 template<typename T>
-void handle<T>::set_up(const vec3& v) const
+void handle_base<T>::set_up(const vec3& v) const
 {
   T& obj = **this;
   const vec3 from = hat(obj.m_up);
@@ -791,7 +794,7 @@ void handle<T>::set_up(const vec3& v) const
 // GlowScript's length setter, including its quirk: after a zero length, a new length is set along
 // (1,0,0), because it tests the old length after restoring the remembered axis
 template<typename T>
-void handle<T>::set_length(double length) const
+void handle_base<T>::set_length(double length) const
   requires length_follows_axis<T>
 {
   T& obj = **this;
@@ -820,7 +823,7 @@ void handle<T>::set_length(double length) const
 // GlowScript's size setter: the dimensions as size= sets them, then for the box family the axis
 // keeps its direction and takes size.x as its length
 template<typename T>
-void handle<T>::set_size(const vec3& size) const
+void handle_base<T>::set_size(const vec3& size) const
 {
   T& obj = **this;
   if constexpr (std::same_as<T, box_object> || std::same_as<T, ellipsoid_object> || std::same_as<T, pyramid_object>)
@@ -844,6 +847,189 @@ void handle<T>::set_size(const vec3& size) const
     obj.m_axis = vec3{dir.x() * size.x(), dir.y() * size.x(), dir.z() * size.x()};
   }
 }
+
+// ============================================================================
+// handle<T> - What canvas::add returns: a handle_base with GlowScript's attributes as members
+//
+//   auto ball = scene.add(sphere(pos = vec3{0, 4, 0}, radius = 0.5));
+//   ball.pos = ball.pos + v * dt;     // applies GlowScript's pos rule (trails)
+//   ball.color = colors::red;
+//
+// Each attribute names its object as the handle does, so it stays valid as the scene grows and throws after
+// clear(). Copying a handle gives another name for the same object, as in Python.
+// ============================================================================
+
+namespace detail
+{
+// An attribute that reads and writes Member of the object. Set, if given, is the handle_base setter that
+// applies GlowScript's rule for it.
+template<typename T, auto Member, auto Set = nullptr>
+class attribute
+{
+public:
+  using value_type = std::remove_cvref_t<decltype(std::declval<T&>().*Member)>;
+
+  attribute() = default;
+  explicit attribute(const handle_base<T>& h) : m_h(h) {}
+  attribute(const attribute&) = default;
+
+  value_type value() const { return (*m_h).*Member; }
+  operator value_type() const { return value(); }
+
+  attribute& operator=(const value_type& v)
+  {
+    if constexpr (std::is_same_v<decltype(Set), std::nullptr_t>)
+      (*m_h).*Member = v;
+    else
+      (m_h.*Set)(v);
+    return *this;
+  }
+
+  // a.pos = b.pos copies the value, not which object the attribute names
+  attribute& operator=(const attribute& other) { return *this = other.value(); }
+
+  template<typename V>
+  attribute& operator+=(const V& v)
+  { return *this = value_type(value() + v); }
+  template<typename V>
+  attribute& operator-=(const V& v)
+  { return *this = value_type(value() - v); }
+  attribute& operator*=(double k) { return *this = value_type(value() * k); }
+  attribute& operator/=(double k) { return *this = value_type(value() / k); }
+
+  double x() const
+    requires std::same_as<value_type, vec3>
+  { return value().x(); }
+  double y() const
+    requires std::same_as<value_type, vec3>
+  { return value().y(); }
+  double z() const
+    requires std::same_as<value_type, vec3>
+  { return value().z(); }
+
+  void rebind(const handle_base<T>& h) { m_h = h; }
+
+private:
+  handle_base<T> m_h;
+};
+
+// Vector arithmetic on vector attributes. lam's operators are templates, which don't convert an attribute
+// to vec3, so these do it.
+template<typename A>
+concept vector_attribute = requires(const A& a) {
+  { a.value() } -> std::same_as<vec3>;
+};
+
+template<typename A>
+concept vector_operand = vector_attribute<A> || std::same_as<A, vec3>;
+
+template<typename A>
+vec3 as_vector(const A& a)
+{
+  if constexpr (vector_attribute<A>)
+    return a.value();
+  else
+    return a;
+}
+
+template<vector_operand A, vector_operand B>
+  requires(vector_attribute<A> || vector_attribute<B>)
+vec3 operator+(const A& a, const B& b)
+{ return as_vector(a) + as_vector(b); }
+
+template<vector_operand A, vector_operand B>
+  requires(vector_attribute<A> || vector_attribute<B>)
+vec3 operator-(const A& a, const B& b)
+{ return as_vector(a) - as_vector(b); }
+
+template<vector_operand A, vector_operand B>
+  requires(vector_attribute<A> || vector_attribute<B>)
+bool operator==(const A& a, const B& b)
+{ return as_vector(a) == as_vector(b); }
+
+template<vector_attribute A>
+vec3 operator-(const A& a)
+{ return -a.value(); }
+
+template<vector_attribute A>
+vec3 operator*(const A& a, double k)
+{ return a.value() * k; }
+
+template<vector_attribute A>
+vec3 operator*(double k, const A& a)
+{ return k * a.value(); }
+
+template<vector_attribute A>
+vec3 operator/(const A& a, double k)
+{ return a.value() / k; }
+
+// The attributes every object has
+template<typename T>
+struct common_attributes
+{
+  attribute<T, &object_base::m_pos, &handle_base<T>::set_pos> pos;
+  attribute<T, &object_base::m_axis, &handle_base<T>::set_axis> axis;
+  attribute<T, &object_base::m_up, &handle_base<T>::set_up> up;
+  attribute<T, &object_base::m_color> color;
+  attribute<T, &object_base::m_opacity> opacity;
+  attribute<T, &object_base::m_visible> visible;
+
+  common_attributes() = default;
+  explicit common_attributes(const handle_base<T>& h) : pos(h), axis(h), up(h), color(h), opacity(h), visible(h) {}
+
+  void rebind(const handle_base<T>& h)
+  {
+    pos.rebind(h);
+    axis.rebind(h);
+    up.rebind(h);
+    color.rebind(h);
+    opacity.rebind(h);
+    visible.rebind(h);
+  }
+};
+
+// The attributes only some objects have
+template<typename T>
+struct own_attributes
+{
+  own_attributes() = default;
+  explicit own_attributes(const handle_base<T>&) {}
+  void rebind(const handle_base<T>&) {}
+};
+
+template<>
+struct own_attributes<sphere_object>
+{
+  attribute<sphere_object, &sphere_object::m_radius> radius;
+
+  own_attributes() = default;
+  explicit own_attributes(const handle_base<sphere_object>& h) : radius(h) {}
+  void rebind(const handle_base<sphere_object>& h) { radius.rebind(h); }
+};
+} // namespace detail
+
+template<typename T>
+class handle : public handle_base<T>, public detail::common_attributes<T>, public detail::own_attributes<T>
+{
+public:
+  handle() = default;
+  handle(const handle&) = default;
+
+  // Names the other handle's object, as Python's ball = other does
+  handle& operator=(const handle& other)
+  {
+    handle_base<T>::operator=(other);
+    detail::common_attributes<T>::rebind(other);
+    detail::own_attributes<T>::rebind(other);
+    return *this;
+  }
+
+private:
+  friend class canvas;
+  explicit handle(const handle_base<T>& h)
+    : handle_base<T>(h), detail::common_attributes<T>(h), detail::own_attributes<T>(h)
+  {}
+};
 
 // ============================================================================
 // Global Default Scene (like VPython's 'scene')
