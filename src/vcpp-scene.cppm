@@ -1201,3 +1201,12 @@ inline void select(canvas& c) noexcept { current_canvas = &c; }
 inline canvas& selected() noexcept { return *current_canvas; }
 
 } // namespace vcpp
+
+// An attribute formats as its value: std::format("{:.2f}", ball.radius)
+template<typename T, auto Get, auto Set>
+struct std::formatter<vcpp::detail::attribute<T, Get, Set>, char>
+  : std::formatter<typename vcpp::detail::attribute<T, Get, Set>::value_type, char>
+{
+  auto format(const vcpp::detail::attribute<T, Get, Set>& a, std::format_context& ctx) const
+  { return std::formatter<typename vcpp::detail::attribute<T, Get, Set>::value_type, char>::format(a.value(), ctx); }
+};

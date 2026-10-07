@@ -89,18 +89,18 @@ struct object_base
 // of vcpp: the web build copies them from VCPP_TEXTURE_DIR, and ":" names are looked up there.
 namespace textures
 {
-inline constexpr std::string_view earth = ":earth_texture.jpg";
-inline constexpr std::string_view flower = ":flower_texture.jpg";
-inline constexpr std::string_view granite = ":granite_texture.jpg";
-inline constexpr std::string_view gravel = ":gravel_texture.jpg";
-inline constexpr std::string_view metal = ":metal_texture.jpg";
-inline constexpr std::string_view rock = ":rock_texture.jpg";
-inline constexpr std::string_view rough = ":rough_texture.jpg";
-inline constexpr std::string_view rug = ":rug_texture.jpg";
-inline constexpr std::string_view stones = ":stones_texture.jpg";
-inline constexpr std::string_view stucco = ":stucco_texture.jpg";
-inline constexpr std::string_view wood = ":wood_texture.jpg";
-inline constexpr std::string_view wood_old = ":wood_old_texture.jpg";
+inline constexpr const char* earth = ":earth_texture.jpg";
+inline constexpr const char* flower = ":flower_texture.jpg";
+inline constexpr const char* granite = ":granite_texture.jpg";
+inline constexpr const char* gravel = ":gravel_texture.jpg";
+inline constexpr const char* metal = ":metal_texture.jpg";
+inline constexpr const char* rock = ":rock_texture.jpg";
+inline constexpr const char* rough = ":rough_texture.jpg";
+inline constexpr const char* rug = ":rug_texture.jpg";
+inline constexpr const char* stones = ":stones_texture.jpg";
+inline constexpr const char* stucco = ":stucco_texture.jpg";
+inline constexpr const char* wood = ":wood_texture.jpg";
+inline constexpr const char* wood_old = ":wood_old_texture.jpg";
 } // namespace textures
 
 // ============================================================================
