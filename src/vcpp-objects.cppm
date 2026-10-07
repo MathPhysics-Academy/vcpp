@@ -402,20 +402,69 @@ constexpr pyramid_object pyramid(Binders... binders)
 // CURVE (VPython-compatible curve object)
 // ============================================================================
 
+// A point of a curve, as GlowScript keeps it: a color of (-1, -1, -1) or a radius of 0 means the curve's own.
+// curve::point(n) returns one, so the fields have VPython's names.
+struct curve_point
+{
+  vec3 pos{};
+  vec3 color{-1.0, -1.0, -1.0};
+  double radius{0};
+};
+
+// The named parameters a curve point takes: append(pos = ..., color = ..., radius = ...), modify(n, ...)
+inline constexpr auto curve_point_params =
+  std::tuple{param_spec<&curve_point::pos, decltype(pos)>{}, param_spec<&curve_point::color, decltype(color)>{},
+             param_spec<&curve_point::radius, decltype(radius)>{}};
+
 struct curve_object : object_base
 {
-  std::vector<vec3> m_points;    // Point positions
-  double m_radius{0.05};         // Tube radius
+  std::vector<curve_point> m_points;
+  double m_radius{0}; // 0: a thin line a few pixels wide, as in GlowScript
   mutable bool m_geometry_dirty{true};
 
-  // VPython-compatible API
-  void append(const vec3& p)
+  // GlowScript's curve methods
+  void append(const curve_point& p)
   {
     m_points.push_back(p);
     m_geometry_dirty = true;
   }
+  void append(const vec3& p) { append(curve_point{.pos = p}); }
+  void append(const std::vector<vec3>& ps)
+  {
+    for (const vec3& p : ps)
+      append(p);
+  }
+  // append(pos = p, color = c, radius = r): the color and radius are this point's own
+  template<typename... Binders>
+    requires(sizeof...(Binders) > 0)
+  void append(Binders... binders)
+  {
+    (check_named_param<Binders, decltype(curve_point_params)>(), ...);
+    const auto params = substitution(binders...);
+    static_assert(is_bound<decltype(pos), decltype(params)>, "vcpp: a curve point needs a pos");
+    curve_point p{};
+    apply_params(p, params, curve_point_params);
+    append(p);
+  }
 
-  void clear_points()
+  // A copy of point n, counting from the end if negative
+  curve_point point(std::ptrdiff_t n) const { return m_points[index(n)]; }
+
+  void modify(std::ptrdiff_t n, const vec3& p)
+  {
+    m_points[index(n)].pos = p;
+    m_geometry_dirty = true;
+  }
+  template<typename... Binders>
+    requires(sizeof...(Binders) > 0)
+  void modify(std::ptrdiff_t n, Binders... binders)
+  {
+    (check_named_param<Binders, decltype(curve_point_params)>(), ...);
+    apply_params(m_points[index(n)], substitution(binders...), curve_point_params);
+    m_geometry_dirty = true;
+  }
+
+  void clear()
   {
     m_points.clear();
     m_geometry_dirty = true;
@@ -429,6 +478,16 @@ struct curve_object : object_base
   {
     m_radius = r;
     m_geometry_dirty = true;
+  }
+
+private:
+  std::size_t index(std::ptrdiff_t n) const
+  {
+    const auto size = static_cast<std::ptrdiff_t>(m_points.size());
+    const std::ptrdiff_t i = n < 0 ? n + size : n;
+    if (i < 0 || i >= size)
+      throw std::out_of_range(std::format("vcpp: curve point {} doesn't exist; the curve has {} points", n, size));
+    return static_cast<std::size_t>(i);
   }
 };
 

@@ -149,10 +149,23 @@ constexpr orientation orientation_of(const vec3& axis, const vec3& up) noexcept
   return {x, y, cross(x, y)};
 }
 
-inline vec3 random_vec()
+namespace detail
+{
+inline std::mt19937& random_engine()
 {
   static std::mt19937 gen{std::random_device{}()};
-  static std::uniform_real_distribution<double> dist{-1.0, 1.0};
+  return gen;
+}
+} // namespace detail
+
+// VPython's random(): a number in [0, 1)
+inline double random() { return std::uniform_real_distribution<double>{0.0, 1.0}(detail::random_engine()); }
+
+// GlowScript's vec.random(): each component in [-1, 1)
+inline vec3 random_vec()
+{
+  std::uniform_real_distribution<double> dist{-1.0, 1.0};
+  auto& gen = detail::random_engine();
   return vec3{dist(gen), dist(gen), dist(gen)};
 }
 

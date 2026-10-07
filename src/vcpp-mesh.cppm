@@ -450,7 +450,9 @@ inline void tube_segment(std::vector<std::uint32_t>& out, std::uint32_t ring_a, 
   }
 }
 
-inline mesh_data generate_tube(const std::vector<vec3>& points, float radius, int tube_slices = 8)
+// A tube through points, with radii[i] the radius at point i. Ring i's u texture coordinate is (i + 0.5) / n,
+// the centre of texel i in a strip of n texels, so a strip of the points' colours shades the tube.
+inline mesh_data generate_tube(const std::vector<vec3>& points, std::span<const float> radii, int tube_slices = 8)
 {
   mesh_data mesh;
   if (points.size() < 2)
@@ -464,13 +466,16 @@ inline mesh_data generate_tube(const std::vector<vec3>& points, float radius, in
   {
     const vec3 tangent = tube_tangent(points, i);
     normal = i == 0 ? tube_first_normal(tangent) : tube_next_normal(normal, tangent);
-    tube_ring(std::span{mesh.vertices}.subspan(i * stride, stride), points[i], tangent, normal, radius,
-              static_cast<float>(i) / static_cast<float>(n - 1));
+    tube_ring(std::span{mesh.vertices}.subspan(i * stride, stride), points[i], tangent, normal, radii[i],
+              (static_cast<float>(i) + 0.5f) / static_cast<float>(n));
   }
   for (std::size_t i = 0; i + 1 < n; ++i)
     tube_segment(mesh.indices, static_cast<std::uint32_t>(i), static_cast<std::uint32_t>(i + 1), tube_slices);
   return mesh;
 }
+
+inline mesh_data generate_tube(const std::vector<vec3>& points, float radius, int tube_slices = 8)
+{ return generate_tube(points, std::vector<float>(points.size(), radius), tube_slices); }
 
 // ============================================================================
 // tube_builder - A trail's tube, updated one point at a time

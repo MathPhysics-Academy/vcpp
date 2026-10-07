@@ -223,6 +223,11 @@ struct renderer_state
     WGPUBuffer index_buffer{nullptr};
     std::uint32_t index_count{0};
     std::size_t buffer_capacity{0};
+    // A curve's point colours, one texel per point; null when no point has its own colour
+    WGPUTexture colors{nullptr};
+    WGPUBindGroup colors_group{nullptr};
+    vec3 curve_color{-1, -1, -1}; // the curve colour and thin radius the tube was built with
+    double thin_radius{0};
   };
   std::vector<curve_mesh_data> curve_meshes;
 
@@ -453,9 +458,10 @@ inline std::vector<std::uint8_t> half_size(const std::vector<std::uint8_t>& px, 
   return out;
 }
 
-inline WGPUTexture create_texture(std::vector<std::uint8_t> pixels, std::uint32_t width, std::uint32_t height)
+inline WGPUTexture create_texture(std::vector<std::uint8_t> pixels, std::uint32_t width, std::uint32_t height,
+                                  bool mipmaps = true)
 {
-  const std::uint32_t levels = static_cast<std::uint32_t>(std::bit_width(std::max(width, height)));
+  const std::uint32_t levels = mipmaps ? static_cast<std::uint32_t>(std::bit_width(std::max(width, height))) : 1;
   WGPUTextureDescriptor desc{};
   desc.size = {width, height, 1};
   desc.format = WGPUTextureFormat_RGBA8Unorm;
@@ -983,7 +989,15 @@ inline void render_frame()
     wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
-  // Draw Curves (per-curve dynamic mesh generation)
+  // A curve or trail of radius 0 is drawn about 4 pixels wide at the current view, as GlowScript draws it
+  // (4 * range / width)
+  const double tan_hfov = std::tan(c.m_camera.m_fov * std::numbers::pi / 360.0);
+  const double thin_radius =
+    4 * mag(c.m_camera.m_pos - c.m_camera.m_center) * tan_hfov / std::max(g_renderer.css_width, g_renderer.css_height);
+
+  // Draw Curves. A point's own radius and colour win over the curve's. The colours go in a strip texture, one
+  // texel per point, which the tube's u coordinate walks, so a segment blends its two points' colours as
+  // GlowScript's do.
   while (g_renderer.curve_meshes.size() < c.m_curves.size())
     g_renderer.curve_meshes.push_back({});
 
@@ -995,10 +1009,43 @@ inline void render_frame()
 
     auto& curve_mesh = g_renderer.curve_meshes[curve_idx];
 
-    // Regenerate mesh if geometry is dirty
-    if (crv.m_geometry_dirty)
+    const bool thin =
+      crv.m_radius <= 0 && std::ranges::any_of(crv.m_points, [](const curve_point& p) { return p.radius <= 0; });
+    const bool own_colors = std::ranges::any_of(crv.m_points, [](const curve_point& p) { return p.color.x() >= 0; });
+    if (crv.m_geometry_dirty || (thin && curve_mesh.thin_radius != thin_radius) ||
+        (own_colors && curve_mesh.curve_color != crv.m_color))
     {
-      auto tube_mesh = mesh::generate_tube(crv.m_points, static_cast<float>(crv.m_radius), 8);
+      std::vector<vec3> positions;
+      std::vector<float> radii;
+      std::vector<std::uint8_t> texels;
+      for (const curve_point& p : crv.m_points)
+      {
+        positions.push_back(p.pos);
+        const double r = p.radius > 0 ? p.radius : crv.m_radius > 0 ? crv.m_radius : thin_radius;
+        radii.push_back(static_cast<float>(r));
+        const vec3 col = p.color.x() >= 0 ? p.color : crv.m_color;
+        for (double channel : {col.x(), col.y(), col.z(), 1.0})
+          texels.push_back(static_cast<std::uint8_t>(std::lround(255 * std::clamp(channel, 0.0, 1.0))));
+      }
+      curve_mesh.curve_color = crv.m_color;
+      curve_mesh.thin_radius = thin_radius;
+
+      if (curve_mesh.colors_group)
+      {
+        wgpuBindGroupRelease(curve_mesh.colors_group);
+        wgpuTextureRelease(curve_mesh.colors);
+        curve_mesh.colors_group = nullptr;
+        curve_mesh.colors = nullptr;
+      }
+      // A strip is at most 8192 texels wide in WebGPU; a longer curve is drawn in the curve's colour
+      if (own_colors && crv.m_points.size() <= 8192)
+      {
+        curve_mesh.colors =
+          create_texture(std::move(texels), static_cast<std::uint32_t>(crv.m_points.size()), 1, false);
+        curve_mesh.colors_group = create_texture_bind_group(curve_mesh.colors);
+      }
+
+      auto tube_mesh = mesh::generate_tube(positions, radii, 8);
 
       if (!tube_mesh.indices.empty())
       {
@@ -1032,18 +1079,22 @@ inline void render_frame()
     if (curve_mesh.index_count == 0 || !curve_mesh.vertex_buffer || !curve_mesh.index_buffer)
       continue;
 
-    // Create instance data for this curve (identity transform + curve color)
+    // Identity transform; the colour is the curve's, or white under a strip of the points' colours
     instance_data inst{};
     inst.model = matrix::identity();
-    inst.color = to_gpu4(crv.m_color, static_cast<float>(crv.m_opacity));
+    const vec3 tint = curve_mesh.colors_group ? vec3{1, 1, 1} : crv.m_color;
+    inst.color = to_gpu4(tint, static_cast<float>(crv.m_opacity));
     inst.material = {static_cast<float>(crv.m_shininess), 0, 0, 0};
-
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, curve_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
                                          sizeof(instance_data));
     wgpuRenderPassEncoderSetIndexBuffer(pass, curve_mesh.index_buffer, WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+    if (curve_mesh.colors_group)
+      wgpuRenderPassEncoderSetBindGroup(pass, 1, curve_mesh.colors_group, 0, nullptr);
     wgpuRenderPassEncoderDrawIndexed(pass, curve_mesh.index_count, 1, 0, 0, 0);
+    if (curve_mesh.colors_group)
+      wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
   // Draw Points (instanced small spheres at each point position)
@@ -1263,11 +1314,8 @@ inline void render_frame()
     wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
-  // Draw Trails. A trail of radius 0 is drawn about 4 pixels wide at the current view, as GlowScript draws
-  // it (4 * range / width); its tube is rebuilt when the camera's distance changes
-  const double tan_hfov = std::tan(c.m_camera.m_fov * std::numbers::pi / 360.0);
-  const double thin_radius =
-    4 * mag(c.m_camera.m_pos - c.m_camera.m_center) * tan_hfov / std::max(g_renderer.css_width, g_renderer.css_height);
+  // Draw Trails. A trail of radius 0 is drawn thin, as curves are; its tube is rebuilt when the camera's
+  // distance changes
   instance_batch trail_points;
   for (auto& [entry_idx, trail] : c.m_trails)
   {

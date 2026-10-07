@@ -165,6 +165,25 @@ public:
   // default; given an origin other than pos, pos turns about it too
   void rotate(double angle, std::optional<vec3> rotation_axis = {}, std::optional<vec3> origin = {}) const;
 
+  // A curve's methods, as GlowScript names them: append, point, modify, clear
+  template<typename... Args>
+  void append(Args&&... args) const
+    requires std::same_as<T, curve_object>
+  { (**this).append(std::forward<Args>(args)...); }
+  void append(const std::vector<vec3>& points) const
+    requires std::same_as<T, curve_object>
+  { (**this).append(points); }
+  curve_point point(std::ptrdiff_t n) const
+    requires std::same_as<T, curve_object>
+  { return (**this).point(n); }
+  template<typename... Args>
+  void modify(std::ptrdiff_t n, Args&&... args) const
+    requires std::same_as<T, curve_object>
+  { (**this).modify(n, std::forward<Args>(args)...); }
+  void clear() const
+    requires std::same_as<T, curve_object>
+  { (**this).clear(); }
+
   explicit operator bool() const noexcept { return m_canvas != nullptr; }
 
 private:
@@ -413,8 +432,8 @@ private:
       e.add_box(r.m_pos, orientation_of(r.m_axis, r.m_up), 2 * r.m_thickness, d, d);
     });
     each(m_curves, [](extent& e, const curve_object& c) {
-      for (const auto& p : c.m_points)
-        e.add_ball(p, c.m_radius);
+      for (const curve_point& p : c.m_points)
+        e.add_ball(p.pos, p.radius > 0 ? p.radius : c.m_radius);
     });
     each(m_points, [](extent& e, const points_object& pts) {
       for (const auto& p : pts.m_points)
@@ -1135,9 +1154,10 @@ template<>
 struct own_attributes<curve_object>
 {
   attribute<curve_object, &curve_object::m_radius, &curve_object::set_radius> radius;
+  attribute<curve_object, &curve_object::npoints> npoints; // read only
 
   own_attributes() = default;
-  explicit own_attributes(const handle_base<curve_object>& h) : radius(h) {}
+  explicit own_attributes(const handle_base<curve_object>& h) : radius(h), npoints(h) {}
 };
 
 template<>

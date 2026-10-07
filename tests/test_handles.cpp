@@ -211,6 +211,36 @@ bool test_more_attributes()
          ball->m_trail_color == colors::yellow && tag->m_text == "t = 1.5" && path->m_geometry_dirty;
 }
 
+// GlowScript's curve methods. A point's own colour and radius win over the curve's; (-1, -1, -1) and 0 mean unset.
+bool test_curve_points()
+{
+  canvas c;
+  auto square = c.add(curve(color = colors::yellow, radius = 0.05));
+  square.append(vec3{0, 0, 0});
+  square.append(pos = vec3{0, 1, 0}, color = colors::cyan, radius = 0.1);
+  square.append(std::vector<vec3>{vec3{1, 1, 0}, vec3{1, 0, 0}});
+  const curve_point second = square.point(1);
+  const curve_point last = square.point(-1);
+  square.modify(1, color = colors::red);
+  square.modify(-1, vec3{2, 0, 0});
+  bool threw = false;
+  try
+  {
+    square.point(4);
+  }
+  catch (const std::out_of_range&)
+  {
+    threw = true;
+  }
+  const bool points_ok = square.npoints == 4 && second.pos == vec3{0, 1, 0} && second.color == colors::cyan &&
+                         second.radius == 0.1 && last.color == vec3{-1, -1, -1} && last.radius == 0 &&
+                         square.point(1).color == colors::red && square.point(1).radius == 0.1 &&
+                         square.point(3).pos == vec3{2, 0, 0} && threw;
+  square->m_geometry_dirty = false;
+  square.clear();
+  return points_ok && square.npoints == 0 && square->m_geometry_dirty;
+}
+
 } // namespace
 
 int main()
@@ -247,6 +277,7 @@ int main()
   run_test("rotate", test_rotate);
   run_test("attributes", test_attributes);
   run_test("more attributes", test_more_attributes);
+  run_test("curve points", test_curve_points);
 
   std::println("=================");
   std::println("Passed: {}/{}", passed, passed + failed);
