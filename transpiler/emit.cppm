@@ -224,6 +224,7 @@ private:
     static const std::set<std::string_view> names{
       // vcpp functions and objects the generated code uses
       "scene", "rate", "sleep", "vec3", "vec2", "colors", "mag", "hat", "norm", "cross", "dot", "task", "rotate",
+      "random", "random_vec",
       // C++ keywords that are valid Python names
       "auto", "bool", "break", "case", "catch", "char", "class", "const", "default", "delete", "do", "double", "enum",
       "explicit", "extern", "float", "friend", "goto", "inline", "int", "long", "mutable", "namespace", "new",
@@ -286,7 +287,7 @@ private:
       {"xoffset", kind::number},    {"yoffset", kind::number},      {"border", kind::number},
       {"visible", kind::boolean},   {"make_trail", kind::boolean},  {"emissive", kind::boolean},
       {"ccw", kind::boolean},       {"texture", kind::string},      {"trail_type", kind::string},
-      {"text", kind::string},       {"font", kind::string},
+      {"text", kind::string},       {"font", kind::string},         {"npoints", kind::number},
     };
     const auto it = attrs.find(name);
     return it == attrs.end() ? std::nullopt : std::optional{it->second};
@@ -1031,6 +1032,8 @@ private:
   // a[i]; a negative literal counts from the end, as in Python
   expr subscript(const json& e)
   {
+    if (const auto field = curve_point_field(e))
+      return *field;
     const expr list = expression(e["value"]);
     if (list.t.k != kind::list)
       unsupported(e, "indexing something other than a list");
@@ -1201,9 +1204,15 @@ private:
         return append(e);
       if (func["attr"].string() == "rotate")
         return rotate_call(e, &base);
+      if (func["attr"].string() == "random" && base["_type"].string() == "Name" &&
+          (base["id"].string() == "vec" || base["id"].string() == "vector") && e["args"].items().empty())
+        return {"random_vec()", {kind::vector, {}}};
       if (base["_type"].string() == "Name" && base["id"].string() == "scene" &&
           (func["attr"].string() == "append_to_title" || func["attr"].string() == "append_to_caption"))
         return append_text(e);
+      static constexpr std::array curve_methods{"append", "modify", "clear"};
+      if (std::ranges::find(curve_methods, func["attr"].string()) != curve_methods.end() && is_curve(base))
+        return curve_method(e);
       unsupported(e, std::format("calling .{}()", func["attr"].string()));
     }
     if (func["_type"].string() != "Name")
@@ -1218,6 +1227,8 @@ private:
       return {std::format("{}({})", f, arguments(e)), {}};
     if (f == "rotate")
       return rotate_call(e, nullptr);
+    if (f == "random" && e["args"].items().empty())
+      return {"random()", {kind::number, {}}};
     if (f == "len")
     {
       if (e["args"].items().size() != 1 || expression(e["args"].items()[0]).t.k != kind::list)
@@ -1256,6 +1267,87 @@ private:
     if (!unify(list->element[0], value.t))
       unsupported(e, "a list of different types");
     return {std::format("{}.push_back({})", expression(base).code, value.code), {}};
+  }
+
+  bool is_curve(const json& e)
+  {
+    const expr owner = expression(e);
+    return owner.t.k == kind::object && owner.t.object == "curve";
+  }
+
+  // A point's index as curve::point and modify take it
+  std::string point_index(const json& e)
+  {
+    const expr n = expression(e);
+    return n.integer ? n.code : std::format("static_cast<std::ptrdiff_t>({})", n.code);
+  }
+
+  // GlowScript's curve methods: c.append(v), c.append([v, ...]), c.append(pos=v, color=c, radius=r),
+  // c.modify(n, v) or c.modify(n, color=c, ...), c.clear()
+  expr curve_method(const json& e)
+  {
+    const std::string& method = e["func"]["attr"].string();
+    const std::string owner = expression(e["func"]["value"]).code;
+    const auto& args = e["args"].items();
+    const auto keywords = [&](std::string code) {
+      for (const auto& k : e["keywords"].items())
+      {
+        if (k["arg"].is_null())
+          unsupported(e, "**keyword arguments");
+        const std::string& name = k["arg"].string();
+        if (name != "pos" && name != "color" && name != "radius")
+          unsupported(e, std::format("a curve point's {}", name));
+        code += std::format("{}{} = {}", code.empty() ? "" : ", ", name, expression(k["value"]).code);
+      }
+      return code;
+    };
+    if (method == "append")
+    {
+      if (args.size() + e["keywords"].items().size() == 0 || (!args.empty() && !e["keywords"].items().empty()))
+        unsupported(e, "this form of curve append()");
+      if (args.size() > 1)
+        unsupported(e, "curve append() of several points; pass a list");
+      if (args.empty())
+        return {std::format("{}.append({})", owner, keywords("")), {}};
+      const expr point = expression(args[0]);
+      if (point.t.k == kind::list && point.t.element[0].k != kind::vector)
+        unsupported(e, "appending curve points as dictionaries");
+      if (point.t.k != kind::vector && point.t.k != kind::list)
+        unsupported(e, "appending this to a curve");
+      return {std::format("{}.append({})", owner, point.code), {}};
+    }
+    if (method == "modify")
+    {
+      if (args.empty() || args.size() > 2 || (args.size() == 2 && !e["keywords"].items().empty()))
+        unsupported(e, "this form of curve modify()");
+      const std::string n = point_index(args[0]);
+      if (args.size() == 2)
+        return {std::format("{}.modify({}, {})", owner, n, expression(args[1]).code), {}};
+      return {std::format("{}.modify({})", owner, keywords(n)), {}};
+    }
+    if (method == "clear" && args.empty() && e["keywords"].items().empty())
+      return {std::format("{}.clear()", owner), {}};
+    unsupported(e, std::format("calling .{}() on a curve", method));
+  }
+
+  // c.point(n)['pos'] (or 'color', 'radius'): GlowScript's point() returns a dictionary, vcpp's a curve_point
+  std::optional<expr> curve_point_field(const json& e)
+  {
+    const json& call = e["value"];
+    const json& key = e["slice"];
+    if (call["_type"].string() != "Call" || call["func"]["_type"].string() != "Attribute" ||
+        call["func"]["attr"].string() != "point" || !is_curve(call["func"]["value"]))
+      return std::nullopt;
+    const auto& args = call["args"].items();
+    if (args.size() != 1 || !call["keywords"].items().empty())
+      unsupported(e, "this form of curve point()");
+    const auto* field = key["_type"].string() == "Constant" ? std::get_if<std::string>(&key["value"].value) : nullptr;
+    static const std::map<std::string_view, kind> fields{
+      {"pos", kind::vector}, {"color", kind::vector}, {"radius", kind::number}};
+    if (!field || !fields.contains(*field))
+      unsupported(e, "this field of a curve point");
+    return expr{std::format("{}.point({}).{}", expression(call["func"]["value"]).code, point_index(args[0]), *field),
+                {fields.at(*field), {}}};
   }
 
   // obj.rotate(angle, axis, origin) turns an object; v.rotate(angle, axis) and rotate(v, angle, axis) turn a

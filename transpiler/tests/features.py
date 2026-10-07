@@ -82,3 +82,16 @@ tilted = 2 * tilted
 tilted *= 3
 spinner.pos.x += 1
 trailing.radius *= 2
+
+# A curve's points, each with its own colour and radius if given
+path = curve(color=color.yellow, radius=0.05)
+path.append(vector(0, 0, 0))
+path.append([vector(1, 0, 0), vector(1, 1, 0)])
+path.append(pos=vector(0, 1, 0), color=color.cyan, radius=0.1)
+path.modify(1, color=color.red)
+path.modify(-1, vector(0, 2, 0))
+was = path.point(1)['color']
+path.modify(1, color=was)
+drift = vec.random() * random()
+if path.npoints > 3:
+    path.clear()

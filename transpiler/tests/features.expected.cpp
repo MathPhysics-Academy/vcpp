@@ -131,5 +131,18 @@ task<void> vpython_program()
   tilted *= 3.0;
   spinner.pos = vec3{spinner.pos.x() + 1, spinner.pos.y(), spinner.pos.z()};
   trailing.radius *= 2;
+  auto path = scene.add(curve(color = colors::yellow, radius = 0.05));
+  path.append(vec3{0, 0, 0});
+  path.append(std::vector<vec3>{vec3{1, 0, 0}, vec3{1, 1, 0}});
+  path.append(pos = vec3{0, 1, 0}, color = colors::cyan, radius = 0.1);
+  path.modify(1, color = colors::red);
+  path.modify(-1, vec3{0, 2, 0});
+  vec3 was = path.point(1).color;
+  path.modify(1, color = was);
+  vec3 drift = random_vec() * random();
+  if (path.npoints > 3)
+  {
+    path.clear();
+  }
   co_return;
 }
