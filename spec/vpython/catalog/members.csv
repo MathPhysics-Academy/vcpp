@@ -278,7 +278,7 @@ curve,append,method,,,,primitives.js:2130,,yes,yes,wired,append,21,4
 curve,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,0,0
 curve,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
 curve,canvas,attribute,,,constructor option,primitives.js:1893,,yes,yes,missing,canvas,0,0
-curve,clear,method,,,,primitives.js:2166,,yes,yes,wired,clear_points,0,0
+curve,clear,method,,,,primitives.js:2166,,yes,yes,wired,clear,0,0
 curve,clear_trail,method,,,,primitives.js:358,Primitive,yes,yes,missing,clear_trail,0,0
 curve,clone,method,,,,primitives.js:505,Primitive,yes,yes,missing,clone,0,0
 curve,color,attribute,"<1,1,1>",,vector,primitives.js:263,Primitive,yes,yes,wired,color,14,5
@@ -290,12 +290,12 @@ curve,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,in
 curve,length,attribute,,,constructor option,primitives.js:1893,,yes,yes,declared-only,length,0,0
 curve,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 curve,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
-curve,modify,method,,,,primitives.js:2200,,yes,yes,missing,modify,0,0
+curve,modify,method,,,,primitives.js:2200,,yes,yes,wired,modify,0,0
 curve,npoints,attribute,,,accessor,primitives.js:1943,,yes,yes,missing,npoints,0,0
 curve,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
 curve,origin,attribute,"<0,0,0>",,vector,primitives.js:1924,,yes,yes,missing,origin,0,0
 curve,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
-curve,point,method,,,,primitives.js:2162,,yes,yes,missing,point,0,0
+curve,point,method,,,,primitives.js:2162,,yes,yes,wired,point,0,0
 curve,pop,method,,,,primitives.js:2136,,yes,yes,missing,pop,0,0
 curve,pos,unsupported,,,getter throws,primitives.js:1925,,yes,yes,wired,pos,3,1
 curve,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0

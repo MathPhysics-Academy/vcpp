@@ -72,7 +72,7 @@ pyramid,primitives.js:3744,,yes,,yes,4
 quad,primitives.js:3758,yes,yes,,yes,3
 radians,api_misc.js:793,,yes,,no,0
 radio,primitives.js:3771,yes,yes,,no,2
-random,api_misc.js:789,,,,no,8
+random,api_misc.js:789,,,,yes,8
 rate,WebGLRenderer.js:1757,,yes,,yes,34
 read_local_file,api_misc.js:809,,yes,,no,0
 ring,primitives.js:3754,yes,yes,,yes,5

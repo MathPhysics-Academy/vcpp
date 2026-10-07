@@ -14,8 +14,8 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- wired: 397
-- missing: 333
+- wired: 399
+- missing: 331
 - no-object: 215
 - declared-only: 81
 - field-only: 35
@@ -89,7 +89,7 @@ Corpus uses 237 members; 158 are wired.
 | color | 14 | 10 | 13 | 10 |
 | compound | 38 | 15 | 7 | 5 |
 | cone | 35 | 18 | 10 | 10 |
-| curve | 41 | 18 | 5 | 5 |
+| curve | 41 | 20 | 5 | 5 |
 | cylinder | 35 | 18 | 10 | 9 |
 | distant_light | 11 | 0 | 2 | 0 |
 | ellipsoid | 35 | 19 | 3 | 3 |

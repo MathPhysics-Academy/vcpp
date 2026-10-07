@@ -41,7 +41,7 @@ GRAPH_KINDS = ["gcurve", "gdots", "gvbars", "ghbars"]          # all thin wrappe
 VCPP_FACTORY = {"text": "text3d"}
 # (object, VPython member) -> vcpp name, each verified in vcpp/src
 ALIASES = {("gcurve", "graph"): "graph_ref", ("gcurve", "dot"): "show_dot", ("text", "depth"): "thickness",
-           ("curve", "clear"): "clear_points", ("points", "clear"): "clear_points"}
+           ("points", "clear"): "clear_points"}
 # GScompiler.js rewrites `.delete` -> `.remove`, so the runtime's `remove` is VPython's `delete`.
 RUNTIME_RENAME = {"remove": "delete"}
 # Not objects a program creates, so they get no member rows. `keysdown` and `draw` ARE documented
