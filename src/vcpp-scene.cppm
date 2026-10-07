@@ -861,28 +861,41 @@ void handle_base<T>::set_size(const vec3& size) const
 
 namespace detail
 {
-// An attribute that reads and writes Member of the object. Set, if given, is the handle_base setter that
-// applies GlowScript's rule for it.
-template<typename T, auto Member, auto Set = nullptr>
+// An attribute that reads the object's Get (a member, or a function of the object) and writes it through Set:
+// a handle_base setter or the object's own setter, which apply GlowScript's rule for it, or, if not given,
+// by writing the member.
+template<typename T, auto Get, auto Set = nullptr>
 class attribute
 {
 public:
-  using value_type = std::remove_cvref_t<decltype(std::declval<T&>().*Member)>;
+  using value_type = std::remove_cvref_t<std::invoke_result_t<decltype(Get), const T&>>;
 
   attribute() = default;
   explicit attribute(const handle_base<T>& h) : m_h(h) {}
   attribute(const attribute&) = default;
 
-  value_type value() const { return (*m_h).*Member; }
+  value_type value() const { return std::invoke(Get, std::as_const(*m_h)); }
   operator value_type() const { return value(); }
 
   attribute& operator=(const value_type& v)
   {
-    if constexpr (std::is_same_v<decltype(Set), std::nullptr_t>)
-      (*m_h).*Member = v;
+    if constexpr (std::is_null_pointer_v<decltype(Set)>)
+      std::invoke(Get, *m_h) = v;
+    else if constexpr (std::invocable<decltype(Set), const handle_base<T>&, const value_type&>)
+      std::invoke(Set, m_h, v);
     else
-      (m_h.*Set)(v);
+      std::invoke(Set, *m_h, v);
     return *this;
+  }
+
+  // Anything the value itself can be assigned: an int for a double, a string_view for a string
+  template<typename V>
+    requires(!std::same_as<V, value_type> && std::assignable_from<value_type&, const V&>)
+  attribute& operator=(const V& v)
+  {
+    value_type x = value();
+    x = v;
+    return *this = x;
   }
 
   // a.pos = b.pos copies the value, not which object the attribute names
@@ -906,8 +919,6 @@ public:
   double z() const
     requires std::same_as<value_type, vec3>
   { return value().z(); }
-
-  void rebind(const handle_base<T>& h) { m_h = h; }
 
 private:
   handle_base<T> m_h;
@@ -963,6 +974,27 @@ template<vector_attribute A>
 vec3 operator/(const A& a, double k)
 { return a.value() / k; }
 
+// GlowScript's size, read back from the members size= fans out to
+template<typename T>
+vec3 size_of(const T& o)
+{
+  if constexpr (requires { o.m_width; })
+    return vec3{o.m_length, o.m_height, o.m_width};
+  else if constexpr (requires { o.m_length; })
+    return vec3{o.m_length, 2 * o.m_radius, 2 * o.m_radius};
+  else
+    return vec3{2 * o.m_radius, 2 * o.m_radius, 2 * o.m_radius};
+}
+
+// An arrow's length is its axis's: GlowScript's arrow keeps no length of its own
+inline double arrow_length(const arrow_object& o) { return mag(o.m_axis); }
+
+inline void set_arrow_length(const handle_base<arrow_object>& h, double length)
+{
+  const vec3 dir = mag2(h->m_axis) > 0 ? hat(h->m_axis) : vec3{1, 0, 0};
+  h.set_axis(vec3{dir.x() * length, dir.y() * length, dir.z() * length});
+}
+
 // The attributes every object has
 template<typename T>
 struct common_attributes
@@ -972,20 +1004,22 @@ struct common_attributes
   attribute<T, &object_base::m_up, &handle_base<T>::set_up> up;
   attribute<T, &object_base::m_color> color;
   attribute<T, &object_base::m_opacity> opacity;
+  attribute<T, &object_base::m_shininess> shininess;
+  attribute<T, &object_base::m_emissive> emissive;
   attribute<T, &object_base::m_visible> visible;
+  attribute<T, &object_base::m_texture> texture;
+  attribute<T, &object_base::m_make_trail> make_trail;
+  attribute<T, &object_base::m_trail_color> trail_color;
+  attribute<T, &object_base::m_trail_type> trail_type;
+  attribute<T, &object_base::m_trail_radius> trail_radius;
+  attribute<T, &object_base::m_retain> retain;
+  attribute<T, &object_base::m_interval> interval;
 
   common_attributes() = default;
-  explicit common_attributes(const handle_base<T>& h) : pos(h), axis(h), up(h), color(h), opacity(h), visible(h) {}
-
-  void rebind(const handle_base<T>& h)
-  {
-    pos.rebind(h);
-    axis.rebind(h);
-    up.rebind(h);
-    color.rebind(h);
-    opacity.rebind(h);
-    visible.rebind(h);
-  }
+  explicit common_attributes(const handle_base<T>& h)
+    : pos(h), axis(h), up(h), color(h), opacity(h), shininess(h), emissive(h), visible(h), texture(h), make_trail(h),
+      trail_color(h), trail_type(h), trail_radius(h), retain(h), interval(h)
+  {}
 };
 
 // The attributes only some objects have
@@ -994,17 +1028,135 @@ struct own_attributes
 {
   own_attributes() = default;
   explicit own_attributes(const handle_base<T>&) {}
-  void rebind(const handle_base<T>&) {}
 };
 
 template<>
 struct own_attributes<sphere_object>
 {
   attribute<sphere_object, &sphere_object::m_radius> radius;
+  attribute<sphere_object, &size_of<sphere_object>, &handle_base<sphere_object>::set_size> size;
 
   own_attributes() = default;
-  explicit own_attributes(const handle_base<sphere_object>& h) : radius(h) {}
-  void rebind(const handle_base<sphere_object>& h) { radius.rebind(h); }
+  explicit own_attributes(const handle_base<sphere_object>& h) : radius(h), size(h) {}
+};
+
+// box, ellipsoid, pyramid: size = (length, height, width)
+template<typename T>
+struct lhw_attributes
+{
+  attribute<T, &T::m_length, &handle_base<T>::set_length> length;
+  attribute<T, &T::m_height> height;
+  attribute<T, &T::m_width> width;
+  attribute<T, &size_of<T>, &handle_base<T>::set_size> size;
+
+  lhw_attributes() = default;
+  explicit lhw_attributes(const handle_base<T>& h) : length(h), height(h), width(h), size(h) {}
+};
+
+template<>
+struct own_attributes<box_object> : lhw_attributes<box_object>
+{
+  using lhw_attributes::lhw_attributes;
+};
+
+template<>
+struct own_attributes<ellipsoid_object> : lhw_attributes<ellipsoid_object>
+{
+  using lhw_attributes::lhw_attributes;
+};
+
+template<>
+struct own_attributes<pyramid_object> : lhw_attributes<pyramid_object>
+{
+  using lhw_attributes::lhw_attributes;
+};
+
+// cylinder, cone, helix: size = (length, 2*radius, 2*radius)
+template<typename T>
+struct lr_attributes
+{
+  attribute<T, &T::m_radius> radius;
+  attribute<T, &T::m_length, &handle_base<T>::set_length> length;
+  attribute<T, &size_of<T>, &handle_base<T>::set_size> size;
+
+  lr_attributes() = default;
+  explicit lr_attributes(const handle_base<T>& h) : radius(h), length(h), size(h) {}
+};
+
+template<>
+struct own_attributes<cylinder_object> : lr_attributes<cylinder_object>
+{
+  using lr_attributes::lr_attributes;
+};
+
+template<>
+struct own_attributes<cone_object> : lr_attributes<cone_object>
+{
+  using lr_attributes::lr_attributes;
+};
+
+template<>
+struct own_attributes<helix_object> : lr_attributes<helix_object>
+{
+  attribute<helix_object, &helix_object::m_thickness> thickness;
+  attribute<helix_object, &helix_object::m_coils> coils;
+  attribute<helix_object, &helix_object::m_ccw> ccw;
+
+  own_attributes() = default;
+  explicit own_attributes(const handle_base<helix_object>& h) : lr_attributes(h), thickness(h), coils(h), ccw(h) {}
+};
+
+template<>
+struct own_attributes<arrow_object>
+{
+  attribute<arrow_object, &arrow_length, &set_arrow_length> length;
+  attribute<arrow_object, &arrow_object::m_shaftwidth> shaftwidth;
+  attribute<arrow_object, &arrow_object::m_headwidth> headwidth;
+  attribute<arrow_object, &arrow_object::m_headlength> headlength;
+  attribute<arrow_object, &arrow_object::m_round> round;
+
+  own_attributes() = default;
+  explicit own_attributes(const handle_base<arrow_object>& h)
+    : length(h), shaftwidth(h), headwidth(h), headlength(h), round(h)
+  {}
+};
+
+template<>
+struct own_attributes<ring_object>
+{
+  attribute<ring_object, &ring_object::m_radius> radius;
+  attribute<ring_object, &ring_object::m_thickness> thickness;
+
+  own_attributes() = default;
+  explicit own_attributes(const handle_base<ring_object>& h) : radius(h), thickness(h) {}
+};
+
+template<>
+struct own_attributes<curve_object>
+{
+  attribute<curve_object, &curve_object::m_radius, &curve_object::set_radius> radius;
+
+  own_attributes() = default;
+  explicit own_attributes(const handle_base<curve_object>& h) : radius(h) {}
+};
+
+template<>
+struct own_attributes<label_object>
+{
+  attribute<label_object, &label_object::m_text> text;
+  attribute<label_object, &label_object::m_height> height;
+  attribute<label_object, &label_object::m_font> font;
+  attribute<label_object, &label_object::m_xoffset> xoffset;
+  attribute<label_object, &label_object::m_yoffset> yoffset;
+  attribute<label_object, &label_object::m_box> box;
+  attribute<label_object, &label_object::m_line> line;
+  attribute<label_object, &label_object::m_border> border;
+  attribute<label_object, &label_object::m_background> background;
+
+  own_attributes() = default;
+  explicit own_attributes(const handle_base<label_object>& h)
+    : text(h), height(h), font(h), xoffset(h), yoffset(h), box(h), line(h), border(h), background(h)
+  {}
 };
 } // namespace detail
 
@@ -1015,12 +1167,13 @@ public:
   handle() = default;
   handle(const handle&) = default;
 
-  // Names the other handle's object, as Python's ball = other does
+  // Names the other handle's object, as Python's ball = other does. The attributes' own assignment copies
+  // values, so the handle is rebuilt instead.
   handle& operator=(const handle& other)
   {
-    handle_base<T>::operator=(other);
-    detail::common_attributes<T>::rebind(other);
-    detail::own_attributes<T>::rebind(other);
+    const handle_base<T> h = other;
+    std::destroy_at(this);
+    ::new (static_cast<void*>(this)) handle(h);
     return *this;
   }
 

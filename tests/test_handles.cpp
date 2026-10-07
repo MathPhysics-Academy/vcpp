@@ -179,6 +179,38 @@ bool test_attributes()
   return false;
 }
 
+// The attributes beyond pos: sizes and lengths go through GlowScript's rules, the rest are written as they are
+bool test_more_attributes()
+{
+  canvas c;
+  auto wall = c.add(box(axis = vec3{0, 2, 0}));
+  wall.length = 4;
+  const bool box_ok = near(wall.axis.value(), vec3{0, 4, 0}) && wall.size == vec3{4, 1, 1};
+  wall.size = vec3{1, 2, 3};
+  wall.width += 1;
+
+  auto rod = c.add(cylinder());
+  rod.size = vec3{3, 1, 1};
+  auto pointer = c.add(arrow(axis = vec3{0, 0, 2}));
+  pointer.length = 1;
+  auto ball = c.add(sphere());
+  ball.radius = 2;
+  ball.texture = textures::earth;
+  ball.make_trail = true;
+  ball.trail_color = colors::yellow;
+  ball = ball;
+  auto tag = c.add(label(text = "t = 0"));
+  tag.text = std::format("t = {}", 1.5);
+  auto path = c.add(curve());
+  path->m_geometry_dirty = false;
+  path.radius = 0.2;
+
+  return box_ok && wall.size == vec3{1, 2, 4} && near(wall.axis.value(), vec3{0, 1, 0}) && rod.radius == 0.5 &&
+         rod.length == 3 && near(pointer.axis.value(), vec3{0, 0, 1}) && pointer.length == 1 &&
+         ball.size == vec3{4, 4, 4} && ball.texture.value() == textures::earth && ball->m_make_trail &&
+         ball->m_trail_color == colors::yellow && tag->m_text == "t = 1.5" && path->m_geometry_dirty;
+}
+
 } // namespace
 
 int main()
@@ -214,6 +246,7 @@ int main()
   run_test("set_size", test_set_size);
   run_test("rotate", test_rotate);
   run_test("attributes", test_attributes);
+  run_test("more attributes", test_more_attributes);
 
   std::println("=================");
   std::println("Passed: {}/{}", passed, passed + failed);
