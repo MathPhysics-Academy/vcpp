@@ -8,134 +8,128 @@ using namespace vcpp;
 
 namespace
 {
-vec3 F{};
-handle<box_object> anchor{};
-handle<sphere_object> b{};
-handle<sphere_object> ball{};
-vec3 ball__v{};
-std::vector<handle<sphere_object>> balls{};
 double dt_{};
-std::vector<double> heights{};
-double i{};
 double k{};
-double last_x{};
 double m{};
-double n{};
-std::string skin{};
-handle<box_object> spinner{};
 double t{};
-double t_start{};
-vec3 tilted{};
-handle<sphere_object> trailing{};
 vec3 x0{};
 } // namespace
 
-task<double> kinetic(vec3 v, double mass_, double scale_);
-task<void> lift(std::vector<handle<sphere_object>>& group_, double dy);
+task<double> kinetic(vec3 v, double mass, double scale_);
+task<void> lift(std::vector<handle<sphere_object>>& group, double dy);
 task<vec3> spring_force(vec3 x);
 task<void> tick();
 
-task<double> kinetic(vec3 v, double mass_, double scale_)
+task<double> kinetic(vec3 v, double mass, double scale_)
 {
-  double e{};
-  e = ((0.5 * mass_) * std::pow(mag(v), 2.0));
-  co_return (scale_ * e);
+  double e = 0.5 * mass * std::pow(mag(v), 2);
+  co_return scale_ * e;
 }
 
-task<void> lift(std::vector<handle<sphere_object>>& group_, double dy)
+task<void> lift(std::vector<handle<sphere_object>>& group, double dy)
 {
   handle<sphere_object> b{};
-  for (std::size_t for__1 = 0; for__1 < group_.size(); ++for__1)
+  for (std::size_t for__1 = 0; for__1 < group.size(); ++for__1)
   {
-    b = group_[for__1];
-    b->m_pos.y() = (b->m_pos.y() + dy);
+    b = group[for__1];
+    b.pos = vec3{b.pos.x(), b.pos.y() + dy, b.pos.z()};
   }
-  group_.push_back(scene.add(sphere(pos = vec3{0.0, 3.0, 0.0}, radius = 0.1)));
+  group.push_back(scene.add(sphere(pos = vec3{0, 3, 0}, radius = 0.1)));
   co_return;
 }
 
 task<vec3> spring_force(vec3 x)
 {
-  co_return (-k * (x - x0));
+  co_return -k * (x - x0);
 }
 
 task<void> tick()
 {
-  t = t + (dt_);
-  co_await rate(100.0);
+  t += dt_;
+  co_await rate(100);
   co_return;
 }
 
 task<void> vpython_program()
 {
+  vec3 F{};
+  handle<sphere_object> b{};
+  double i{};
+  double last_x{};
+  double n{};
   scene.m_caption = "A ball on a spring";
-  // scene.width = 600.0: not translated; the canvas takes its size from the page
-  // scene.height = 600.0: not translated; the canvas takes its size from the page
-  scene.set_center(vec3{0.0, 0.0, 0.0});
-  scene.set_forward(vec3{0.0, -0.2, -1.0});
-  scene.set_range(3.0);
+  // scene.width = 600: not translated; the canvas takes its size from the page
+  // scene.height = 600: not translated; the canvas takes its size from the page
+  scene.set_center(vec3{0, 0, 0});
+  scene.set_forward(vec3{0, -0.2, -1});
+  scene.set_range(3);
   scene.m_userzoom = false;
-  k = 4.0;
+  k = 4;
   m = 0.5;
-  x0 = vec3{1.0, 0.0, 0.0};
-  anchor = scene.add(box(pos = vec3{-2.0, 0.0, 0.0}, size = vec3{0.2, 1.0, 1.0}, color = colors::gray(0.5), texture = textures::wood));
-  ball = scene.add(sphere(pos = x0, radius = 0.2, color = colors::cyan, make_trail = true, retain = 100));
-  ball__v = vec3{0.0, 0.5, 0.0};
+  x0 = vec3{1, 0, 0};
+  auto anchor = scene.add(box(pos = vec3{-2, 0, 0}, size = vec3{0.2, 1, 1}, color = colors::gray(0.5), texture = textures::wood));
+  auto ball = scene.add(sphere(pos = x0, radius = 0.2, color = colors::cyan, make_trail = true, retain = 100));
+  vec3 ball_v = vec3{0, 0.5, 0};
   dt_ = 0.01;
-  t = 0.0;
-  t_start = 0.0;
-  while (t < 10.0)
+  t = 0;
+  double t_start = 0;
+  while (t < 10)
   {
     co_await tick();
-    F = (co_await spring_force(ball->m_pos));
-    ball__v = (ball__v + ((F / m) * dt_));
-    ball.set_pos((ball->m_pos + (ball__v * dt_)));
-    last_x = ball->m_pos.x();
-    if ((ball->m_pos.x() > 2.0 || !((-1.0 < ball->m_pos.y() && ball->m_pos.y() < 1.0))))
+    F = (co_await spring_force(ball.pos));
+    ball_v = ball_v + F / m * dt_;
+    ball.pos = ball.pos + ball_v * dt_;
+    last_x = ball.pos.x();
+    if (ball.pos.x() > 2 || !(-1 < ball.pos.y() && ball.pos.y() < 1))
     {
-      ball->m_color = colors::red;
+      ball.color = colors::red;
     }
-    else if (((co_await kinetic(ball__v, m, 0.5)) > 1.0 || (co_await kinetic(ball__v, m, 1.0)) > 2.0))
+    else if ((co_await kinetic(ball_v, m, 0.5)) > 1 || (co_await kinetic(ball_v, m, 1)) > 2)
     {
-      ball->m_color = colors::yellow;
+      ball.color = colors::yellow;
     }
     else
     {
-      ball->m_color = colors::cyan;
+      ball.color = colors::cyan;
     }
   }
-  ball.set_pos(vec3{last_x, 0.0, 0.0});
-  balls = {};
-  for (i = 0.0; i < 5.0; i += 1.0)
+  ball.pos = vec3{last_x, 0, 0};
+  std::vector<handle<sphere_object>> balls;
+  for (i = 0; i < 5; i += 1)
   {
-    balls.push_back(scene.add(sphere(pos = vec3{i, 2.0, 0.0}, radius = 0.1)));
+    balls.push_back(scene.add(sphere(pos = vec3{i, 2, 0}, radius = 0.1)));
   }
-  heights = std::vector<double>{0.5, 1.0, 1.5};
-  for (n = (static_cast<double>(heights.size()) - 1.0); n > -1.0; n += -1.0)
+  std::vector<double> heights = {0.5, 1, 1.5};
+  for (n = static_cast<double>(heights.size()) - 1; n > -1; n += -1)
   {
-    heights[static_cast<std::size_t>(n)] = (heights[static_cast<std::size_t>(n)] * 2.0);
+    heights[static_cast<std::size_t>(n)] = heights[static_cast<std::size_t>(n)] * 2;
   }
   for (std::size_t for__1 = 0; for__1 < balls.size(); ++for__1)
   {
     b = balls[for__1];
-    b->m_color = colors::green;
+    b.color = colors::green;
   }
-  balls[balls.size() - 1]->m_radius = heights[0];
+  balls[balls.size() - 1].radius = heights[0];
   co_await lift(balls, 0.5);
-  skin = textures::metal;
-  anchor->m_texture = skin;
-  scene.m_title = std::format("{} balls, the first at x = {:.2f}", static_cast<double>(balls.size()), balls[0]->m_pos.x());
+  std::string skin = textures::metal;
+  anchor.texture = skin;
+  scene.m_title = std::format("{} balls, the first at x = {:.2f}", static_cast<double>(balls.size()), balls[0].pos.x());
   scene.append_to_title(" {braces}");
   scene.append_to_caption(std::format("{} {} {}", "t =", t, "steps"));
-  trailing = scene.add(sphere(pos = vec3{0.0, -1.0, 0.0}, radius = 0.1, make_trail = true, trail_type = "points"));
-  spinner = scene.add(box(pos = vec3{2.0, 2.0, 0.0}, axis = vec3{1.0, 1.0, 0.0}));
-  for (i = 0.0; i < 3.0; i += 1.0)
+  auto trailing = scene.add(sphere(pos = vec3{0, -1, 0}, radius = 0.1, make_trail = true, trail_type = "points"));
+  auto spinner = scene.add(box(pos = vec3{2, 2, 0}, axis = vec3{1, 1, 0}));
+  for (i = 0; i < 3; i += 1)
   {
-    spinner.rotate(0.1, vec3{0.0, 0.0, 1.0});
+    spinner.rotate(0.1, vec3{0, 0, 1});
   }
-  spinner.rotate(0.2, vec3{0.0, 1.0, 0.0}, vec3{0.0, 0.0, 0.0});
-  spinner.rotate((std::numbers::pi / 4.0));
-  tilted = rotate(vec3{1.0, 0.0, 0.0}, 0.5, vec3{0.0, 1.0, 0.0});
+  spinner.rotate(0.2, vec3{0, 1, 0}, vec3{0, 0, 0});
+  spinner.rotate(std::numbers::pi / 4);
+  vec3 tilted = rotate(vec3{1, 0, 0}, 0.5, vec3{0, 1, 0});
   tilted = rotate(tilted, 0.5);
+  spinner.length = 1.0 / 2 + 2 * (3 - 1);
+  tilted = 2.0 * tilted;
+  tilted *= 3.0;
+  spinner.pos = vec3{spinner.pos.x() + 1, spinner.pos.y(), spinner.pos.z()};
+  trailing.radius *= 2;
   co_return;
 }

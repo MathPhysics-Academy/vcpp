@@ -75,3 +75,10 @@ spinner.rotate(0.2, vector(0, 1, 0), vector(0, 0, 0))
 spinner.rotate(angle=pi / 4)
 tilted = vector(1, 0, 0).rotate(angle=0.5, axis=vector(0, 1, 0))
 tilted = rotate(tilted, angle=0.5)
+
+# Python's 1/2 is 0.5; vectors scale by integers; a component of pos is set through pos
+spinner.length = 1 / 2 + 2 * (3 - 1)
+tilted = 2 * tilted
+tilted *= 3
+spinner.pos.x += 1
+trailing.radius *= 2
