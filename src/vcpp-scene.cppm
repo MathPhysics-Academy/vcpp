@@ -868,9 +868,9 @@ void handle_base<T>::set_size(const vec3& size) const
 }
 
 // ============================================================================
-// handle<T> - What canvas::add returns: a handle_base with GlowScript's attributes as members
+// handle<T> - What sphere(...) and canvas::add return: a handle_base with GlowScript's attributes as members
 //
-//   auto ball = scene.add(sphere(pos = vec3{0, 4, 0}, radius = 0.5));
+//   auto ball = sphere(pos = vec3{0, 4, 0}, radius = 0.5);
 //   ball.pos = ball.pos + v * dt;     // applies GlowScript's pos rule (trails)
 //   ball.color = colors::red;
 //
@@ -1219,6 +1219,87 @@ inline canvas* current_canvas = &scene;
 inline void select(canvas& c) noexcept { current_canvas = &c; }
 
 inline canvas& selected() noexcept { return *current_canvas; }
+
+// ============================================================================
+// VPython's object constructors: each makes the object in the selected canvas and returns its handle
+//
+//   auto ball = sphere(pos = vec3{0, 4, 0}, radius = 0.5);
+//
+// build::sphere(...) and the rest make one without adding it, for canvas::add.
+// ============================================================================
+
+template<typename... Binders>
+handle<sphere_object> sphere(Binders... binders)
+{ return selected().add(build::sphere(binders...)); }
+
+template<typename... Binders>
+handle<ellipsoid_object> ellipsoid(Binders... binders)
+{ return selected().add(build::ellipsoid(binders...)); }
+
+template<typename... Binders>
+handle<box_object> box(Binders... binders)
+{ return selected().add(build::box(binders...)); }
+
+template<typename... Binders>
+handle<cylinder_object> cylinder(Binders... binders)
+{ return selected().add(build::cylinder(binders...)); }
+
+template<typename... Binders>
+handle<cone_object> cone(Binders... binders)
+{ return selected().add(build::cone(binders...)); }
+
+template<typename... Binders>
+handle<arrow_object> arrow(Binders... binders)
+{ return selected().add(build::arrow(binders...)); }
+
+template<typename... Binders>
+handle<ring_object> ring(Binders... binders)
+{ return selected().add(build::ring(binders...)); }
+
+template<typename... Binders>
+handle<helix_object> helix(Binders... binders)
+{ return selected().add(build::helix(binders...)); }
+
+template<typename... Binders>
+handle<pyramid_object> pyramid(Binders... binders)
+{ return selected().add(build::pyramid(binders...)); }
+
+template<typename... Binders>
+handle<curve_object> curve(Binders... binders)
+{ return selected().add(build::curve(binders...)); }
+
+template<typename... Binders>
+handle<points_object> points(Binders... binders)
+{ return selected().add(build::points(binders...)); }
+
+template<typename... Binders>
+handle<label_object> label(Binders... binders)
+{ return selected().add(build::label(binders...)); }
+
+template<typename... Binders>
+handle<triangle_object> triangle(Binders... binders)
+{ return selected().add(build::triangle(binders...)); }
+
+template<typename... Binders>
+handle<quad_object> quad(Binders... binders)
+{ return selected().add(build::quad(binders...)); }
+
+template<typename... Binders>
+handle<text3d_object> text3d(Binders... binders)
+{ return selected().add(build::text3d(binders...)); }
+
+template<typename... Binders>
+handle<extrusion_object> extrusion(Binders... binders)
+{ return selected().add(build::extrusion(binders...)); }
+
+// GlowScript's compound: one object made from copies of the parts, which are hidden
+template<typename... Parts>
+handle<compound_object> compound(const handle<Parts>&... parts)
+{
+  handle<compound_object> h = selected().add(build::compound(*parts...));
+  ((parts->m_visible = false), ...);
+  return h;
+}
 
 } // namespace vcpp
 

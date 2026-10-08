@@ -88,11 +88,16 @@ struct object_params<sphere_object>
                                            param_spec<&detail::set_size_sphere, decltype(size)>{}};
 };
 
+// build::sphere(...) and the other build:: factories make an object without adding it to a canvas;
+// vcpp::sphere(...) (vcpp:scene) makes one in the selected canvas, as VPython does
+namespace build
+{
 template<typename... Binders>
 constexpr sphere_object sphere(Binders... binders)
 {
   return make<sphere_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // ELLIPSOID
@@ -127,11 +132,14 @@ struct object_params<ellipsoid_object>
 template<>
 inline constexpr bool length_follows_axis<ellipsoid_object> = true;
 
+namespace build
+{
 template<typename... Binders>
 constexpr ellipsoid_object ellipsoid(Binders... binders)
 {
   return make<ellipsoid_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // BOX
@@ -166,11 +174,14 @@ struct object_params<box_object>
 template<>
 inline constexpr bool length_follows_axis<box_object> = true;
 
+namespace build
+{
 template<typename... Binders>
 constexpr box_object box(Binders... binders)
 {
   return make<box_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // CYLINDER
@@ -200,11 +211,14 @@ struct object_params<cylinder_object>
 template<>
 inline constexpr bool length_follows_axis<cylinder_object> = true;
 
+namespace build
+{
 template<typename... Binders>
 constexpr cylinder_object cylinder(Binders... binders)
 {
   return make<cylinder_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // CONE
@@ -234,11 +248,14 @@ struct object_params<cone_object>
 template<>
 inline constexpr bool length_follows_axis<cone_object> = true;
 
+namespace build
+{
 template<typename... Binders>
 constexpr cone_object cone(Binders... binders)
 {
   return make<cone_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // ARROW
@@ -274,11 +291,14 @@ struct object_params<arrow_object>
                                            param_spec<&arrow_object::m_round, decltype(round)>{}};
 };
 
+namespace build
+{
 template<typename... Binders>
 constexpr arrow_object arrow(Binders... binders)
 {
   return make<arrow_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // RING
@@ -314,11 +334,14 @@ struct object_params<ring_object>
                                            param_spec<&ring_object::m_thickness, decltype(thickness)>{}};
 };
 
+namespace build
+{
 template<typename... Binders>
 constexpr ring_object ring(Binders... binders)
 {
   return make<ring_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // HELIX
@@ -363,11 +386,14 @@ struct object_params<helix_object>
 template<>
 inline constexpr bool length_follows_axis<helix_object> = true;
 
+namespace build
+{
 template<typename... Binders>
 constexpr helix_object helix(Binders... binders)
 {
   return make<helix_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // PYRAMID (bonus - not in standard VPython but useful)
@@ -392,11 +418,14 @@ struct object_params<pyramid_object>
 template<>
 inline constexpr bool length_follows_axis<pyramid_object> = true;
 
+namespace build
+{
 template<typename... Binders>
 constexpr pyramid_object pyramid(Binders... binders)
 {
   return make<pyramid_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // CURVE (VPython-compatible curve object)
@@ -497,11 +526,14 @@ struct object_params<curve_object>
   static constexpr auto value = std::tuple{param_spec<&curve_object::m_radius, decltype(radius)>{}};
 };
 
+namespace build
+{
 template<typename... Binders>
 curve_object curve(Binders... binders)
 {
   return make<curve_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // POINTS (VPython-compatible points cloud object)
@@ -549,11 +581,14 @@ struct object_params<points_object>
   static constexpr auto value = std::tuple{param_spec<&points_object::m_size, decltype(size)>{}};
 };
 
+namespace build
+{
 template<typename... Binders>
 points_object points(Binders... binders)
 {
   return make<points_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // LABEL (2D text overlay at 3D position)
@@ -597,11 +632,14 @@ struct object_params<label_object>
                                            param_spec<&label_object::m_box, decltype(prop::box)>{}};
 };
 
+namespace build
+{
 template<typename... Binders>
 label_object label(Binders... binders)
 {
   return make<label_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // VERTEX DATA (for triangles/quads)
@@ -633,11 +671,14 @@ struct object_params<triangle_object>
   static constexpr auto value = std::tuple{};
 };
 
+namespace build
+{
 template<typename... Binders>
 triangle_object triangle(Binders... binders)
 {
   return make<triangle_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // QUAD (custom geometry primitive - 4 vertices)
@@ -657,11 +698,14 @@ struct object_params<quad_object>
   static constexpr auto value = std::tuple{};
 };
 
+namespace build
+{
 template<typename... Binders>
 quad_object quad(Binders... binders)
 {
   return make<quad_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // COMPOUND (merged mesh from multiple objects)
@@ -761,6 +805,8 @@ inline void add_object_to_compound(compound_object& comp, const pyramid_object& 
 } // namespace detail
 
 // Create compound from multiple objects
+namespace build
+{
 template<typename... Objects>
 compound_object compound(Objects&&... objs)
 {
@@ -772,6 +818,7 @@ compound_object compound(Objects&&... objs)
   comp.m_geometry_dirty = true;
   return comp;
 }
+} // namespace build
 
 // ============================================================================
 // TEXT3D (extruded 3D text)
@@ -812,11 +859,14 @@ struct object_params<text3d_object>
     param_spec<&text3d_object::m_align, decltype(align)>{}};
 };
 
+namespace build
+{
 template<typename... Binders>
 text3d_object text3d(Binders... binders)
 {
   return make<text3d_object>(binders...);
 }
+} // namespace build
 
 // ============================================================================
 // EXTRUSION (2D shape along 3D path)
@@ -968,6 +1018,8 @@ inline void build_extrusion(extrusion_object& x, bool keep_pos)
 }
 } // namespace detail
 
+namespace build
+{
 template<typename... Binders>
 extrusion_object extrusion(Binders... binders)
 {
@@ -976,5 +1028,6 @@ extrusion_object extrusion(Binders... binders)
   detail::build_extrusion(x, pos_given);
   return x;
 }
+} // namespace build
 
 } // namespace vcpp

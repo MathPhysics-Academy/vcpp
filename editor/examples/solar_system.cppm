@@ -43,11 +43,11 @@ export int run_web_test() {
     scene.background(vec3{0.02, 0.02, 0.08});
 
     // Sun
-    scene.add(sphere(pos=vec3{0, 0, 0}, radius=2.0, color=colors::yellow));
+    sphere(pos=vec3{0, 0, 0}, radius=2.0, color=colors::yellow);
     // Earth
-    scene.add(sphere(pos=vec3{5, 0, 0}, radius=0.8, color=colors::blue));
+    sphere(pos=vec3{5, 0, 0}, radius=0.8, color=colors::blue);
     // Moon
-    scene.add(sphere(pos=vec3{6.2, 0, 0}, radius=0.3, color=vec3{0.6, 0.6, 0.6}));
+    sphere(pos=vec3{6.2, 0, 0}, radius=0.3, color=vec3{0.6, 0.6, 0.6});
 
     run(update);
     return 0;

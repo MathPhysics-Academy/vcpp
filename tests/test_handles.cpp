@@ -14,9 +14,9 @@ namespace
 bool test_survives_later_adds()
 {
   canvas c;
-  auto first = c.add(sphere(radius = 1.0));
+  auto first = c.add(build::sphere(radius = 1.0));
   for (int i = 0; i < 100; ++i)
-    c.add(sphere());
+    c.add(build::sphere());
   first->m_radius = 2.0;
   return c.m_spheres.front().m_radius == 2.0;
 }
@@ -25,10 +25,10 @@ bool test_survives_later_adds()
 bool test_finds_its_own_object()
 {
   canvas c;
-  c.add(box());
-  c.add(sphere());
-  auto a = c.add(arrow());
-  auto b = c.add(arrow());
+  c.add(build::box());
+  c.add(build::sphere());
+  auto a = c.add(build::arrow());
+  auto b = c.add(build::arrow());
   b->m_pos = vec3{1, 2, 3};
   return c.m_arrows[1].m_pos == vec3{1, 2, 3} && a->m_pos == vec3{0, 0, 0} && b.entry() == 3;
 }
@@ -37,9 +37,9 @@ bool test_finds_its_own_object()
 bool test_cleared_scene_throws()
 {
   canvas c;
-  auto old = c.add(sphere());
+  auto old = c.add(build::sphere());
   c.clear();
-  c.add(sphere());
+  c.add(build::sphere());
   try
   {
     old->m_radius = 5.0;
@@ -71,7 +71,7 @@ bool near(const vec3& a, const vec3& b) { return mag(vec3{a.x() - b.x(), a.y() -
 bool test_interval_counts_moves()
 {
   canvas c;
-  auto ball = c.add(sphere(make_trail = true, interval = 3));
+  auto ball = c.add(build::sphere(make_trail = true, interval = 3));
   for (int i = 1; i <= 7; ++i)
     ball.set_pos(vec3{static_cast<double>(i), 0, 0});
   c.update_trails(); // with an interval, the per-render step adds nothing
@@ -83,7 +83,7 @@ bool test_interval_counts_moves()
 bool test_up_turns_with_axis()
 {
   canvas c;
-  auto leg = c.add(cylinder());
+  auto leg = c.add(build::cylinder());
   leg.set_axis(vec3{0, -1.2, 0});
   return near(leg->m_up, vec3{1, 0, 0}) && leg->m_length == 1.2;
 }
@@ -93,9 +93,9 @@ bool test_up_turns_with_axis()
 bool test_axis_flip()
 {
   canvas c;
-  auto tilted = c.add(box(axis = vec3{1, 1, 0}));
+  auto tilted = c.add(build::box(axis = vec3{1, 1, 0}));
   tilted.set_axis(vec3{-1, -1, 0});
-  auto level = c.add(box());
+  auto level = c.add(build::box());
   level.set_axis(vec3{-2, 0, 0});
   return near(tilted->m_up, vec3{0, -1, 0}) && near(level->m_up, vec3{0, 1, 0});
 }
@@ -104,7 +104,7 @@ bool test_axis_flip()
 bool test_axis_turns_with_up()
 {
   canvas c;
-  auto b = c.add(box());
+  auto b = c.add(build::box());
   b.set_up(vec3{-1, 0, 0});
   return near(b->m_axis, vec3{0, 1, 0});
 }
@@ -113,7 +113,7 @@ bool test_axis_turns_with_up()
 bool test_length_and_axis()
 {
   canvas c;
-  auto b = c.add(box(axis = vec3{0, 0, 2}));
+  auto b = c.add(build::box(axis = vec3{0, 0, 2}));
   b.set_length(5);
   bool scaled = near(b->m_axis, vec3{0, 0, 5}) && b->m_length == 5;
   b.set_axis(vec3{0, 0, 0});
@@ -125,7 +125,7 @@ bool test_length_and_axis()
 bool test_set_size()
 {
   canvas c;
-  auto cyl = c.add(cylinder(axis = vec3{0, 2, 0}));
+  auto cyl = c.add(build::cylinder(axis = vec3{0, 2, 0}));
   cyl.set_size(vec3{4, 1, 1});
   return near(cyl->m_axis, vec3{0, 4, 0}) && cyl->m_length == 4 && cyl->m_radius == 0.5;
 }
@@ -135,11 +135,11 @@ bool test_set_size()
 bool test_rotate()
 {
   canvas c;
-  auto moved = c.add(box(pos = vec3{1, 0, 0}));
+  auto moved = c.add(build::box(pos = vec3{1, 0, 0}));
   moved.rotate(std::numbers::pi / 2, vec3{0, 0, 1}, vec3{0, 0, 0});
-  auto spun = c.add(box());
+  auto spun = c.add(build::box());
   spun.rotate(0.3);
-  auto upright = c.add(arrow(axis = vec3{0, 2, 0}));
+  auto upright = c.add(build::arrow(axis = vec3{0, 2, 0}));
   upright.rotate(0.5, vec3{1, 0, 0});
   return near(moved->m_pos, vec3{0, 1, 0}) && near(moved->m_axis, vec3{0, 1, 0}) && near(moved->m_up, vec3{-1, 0, 0}) &&
          near(spun->m_axis, vec3{1, 0, 0}) && near(spun->m_up, vec3{0, std::cos(0.3), std::sin(0.3)}) &&
@@ -151,7 +151,7 @@ bool test_rotate()
 bool test_attributes()
 {
   canvas c;
-  auto ball = c.add(sphere(pos = vec3{0, 4, 0}, radius = 0.5, make_trail = true, interval = 1));
+  auto ball = c.add(build::sphere(pos = vec3{0, 4, 0}, radius = 0.5, make_trail = true, interval = 1));
   const vec3 v{1, 0, 0};
   const double dt = 0.5;
   ball.pos = ball.pos + v * dt;
@@ -161,7 +161,7 @@ bool test_attributes()
   ball.radius = ball.radius * 2;
   std::vector<handle<sphere_object>> balls{ball};
   balls[0].opacity = 0.5;
-  auto other = c.add(sphere(pos = vec3{9, 9, 9}));
+  auto other = c.add(build::sphere(pos = vec3{9, 9, 9}));
   other = ball;
   other.visible = false;
   const bool before = near(ball.pos.value(), vec3{1.5, 4, 0}) && ball.pos.y() == 4 && mag(ball.pos - v) > 0 &&
@@ -183,25 +183,25 @@ bool test_attributes()
 bool test_more_attributes()
 {
   canvas c;
-  auto wall = c.add(box(axis = vec3{0, 2, 0}));
+  auto wall = c.add(build::box(axis = vec3{0, 2, 0}));
   wall.length = 4;
   const bool box_ok = near(wall.axis.value(), vec3{0, 4, 0}) && wall.size == vec3{4, 1, 1};
   wall.size = vec3{1, 2, 3};
   wall.width += 1;
 
-  auto rod = c.add(cylinder());
+  auto rod = c.add(build::cylinder());
   rod.size = vec3{3, 1, 1};
-  auto pointer = c.add(arrow(axis = vec3{0, 0, 2}));
+  auto pointer = c.add(build::arrow(axis = vec3{0, 0, 2}));
   pointer.length = 1;
-  auto ball = c.add(sphere());
+  auto ball = c.add(build::sphere());
   ball.radius = 2;
   ball.texture = textures::earth;
   ball.make_trail = true;
   ball.trail_color = colors::yellow;
   ball = ball;
-  auto tag = c.add(label(text = "t = 0"));
+  auto tag = c.add(build::label(text = "t = 0"));
   tag.text = std::format("t = {}", 1.5);
-  auto path = c.add(curve());
+  auto path = c.add(build::curve());
   path->m_geometry_dirty = false;
   path.radius = 0.2;
 
@@ -215,7 +215,7 @@ bool test_more_attributes()
 bool test_curve_points()
 {
   canvas c;
-  auto square = c.add(curve(color = colors::yellow, radius = 0.05));
+  auto square = c.add(build::curve(color = colors::yellow, radius = 0.05));
   square.append(vec3{0, 0, 0});
   square.append(pos = vec3{0, 1, 0}, color = colors::cyan, radius = 0.1);
   square.append(std::vector<vec3>{vec3{1, 1, 0}, vec3{1, 0, 0}});
@@ -239,6 +239,19 @@ bool test_curve_points()
   square->m_geometry_dirty = false;
   square.clear();
   return points_ok && square.npoints == 0 && square->m_geometry_dirty;
+}
+
+// sphere(...) adds to the selected canvas, as in VPython; compound hides its parts, as GlowScript does
+bool test_constructors_add()
+{
+  canvas c;
+  select(c);
+  auto ball = sphere(radius = 2);
+  auto base = box(pos = vec3{0, -1, 0});
+  auto both = compound(ball, base);
+  select(scene);
+  return c.m_spheres.size() == 1 && c.m_boxes.size() == 1 && c.m_compounds.size() == 1 && ball.radius == 2 &&
+         !ball.visible && !base.visible && both.visible;
 }
 
 } // namespace
@@ -278,6 +291,7 @@ int main()
   run_test("attributes", test_attributes);
   run_test("more attributes", test_more_attributes);
   run_test("curve points", test_curve_points);
+  run_test("constructors add", test_constructors_add);
 
   std::println("=================");
   std::println("Passed: {}/{}", passed, passed + failed);

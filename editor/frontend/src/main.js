@@ -29,13 +29,13 @@ export int run_web_test() {
     scene.background(vec3{0.1, 0.1, 0.15});
 
     // Create a red sphere
-    scene.add(sphere(pos=vec3{0, 0, 0}, radius=1.0, color=colors::red));
+    sphere(pos=vec3{0, 0, 0}, radius=1.0, color=colors::red);
 
     // Add a green box nearby
-    scene.add(box(pos=vec3{2.5, 0, 0}, length=1.0, height=1.0, width=1.0, color=colors::green));
+    box(pos=vec3{2.5, 0, 0}, length=1.0, height=1.0, width=1.0, color=colors::green);
 
     // Add a blue ellipsoid
-    scene.add(ellipsoid(pos=vec3{-2.5, 0, 0}, length=2.0, height=0.5, width=0.5, color=colors::blue));
+    ellipsoid(pos=vec3{-2.5, 0, 0}, length=2.0, height=0.5, width=0.5, color=colors::blue);
 
     run(update);
     return 0;
@@ -85,11 +85,11 @@ export int run_web_test() {
     scene.background(vec3{0.02, 0.02, 0.08});
 
     // Sun
-    scene.add(sphere(pos=vec3{0, 0, 0}, radius=2.0, color=colors::yellow));
+    sphere(pos=vec3{0, 0, 0}, radius=2.0, color=colors::yellow);
     // Earth
-    scene.add(sphere(pos=vec3{5, 0, 0}, radius=0.8, color=colors::blue));
+    sphere(pos=vec3{5, 0, 0}, radius=0.8, color=colors::blue);
     // Moon
-    scene.add(sphere(pos=vec3{6.2, 0, 0}, radius=0.3, color=vec3{0.6, 0.6, 0.6}));
+    sphere(pos=vec3{6.2, 0, 0}, radius=0.3, color=vec3{0.6, 0.6, 0.6});
 
     run(update);
     return 0;
@@ -169,11 +169,11 @@ export int run_web_test() {
     scene.background(vec3{0.1, 0.1, 0.15});
 
     // Floor
-    scene.add(box(pos=vec3{0, -0.5, 0}, length=10.0, height=1.0, width=10.0,
-                  color=vec3{0.3, 0.3, 0.35}, shininess=0.8));
+    box(pos=vec3{0, -0.5, 0}, length=10.0, height=1.0, width=10.0,
+                  color=vec3{0.3, 0.3, 0.35}, shininess=0.8);
 
     // Ball
-    scene.add(sphere(pos=vec3{0, ball_y, 0}, radius=ball_radius, color=colors::red));
+    sphere(pos=vec3{0, ball_y, 0}, radius=ball_radius, color=colors::red);
     ball_idx = scene.m_spheres.size() - 1;
 
     // Energy graph
@@ -248,10 +248,6 @@ function initEditor() {
               range },
             { label: 'ellipsoid', kind: monaco.languages.CompletionItemKind.Function,
               insertText: 'ellipsoid(pos=vec3{${1:0}, ${2:0}, ${3:0}}, length=${4:2.0}, height=${5:1.0}, width=${6:1.0}, color=colors::${7:cyan})',
-              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-              range },
-            { label: 'scene.add', kind: monaco.languages.CompletionItemKind.Method,
-              insertText: 'scene.add(${1:});',
               insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
               range },
             { label: 'scene.mark_dirty', kind: monaco.languages.CompletionItemKind.Method,

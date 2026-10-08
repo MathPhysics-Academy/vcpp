@@ -26,13 +26,9 @@ export int run_test()
   scene.background(vec3{0, 0, 0});
 
   // Create objects
-  sphere_object s1 = sphere(pos = vec3{0, 0, 0}, radius = 1.0, color = colors::red);
-  sphere_object s2 = sphere(pos = vec3{2.5, 0, 0}, radius = 0.5, color = colors::blue);
-  box_object b1 = box(pos = vec3{-2.5, 0, 0}, length = 1.0, height = 1.0, width = 1.0, color = colors::green);
-
-  scene.add(s1);
-  scene.add(s2);
-  scene.add(b1);
+  sphere(pos = vec3{0, 0, 0}, radius = 1.0, color = colors::red);
+  sphere(pos = vec3{2.5, 0, 0}, radius = 0.5, color = colors::blue);
+  box(pos = vec3{-2.5, 0, 0}, length = 1.0, height = 1.0, width = 1.0, color = colors::green);
 
   // Animation: rotate objects
   double t = 0.0;

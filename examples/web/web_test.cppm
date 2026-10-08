@@ -126,10 +126,10 @@ namespace
     scene.background(vec3{0, 0, 0});
     
     // Default: 2 Spheres, 1 Cube, 1 Ellipsoid
-    sphere_object s1 = sphere(pos=vec3{0, 0, 0}, radius=1.0, color=colors::red);
-    sphere_object s2 = sphere(pos=vec3{2.5, 0, 0}, radius=0.5, color=colors::blue);
-    box_object b1 = box(pos=vec3{-2.5, 0, 0}, length=1.0, height=1.0, width=1.0, color=colors::green);
-    ellipsoid_object e1 = ellipsoid(pos=vec3{0, 2.5, 0}, length=2.0, height=0.5, width=0.5, axis=vec3{1,0,0}, color=colors::red);
+    sphere_object s1 = build::sphere(pos=vec3{0, 0, 0}, radius=1.0, color=colors::red);
+    sphere_object s2 = build::sphere(pos=vec3{2.5, 0, 0}, radius=0.5, color=colors::blue);
+    box_object b1 = build::box(pos=vec3{-2.5, 0, 0}, length=1.0, height=1.0, width=1.0, color=colors::green);
+    ellipsoid_object e1 = build::ellipsoid(pos=vec3{0, 2.5, 0}, length=2.0, height=0.5, width=0.5, axis=vec3{1,0,0}, color=colors::red);
 
     scene.add(s1);
     scene.add(s2);
@@ -147,11 +147,11 @@ namespace
     scene.background(vec3{0.05, 0.05, 0.1}); // Starry dark blue
     
     // Sun
-    scene.add(sphere(pos=vec3{0,0,0}, radius=2.0, color=colors::yellow));
+    sphere(pos=vec3{0,0,0}, radius=2.0, color=colors::yellow);
     // Earth
-    scene.add(sphere(pos=vec3{5,0,0}, radius=0.8, color=colors::blue));
+    sphere(pos=vec3{5,0,0}, radius=0.8, color=colors::blue);
     // Moon
-    scene.add(sphere(pos=vec3{6,0,0}, radius=0.3, color=vec3{0.6, 0.6, 0.6}));
+    sphere(pos=vec3{6,0,0}, radius=0.3, color=vec3{0.6, 0.6, 0.6});
     
     std::cout << "Loaded Solar System" << std::endl;
   }
@@ -177,7 +177,7 @@ namespace
     vec3 inc2 = vec3{0, 2.5, 0};
     
     auto add_B_arrow = [&](vec3 p) {
-      scene.add(arrow(pos=p, axis=Bdirect, shaftwidth=Bshaft, color=colors::blue));
+      arrow(pos=p, axis=Bdirect, shaftwidth=Bshaft, color=colors::blue);
     };
     
     vec3 base_pos = vec3{0, 0, -Bsize/2.0};
@@ -208,14 +208,14 @@ namespace
     t_sim.axes[3]    = vec3{0.0, -1.5, 0.0};  
     
     for(int i=0; i<4; ++i) {
-      t_sim.loop_arrows[i] = scene.add(arrow(pos = t_sim.corners[i], axis = t_sim.axes[i], shaftwidth = Ishaft));
+      t_sim.loop_arrows[i] = arrow(pos = t_sim.corners[i], axis = t_sim.axes[i], shaftwidth = Ishaft);
     }
 
     for(int i=0; i<4; ++i) {
-      t_sim.force_arrows[i] = scene.add(arrow(pos = vec3{0, 0, 0}, axis = vec3{0, 0, 0}, color = colors::red));
+      t_sim.force_arrows[i] = arrow(pos = vec3{0, 0, 0}, axis = vec3{0, 0, 0}, color = colors::red);
     }
 
-    t_sim.torque_arrow = scene.add(arrow(pos = vec3{0, 0, 0}, axis = vec3{0, 0, 0}, color = colors::yellow));
+    t_sim.torque_arrow = arrow(pos = vec3{0, 0, 0}, axis = vec3{0, 0, 0}, color = colors::yellow);
     // The B-field is vertical (Y-axis).
     // A solenoid aligned with Y creates this field.
     // Let's place a large, subtle helix surrounding the loop to show the "source" of the B-field.
@@ -225,7 +225,7 @@ namespace
     // Axis: Along Y (-4 to +4)
     // Coils: 10
     // Color: Cyan (matching B-field arrows) but transparent/darker
-    scene.add(helix(
+    helix(
         pos=vec3{0, -4, 0}, 
         axis=vec3{0, 8, 0}, 
         radius=3.0, 
@@ -233,7 +233,7 @@ namespace
         coils=10, 
         color=vec3{0.0, 0.5, 0.5}, // Cyan (Source of B-field)
         opacity=0.3 // Transparent so it doesn't block view
-    ));
+    );
     
     std::cout << "Loaded Magnetic Torque Scene (Animated)" << std::endl;
     std::cout << "Legend:" << std::endl;
@@ -264,11 +264,11 @@ namespace
       std::uniform_real_distribution<> color_dist(0.0, 1.0);
 
       for (int i = 0; i < 20; ++i) { // Increased count
-        scene.add(sphere(
+        sphere(
           pos = vec3{pos_dist(gen), pos_dist(gen), pos_dist(gen)},
           radius = radius_dist(gen),
           color = vec3{color_dist(gen), color_dist(gen), color_dist(gen)}
-        ));
+        );
       }
       std::cout << "Loaded Random Scene" << std::endl;
   }
@@ -297,7 +297,7 @@ namespace
     // Floor (Paper thin, practically a plane)
     constexpr double floor_h = 0.001;
     // Dark Green Floor
-    scene.add(box(length=worldsize, height=floor_h, width=worldsize, pos=vec3{0, -dropheight, 0}, color=vec3{0.15, 0.2, 0.15}));
+    box(length=worldsize, height=floor_h, width=worldsize, pos=vec3{0, -dropheight, 0}, color=vec3{0.15, 0.2, 0.15});
     
     // Random generators
     std::random_device rd;
@@ -309,7 +309,7 @@ namespace
       double size = size_dist(gen);
       
       // Create ellipsoid drop (Water Blue)
-      scene.add(ellipsoid(length=size, height=size, width=size, color=vec3{0.4, 0.6, 1.0}));
+      ellipsoid(length=size, height=size, width=size, color=vec3{0.4, 0.6, 1.0});
       
       // Get the correct index in the type-specific vector
       std::size_t ellipsoid_idx = scene.m_ellipsoids.size() - 1;
@@ -529,8 +529,8 @@ namespace
     double allowed = spawn_area / 2.0;
     
     // Floor
-    scene.add(box(length=worldsize, height=0.001, width=worldsize, 
-                  pos=vec3{0, -dropheight, 0}, color=vec3{0.18, 0.2, 0.18})); // Dark wet ground
+    box(length=worldsize, height=0.001, width=worldsize, 
+                  pos=vec3{0, -dropheight, 0}, color=vec3{0.18, 0.2, 0.18}); // Dark wet ground
     
     // Random generators
     std::random_device rd;
@@ -544,10 +544,10 @@ namespace
     coro_rain_base_idx = scene.m_ellipsoids.size();
     for (int i = 0; i < coro_rain_max; ++i)
     {
-      scene.add(ellipsoid(length=0.5, height=0.5, width=0.5,
+      ellipsoid(length=0.5, height=0.5, width=0.5,
                           pos=vec3{0, dropheight, 0},
                           color=vec3{0.5, 0.7, 1.0},
-                          emissive=true, visible=false));
+                          emissive=true, visible=false);
     }
     
     // Activate initial batch immediately for instant visual feedback
@@ -597,8 +597,8 @@ namespace
     scene.background(vec3{0.1, 0.1, 0.15});
 
     // Create floor
-    scene.add(box(pos=vec3{0, -0.5, 0}, length=10.0, height=1.0, width=10.0,
-                  color=vec3{0.3, 0.3, 0.35}, shininess=0.8));
+    box(pos=vec3{0, -0.5, 0}, length=10.0, height=1.0, width=10.0,
+                  color=vec3{0.3, 0.3, 0.35}, shininess=0.8);
 
     // Create bouncing ball
     g_demo = graph_demo_state{};
@@ -607,7 +607,7 @@ namespace
     g_demo.time = 0.0;
     g_demo.active = true;
 
-    scene.add(sphere(pos=vec3{0, g_demo.ball_y, 0}, radius=0.5, color=colors::red));
+    sphere(pos=vec3{0, g_demo.ball_y, 0}, radius=0.5, color=colors::red);
     g_demo.ball_idx = scene.m_spheres.size() - 1;
 
     // Create energy graph
@@ -654,7 +654,7 @@ namespace
     scene.background(vec3{0.05, 0.05, 0.1});
 
     // Static spiral curve (like a spring/helix but using curve)
-    auto spiral = curve(color=colors::cyan, radius=0.08);
+    auto spiral = build::curve(color=colors::cyan, radius=0.08);
     int spiral_points = 100;
     double spiral_radius = 2.0;
     double spiral_height = 4.0;
@@ -671,12 +671,12 @@ namespace
     scene.add(spiral);
 
     // Dynamic curve that grows over time (starts empty)
-    auto growing = curve(color=colors::yellow, radius=0.05);
+    auto growing = build::curve(color=colors::yellow, radius=0.05);
     scene.add(growing);
     c_demo.dynamic_curve_idx = scene.m_curves.size() - 1;
 
     // A second static curve: figure-8 / lemniscate
-    auto figure8 = curve(color=colors::magenta, radius=0.06);
+    auto figure8 = build::curve(color=colors::magenta, radius=0.06);
     int f8_points = 80;
     double f8_scale = 1.5;
     for (int i = 0; i < f8_points; ++i) {
@@ -715,7 +715,7 @@ namespace
     scene.background(vec3{0.02, 0.02, 0.05});
 
     // Create a points object for particle visualization
-    auto pts = points(color=colors::cyan, size=8.0);
+    auto pts = build::points(color=colors::cyan, size=8.0);
 
     // Initialize with random points in a sphere
     std::random_device rd;
@@ -735,7 +735,7 @@ namespace
     p_demo.points_idx = scene.m_points.size() - 1;
 
     // Add a central reference sphere
-    scene.add(sphere(pos=vec3{0,0,0}, radius=0.3, color=colors::yellow, opacity=0.5));
+    sphere(pos=vec3{0,0,0}, radius=0.3, color=colors::yellow, opacity=0.5);
 
     std::cout << "Loaded Points Demo Scene (Press 8)" << std::endl;
     std::cout << "  500 animated particles in a sphere" << std::endl;
@@ -759,23 +759,23 @@ namespace
     scene.background(vec3{0.1, 0.1, 0.15});
 
     // Create some labeled objects
-    scene.add(sphere(pos=vec3{-3, 0, 0}, radius=0.8, color=colors::red));
-    auto lbl1 = label(pos=vec3{-3, 1.5, 0}, color=colors::white, height=20.0, prop::box=true)
+    sphere(pos=vec3{-3, 0, 0}, radius=0.8, color=colors::red);
+    auto lbl1 = build::label(pos=vec3{-3, 1.5, 0}, color=colors::white, height=20.0, prop::box=true)
                   .text("Red Sphere");
     scene.add(lbl1);
 
-    scene.add(box(pos=vec3{0, 0, 0}, length=1.5, height=1.5, width=1.5, color=colors::green));
-    auto lbl2 = label(pos=vec3{0, 1.5, 0}, color=colors::yellow, height=18.0, prop::box=true)
+    box(pos=vec3{0, 0, 0}, length=1.5, height=1.5, width=1.5, color=colors::green);
+    auto lbl2 = build::label(pos=vec3{0, 1.5, 0}, color=colors::yellow, height=18.0, prop::box=true)
                   .text("Green Box");
     scene.add(lbl2);
 
-    scene.add(cylinder(pos=vec3{3, -0.5, 0}, axis=vec3{0, 1, 0}, radius=0.5, length=1.0, color=colors::blue));
-    auto lbl3 = label(pos=vec3{3, 1.2, 0}, color=colors::cyan, height=16.0, xoffset=30.0)
+    cylinder(pos=vec3{3, -0.5, 0}, axis=vec3{0, 1, 0}, radius=0.5, length=1.0, color=colors::blue);
+    auto lbl3 = build::label(pos=vec3{3, 1.2, 0}, color=colors::cyan, height=16.0, xoffset=30.0)
                   .text("Blue Cylinder");
     scene.add(lbl3);
 
     // Info label at top
-    auto info = label(pos=vec3{0, 3, 0}, color=colors::white, height=24.0)
+    auto info = build::label(pos=vec3{0, 3, 0}, color=colors::white, height=24.0)
                   .text("Labels Demo - 2D text overlay at 3D positions");
     scene.add(info);
 
@@ -805,23 +805,23 @@ namespace
     scene.background(vec3{0.05, 0.0, 0.1});
 
     // Create spheres with trails enabled
-    auto ball1 = sphere(pos = vec3{2, 0, 0}, radius = 0.3, color = colors::red, make_trail = true,
+    auto ball1 = build::sphere(pos = vec3{2, 0, 0}, radius = 0.3, color = colors::red, make_trail = true,
                         trail_color = colors::orange, retain = 180);
     scene.add(ball1);
     tr_demo.ball_indices.push_back(scene.m_spheres.size() - 1);
 
-    auto ball2 = sphere(pos = vec3{0, 2, 0}, radius = 0.3, color = colors::green, make_trail = true,
+    auto ball2 = build::sphere(pos = vec3{0, 2, 0}, radius = 0.3, color = colors::green, make_trail = true,
                         trail_color = colors::cyan, retain = 180);
     scene.add(ball2);
     tr_demo.ball_indices.push_back(scene.m_spheres.size() - 1);
 
-    auto ball3 = sphere(pos = vec3{0, 0, 2}, radius = 0.3, color = colors::blue, make_trail = true,
+    auto ball3 = build::sphere(pos = vec3{0, 0, 2}, radius = 0.3, color = colors::blue, make_trail = true,
                         trail_color = colors::magenta, retain = 180);
     scene.add(ball3);
     tr_demo.ball_indices.push_back(scene.m_spheres.size() - 1);
 
     // Central reference point
-    scene.add(sphere(pos=vec3{0,0,0}, radius=0.1, color=colors::white));
+    sphere(pos=vec3{0,0,0}, radius=0.1, color=colors::white);
 
     std::cout << "Loaded Trails Demo Scene (Press 0)" << std::endl;
     std::cout << "  3 orbiting spheres leaving trails" << std::endl;
@@ -917,27 +917,27 @@ namespace
     scene.background(vec3{0.1, 0.1, 0.15});
 
     // Create a compound object (robot-like figure)
-    auto robot = compound(
+    auto robot = build::compound(
       // Head
-      sphere(pos=vec3{0, 2, 0}, radius=0.5, color=colors::cyan),
+      build::sphere(pos=vec3{0, 2, 0}, radius=0.5, color=colors::cyan),
       // Body
-      box(pos=vec3{0, 0.8, 0}, length=0.8, height=1.5, width=0.5, color=colors::blue),
+      build::box(pos=vec3{0, 0.8, 0}, length=0.8, height=1.5, width=0.5, color=colors::blue),
       // Left arm
-      cylinder(pos=vec3{-0.7, 1.2, 0}, axis=vec3{-0.8, -0.5, 0}, radius=0.15, length=1.0, color=colors::green),
+      build::cylinder(pos=vec3{-0.7, 1.2, 0}, axis=vec3{-0.8, -0.5, 0}, radius=0.15, length=1.0, color=colors::green),
       // Right arm
-      cylinder(pos=vec3{0.7, 1.2, 0}, axis=vec3{0.8, -0.5, 0}, radius=0.15, length=1.0, color=colors::green),
+      build::cylinder(pos=vec3{0.7, 1.2, 0}, axis=vec3{0.8, -0.5, 0}, radius=0.15, length=1.0, color=colors::green),
       // Left leg
-      cylinder(pos=vec3{-0.25, -0.2, 0}, axis=vec3{0, -1.2, 0}, radius=0.15, length=1.2, color=colors::yellow),
+      build::cylinder(pos=vec3{-0.25, -0.2, 0}, axis=vec3{0, -1.2, 0}, radius=0.15, length=1.2, color=colors::yellow),
       // Right leg
-      cylinder(pos=vec3{0.25, -0.2, 0}, axis=vec3{0, -1.2, 0}, radius=0.15, length=1.2, color=colors::yellow)
+      build::cylinder(pos=vec3{0.25, -0.2, 0}, axis=vec3{0, -1.2, 0}, radius=0.15, length=1.2, color=colors::yellow)
     );
 
     scene.add(robot);
     cp_demo.compound_idx = scene.m_compounds.size() - 1;
 
     // Add some regular objects for comparison
-    scene.add(sphere(pos=vec3{3, 0, 0}, radius=0.5, color=colors::red));
-    scene.add(box(pos=vec3{-3, 0, 0}, length=1.0, height=1.0, width=1.0, color=colors::magenta));
+    sphere(pos=vec3{3, 0, 0}, radius=0.5, color=colors::red);
+    box(pos=vec3{-3, 0, 0}, length=1.0, height=1.0, width=1.0, color=colors::magenta);
 
     std::cout << "Loaded Compound Demo Scene (Press =)" << std::endl;
     std::cout << "  Robot figure made from compound of 6 objects" << std::endl;
@@ -963,20 +963,20 @@ namespace
     scene.background(vec3{0.05, 0.05, 0.1});
 
     // Create 3D text objects
-    auto txt1 = text3d(pos=vec3{-4, 2, 0}, height=1.0, color=colors::red, axis=vec3{1, 0, 0})
+    auto txt1 = build::text3d(pos=vec3{-4, 2, 0}, height=1.0, color=colors::red, axis=vec3{1, 0, 0})
                   .text("HELLO");
     scene.add(txt1);
 
-    auto txt2 = text3d(pos=vec3{-2, 0, 0}, height=0.8, color=colors::green, axis=vec3{1, 0, 0})
+    auto txt2 = build::text3d(pos=vec3{-2, 0, 0}, height=0.8, color=colors::green, axis=vec3{1, 0, 0})
                   .text("VCPP");
     scene.add(txt2);
 
-    auto txt3 = text3d(pos=vec3{0, -2, 0}, height=0.6, color=colors::cyan, axis=vec3{1, 0.2, 0})
+    auto txt3 = build::text3d(pos=vec3{0, -2, 0}, height=0.6, color=colors::cyan, axis=vec3{1, 0.2, 0})
                   .text("3D TEXT!");
     scene.add(txt3);
 
     // Numbers
-    auto nums = text3d(pos=vec3{2, 1, 0}, height=0.5, color=colors::yellow)
+    auto nums = build::text3d(pos=vec3{2, 1, 0}, height=0.5, color=colors::yellow)
                   .text("0123456789");
     scene.add(nums);
 
@@ -1010,14 +1010,14 @@ namespace
       double r = 1.0 + t * 1.5;
       spiral.push_back(vec3{r * std::cos(angle) - 4.0, t * 3.0 - 1.5, r * std::sin(angle)});
     }
-    scene.add(extrusion(path = spiral, shape = shapes::circle(radius = 0.3), color = colors::cyan));
+    extrusion(path = spiral, shape = shapes::circle(radius = 0.3), color = colors::cyan);
 
     // Star-shaped extrusion along straight path, turning 180 degrees in all
     std::vector<vec3> line;
     for (int i = 0; i < 20; ++i)
       line.push_back(vec3{0, static_cast<double>(i) / 19.0 * 4.0 - 2.0, 0});
-    scene.add(extrusion(path = line, shape = shapes::star(radius = 0.4, shapes::iradius = 0.2), color = colors::yellow,
-                        twist = 3.14159265 / 19));
+    extrusion(path = line, shape = shapes::star(radius = 0.4, shapes::iradius = 0.2), color = colors::yellow,
+                        twist = 3.14159265 / 19);
 
     // Rectangular extrusion along curved path, tapering to half size
     std::vector<vec3> arc;
@@ -1027,8 +1027,8 @@ namespace
       arc.push_back(vec3{3.0 + std::sin(t * 3.14159265) * 2.0, t * 3.0 - 1.5, std::cos(t * 3.14159265) - 1.0});
       taper.push_back(1.0 - 0.5 * t);
     }
-    scene.add(extrusion(path = arc, shape = shapes::rectangle(width = 0.5, height = 0.3), color = colors::magenta,
-                        scale = taper));
+    extrusion(path = arc, shape = shapes::rectangle(width = 0.5, height = 0.3), color = colors::magenta,
+                        scale = taper);
 
     // Hexagon extrusion (pipe/tube) along a sine wave
     std::vector<vec3> wave;
@@ -1036,7 +1036,7 @@ namespace
       double t = static_cast<double>(i) / 39.0;
       wave.push_back(vec3{t * 6.0 - 3.0, -2.5, std::sin(t * 4.0 * 3.14159265) * 0.5 + 2.0});
     }
-    scene.add(extrusion(path = wave, shape = shapes::hexagon(length = 0.25), color = colors::green));
+    extrusion(path = wave, shape = shapes::hexagon(length = 0.25), color = colors::green);
 
     std::cout << "Loaded Extrusion Demo Scene (Press ])" << std::endl;
     std::cout << "  Cyan: Circular cross-section along spiral" << std::endl;

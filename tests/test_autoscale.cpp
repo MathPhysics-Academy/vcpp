@@ -19,7 +19,7 @@ double distance(const canvas& c) { return mag(c.m_camera.m_pos - c.m_camera.m_ce
 bool test_fits_a_sphere()
 {
   canvas c;
-  c.add(sphere(radius = 1.0));
+  c.add(build::sphere(radius = 1.0));
   c.autoscale(800, 600);
   return near(distance(c), 1.1 * (1 + std::tan(std::numbers::pi / 6)) / std::tan(std::numbers::pi / 6)) &&
          near(c.m_camera.m_pos.x(), 0) && near(c.m_camera.m_pos.y(), 0) && c.m_camera.m_pos.z() > 0;
@@ -29,7 +29,7 @@ bool test_fits_a_sphere()
 bool test_refit_rule()
 {
   canvas c;
-  auto ball = c.add(sphere(radius = 1.0));
+  auto ball = c.add(build::sphere(radius = 1.0));
   c.autoscale(800, 600);
   const double small = distance(c);
   ball->m_radius = 4.0;
@@ -48,12 +48,12 @@ bool test_refit_rule()
 bool test_off_and_clear()
 {
   canvas c;
-  c.add(sphere(radius = 1.0));
+  c.add(build::sphere(radius = 1.0));
   c.m_autoscale = false;
   c.autoscale(800, 600);
   const bool untouched = near(distance(c), 10);
   c.clear();
-  c.add(sphere(radius = 1.0));
+  c.add(build::sphere(radius = 1.0));
   c.autoscale(800, 600);
   return untouched && c.m_autoscale && distance(c) < 10;
 }
@@ -74,7 +74,7 @@ bool test_center_and_forward()
 bool test_range()
 {
   canvas c;
-  c.add(sphere(radius = 1.0));
+  c.add(build::sphere(radius = 1.0));
   c.set_range(2);
   c.autoscale(800, 600);
   const bool wide = near(distance(c), 2 / std::tan(std::numbers::pi / 6)) && !c.m_autoscale;

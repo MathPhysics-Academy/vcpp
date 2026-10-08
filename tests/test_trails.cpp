@@ -14,7 +14,7 @@ namespace
 bool test_retain_counts_points()
 {
   canvas c;
-  auto ball = c.add(sphere(make_trail = true, retain = 3));
+  auto ball = c.add(build::sphere(make_trail = true, retain = 3));
   for (int i = 1; i <= 5; ++i)
   {
     ball->m_pos = vec3{static_cast<double>(i), 0, 0};
@@ -28,7 +28,7 @@ bool test_retain_counts_points()
 bool test_only_moves_add_points()
 {
   canvas c;
-  auto ball = c.add(sphere(make_trail = true));
+  auto ball = c.add(build::sphere(make_trail = true));
   c.update_trails();
   c.update_trails();
   ball->m_visible = false;
@@ -40,8 +40,8 @@ bool test_only_moves_add_points()
 // The trail takes the object's colour unless trail_color is given
 bool test_trail_color_default()
 {
-  auto plain = sphere(color = colors::green, make_trail = true);
-  auto chosen = sphere(color = colors::green, make_trail = true, trail_color = colors::red);
+  auto plain = build::sphere(color = colors::green, make_trail = true);
+  auto chosen = build::sphere(color = colors::green, make_trail = true, trail_color = colors::red);
   return plain.m_trail_color == colors::green && chosen.m_trail_color == colors::red;
 }
 

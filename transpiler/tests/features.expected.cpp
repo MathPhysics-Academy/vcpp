@@ -34,7 +34,7 @@ task<void> lift(std::vector<handle<sphere_object>>& group, double dy)
     b = group[for__1];
     b.pos = vec3{b.pos.x(), b.pos.y() + dy, b.pos.z()};
   }
-  group.push_back(scene.add(sphere(pos = vec3{0, 3, 0}, radius = 0.1)));
+  group.push_back(sphere(pos = vec3{0, 3, 0}, radius = 0.1));
   co_return;
 }
 
@@ -67,8 +67,8 @@ task<void> vpython_program()
   k = 4;
   m = 0.5;
   x0 = vec3{1, 0, 0};
-  auto anchor = scene.add(box(pos = vec3{-2, 0, 0}, size = vec3{0.2, 1, 1}, color = colors::gray(0.5), texture = textures::wood));
-  auto ball = scene.add(sphere(pos = x0, radius = 0.2, color = colors::cyan, make_trail = true, retain = 100));
+  auto anchor = box(pos = vec3{-2, 0, 0}, size = vec3{0.2, 1, 1}, color = colors::gray(0.5), texture = textures::wood);
+  auto ball = sphere(pos = x0, radius = 0.2, color = colors::cyan, make_trail = true, retain = 100);
   vec3 ball_v = vec3{0, 0.5, 0};
   dt_ = 0.01;
   t = 0;
@@ -97,7 +97,7 @@ task<void> vpython_program()
   std::vector<handle<sphere_object>> balls;
   for (i = 0; i < 5; i += 1)
   {
-    balls.push_back(scene.add(sphere(pos = vec3{i, 2, 0}, radius = 0.1)));
+    balls.push_back(sphere(pos = vec3{i, 2, 0}, radius = 0.1));
   }
   std::vector<double> heights = {0.5, 1, 1.5};
   for (n = static_cast<double>(heights.size()) - 1; n > -1; n += -1)
@@ -116,8 +116,8 @@ task<void> vpython_program()
   scene.m_title = std::format("{} balls, the first at x = {:.2f}", static_cast<double>(balls.size()), balls[0].pos.x());
   scene.append_to_title(" {braces}");
   scene.append_to_caption(std::format("{} {} {}", "t =", t, "steps"));
-  auto trailing = scene.add(sphere(pos = vec3{0, -1, 0}, radius = 0.1, make_trail = true, trail_type = "points"));
-  auto spinner = scene.add(box(pos = vec3{2, 2, 0}, axis = vec3{1, 1, 0}));
+  auto trailing = sphere(pos = vec3{0, -1, 0}, radius = 0.1, make_trail = true, trail_type = "points");
+  auto spinner = box(pos = vec3{2, 2, 0}, axis = vec3{1, 1, 0});
   for (i = 0; i < 3; i += 1)
   {
     spinner.rotate(0.1, vec3{0, 0, 1});
@@ -131,7 +131,7 @@ task<void> vpython_program()
   tilted *= 3.0;
   spinner.pos = vec3{spinner.pos.x() + 1, spinner.pos.y(), spinner.pos.z()};
   trailing.radius *= 2;
-  auto path = scene.add(curve(color = colors::yellow, radius = 0.05));
+  auto path = curve(color = colors::yellow, radius = 0.05);
   path.append(vec3{0, 0, 0});
   path.append(std::vector<vec3>{vec3{1, 0, 0}, vec3{1, 1, 0}});
   path.append(pos = vec3{0, 1, 0}, color = colors::cyan, radius = 0.1);

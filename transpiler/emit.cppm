@@ -389,11 +389,6 @@ private:
         line(c.code.substr(1, c.code.size() - 2) + ";"); // drop the parentheses around co_await
         return;
       }
-      if (is_object_factory(f))
-      {
-        line(std::format("scene.add({});", call(value).code));
-        return;
-      }
     }
     line(expression(value).code + ";");
   }
@@ -415,10 +410,7 @@ private:
     const std::string& t = target["_type"].string();
     if (t == "Name")
     {
-      expr value = expression(value_node);
-      if (value.t.k == kind::object && value_node["_type"].string() == "Call")
-        value.code = std::format("scene.add({})", value.code);
-      store(target["id"].string(), value, s);
+      store(target["id"].string(), expression(value_node), s);
       return;
     }
     if (t == "Attribute")
@@ -1258,9 +1250,7 @@ private:
     const auto& args = e["args"].items();
     if (args.size() != 1 || !e["keywords"].items().empty())
       unsupported(e, "append() with other than one argument");
-    expr value = expression(args[0]);
-    if (value.t.k == kind::object && args[0]["_type"].string() == "Call")
-      value.code = std::format("scene.add({})", value.code);
+    const expr value = expression(args[0]);
     type* list = variable_type(base);
     if (!list)
       unsupported(e, "appending to a list that isn't in a variable");

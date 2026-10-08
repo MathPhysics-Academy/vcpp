@@ -73,11 +73,11 @@ export int run_web_test() {
     scene.background(vec3{0.1, 0.1, 0.15});
 
     // Floor
-    scene.add(box(pos=vec3{0, -0.5, 0}, length=10.0, height=1.0, width=10.0,
-                  color=vec3{0.3, 0.3, 0.35}, shininess=0.8));
+    box(pos=vec3{0, -0.5, 0}, length=10.0, height=1.0, width=10.0,
+                  color=vec3{0.3, 0.3, 0.35}, shininess=0.8);
 
     // Ball
-    scene.add(sphere(pos=vec3{0, ball_y, 0}, radius=ball_radius, color=colors::red));
+    sphere(pos=vec3{0, ball_y, 0}, radius=ball_radius, color=colors::red);
     ball_idx = scene.m_spheres.size() - 1;
 
     // Energy graph
