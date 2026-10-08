@@ -138,6 +138,13 @@ inline constexpr symbol<> caption{};    // canvas caption (string)
 inline constexpr symbol<> title{};      // canvas title (string)
 
 // ============================================================================
+// Light Properties
+// ============================================================================
+
+inline constexpr symbol<> direction{}; // a distant_light's direction (vec3)
+inline constexpr symbol<> offset{};    // attach_light: the light's place in the object's frame (vec3)
+
+// ============================================================================
 // Animation/Physics Properties
 // ============================================================================
 

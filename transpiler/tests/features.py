@@ -95,3 +95,12 @@ path.modify(1, color=was)
 drift = vec.random() * random()
 if path.npoints > 3:
     path.clear()
+
+# GlowScript's lights
+scene.ambient = 0.5 * color.white
+scene.lights = []
+sun = distant_light(direction=vector(0, 1, 0), color=color.yellow)
+sun.direction = vector(1, 1, 0)
+glow = attach_light(anchor, offset=vector(0, 1, 0))
+local_light(pos=vector(0, 3, 0), color=color.gray(0.5))
+anchor.emissive = True

@@ -352,8 +352,8 @@ namespace
     auto& obj = scene.m_ellipsoids[idx];
     
     // Activate raindrop shader effect
-    obj.m_emissive = true;
-    
+    obj.m_raindrop = true;
+
     // Random reset position generator (seeded by index for variety)
     std::mt19937 rng(idx * 12345);
     std::uniform_real_distribution<> pos_dist(-7.0, 7.0);

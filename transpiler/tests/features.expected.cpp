@@ -144,5 +144,12 @@ task<void> vpython_program()
   {
     path.clear();
   }
+  scene.m_ambient = 0.5 * colors::white;
+  scene.clear_lights();
+  auto sun = distant_light(direction = vec3{0, 1, 0}, color = colors::yellow);
+  sun.direction = vec3{1, 1, 0};
+  auto glow = attach_light(anchor, offset = vec3{0, 1, 0});
+  local_light(pos = vec3{0, 3, 0}, color = colors::gray(0.5));
+  anchor.emissive = true;
   co_return;
 }

@@ -136,8 +136,8 @@ cylinder,trail_radius,scalar,0 (thin curve) for curve,trail.html,,cylinder_objec
 cylinder,trail_type,string,,trail.html,,cylinder_object,trail_type,wired,0,0,0,0
 cylinder,up,vector,,cylinder.html,,cylinder_object,up,wired,0,0,0,0
 cylinder,visible,boolean,: True,cylinder.html,,cylinder_object,visible,wired,1,0,0,1
-distant_light,color,vector,,light.html,,,color,no-object,1,0,0,1
-distant_light,direction,vector,,light.html,,,direction,no-object,2,2,0,2
+distant_light,color,vector,,light.html,,distant_light_object,color,field-only,1,0,0,1
+distant_light,direction,vector,,light.html,,distant_light_object,direction,field-only,2,2,0,2
 ellipsoid,axis,vector,"<1,0,0>",ellipsoid.html,,ellipsoid_object,axis,wired,0,0,0,0
 ellipsoid,canvas,object,scene,ellipsoid.html,,ellipsoid_object,canvas,missing,0,0,0,0
 ellipsoid,color,vector,color.white,ellipsoid.html,,ellipsoid_object,color,wired,1,0,0,1
@@ -255,8 +255,8 @@ label,text,string or numerical expression,,label.html,,label_object,text,wired,3
 label,visible,boolean,: True,label.html,,label_object,visible,wired,0,1,0,1
 label,xoffset,scalar,,label.html,,label_object,xoffset,wired,1,0,0,1
 label,yoffset,scalar,,label.html,,label_object,yoffset,wired,0,1,0,1
-local_light,color,vector,,light.html,,,color,no-object,0,0,0,0
-local_light,pos,vector,,light.html,,,pos,no-object,0,0,0,0
+local_light,color,vector,,light.html,,local_light_object,color,field-only,0,0,0,0
+local_light,pos,vector,,light.html,,local_light_object,pos,field-only,0,0,0,0
 menu,bind,function,,menu.html,,,bind,no-object,2,0,0,2
 menu,choices,list,,menu.html,,,choices,no-object,2,0,0,2
 menu,disabled,boolean,,menu.html,,,disabled,no-object,0,0,0,0

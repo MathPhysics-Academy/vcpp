@@ -191,8 +191,9 @@ private:
 
   static bool is_object_factory(std::string_view name)
   {
-    static constexpr std::array names{"box",   "sphere", "cylinder", "cone",   "pyramid", "ellipsoid", "ring",
-                                      "helix", "arrow",  "curve",    "points", "label",   "text",      "extrusion"};
+    static constexpr std::array names{"box",  "sphere",    "cylinder",      "cone",       "pyramid", "ellipsoid",
+                                      "ring", "helix",     "arrow",         "curve",      "points",  "label",
+                                      "text", "extrusion", "distant_light", "local_light"};
     return std::ranges::find(names, name) != names.end();
   }
 
@@ -206,10 +207,10 @@ private:
     // clang-format off
     static const std::set<std::string_view> names{
       "acceleration", "align", "ambient", "axis", "background", "billboard", "border", "box", "caption", "ccw",
-      "center", "charge", "closed", "coils", "color", "delta", "depth", "dot_color", "dot_radius", "dt", "emissive",
+      "center", "charge", "closed", "coils", "color", "delta", "depth", "direction", "dot_color", "dot_radius", "dt", "emissive",
       "end_normal", "fast", "font", "foreground", "forward", "fov", "graph_ref", "group", "headlength", "headwidth",
       "height", "interval", "label", "legend", "length", "lights", "line", "make_trail", "marker_radius", "markers",
-      "mass", "momentum", "normal", "opacity", "path", "points", "pos", "radius", "range", "retain", "round", "scale",
+      "mass", "momentum", "normal", "offset", "opacity", "path", "points", "pos", "radius", "range", "retain", "round", "scale",
       "shaftwidth", "shape", "sharp_joints", "shininess", "show_dot", "show_end_face", "show_start_face", "size",
       "smooth", "smooth_joints", "start_normal", "target_canvas", "texpos", "text", "texture", "thickness", "title",
       "trail_color", "trail_radius", "trail_type", "twist", "up", "v0", "v1", "v2", "v3", "velocity", "visible",
@@ -224,7 +225,7 @@ private:
     static const std::set<std::string_view> names{
       // vcpp functions and objects the generated code uses
       "scene", "rate", "sleep", "vec3", "vec2", "colors", "mag", "hat", "norm", "cross", "dot", "task", "rotate",
-      "random", "random_vec",
+      "random", "random_vec", "attach_light",
       // C++ keywords that are valid Python names
       "auto", "bool", "break", "case", "catch", "char", "class", "const", "default", "delete", "do", "double", "enum",
       "explicit", "extern", "float", "friend", "goto", "inline", "int", "long", "mutable", "namespace", "new",
@@ -288,6 +289,7 @@ private:
       {"visible", kind::boolean},   {"make_trail", kind::boolean},  {"emissive", kind::boolean},
       {"ccw", kind::boolean},       {"texture", kind::string},      {"trail_type", kind::string},
       {"text", kind::string},       {"font", kind::string},         {"npoints", kind::number},
+      {"direction", kind::vector},  {"offset", kind::vector},
     };
     const auto it = attrs.find(name);
     return it == attrs.end() ? std::nullopt : std::optional{it->second};
@@ -415,6 +417,15 @@ private:
     }
     if (t == "Attribute")
     {
+      // scene.lights = [] removes every light but the ambient one; no other list of lights is translated
+      if (target["value"]["_type"].string() == "Name" && target["value"]["id"].string() == "scene" &&
+          target["attr"].string() == "lights")
+      {
+        if (value_node["_type"].string() != "List" || !value_node["elts"].items().empty())
+          unsupported(s, "setting scene.lights to anything but []");
+        line("scene.clear_lights();");
+        return;
+      }
       assign_attribute(target, expression(value_node), s);
       return;
     }
@@ -434,8 +445,9 @@ private:
     if (base["_type"].string() == "Name" && base["id"].string() == "scene")
     {
       static const std::map<std::string_view, std::string_view> scene_members{
-        {"caption", "m_caption"},     {"title", "m_title"},       {"background", "m_background"},
-        {"autoscale", "m_autoscale"}, {"userspin", "m_userspin"}, {"userzoom", "m_userzoom"}};
+        {"caption", "m_caption"},  {"title", "m_title"},         {"background", "m_background"},
+        {"ambient", "m_ambient"},  {"autoscale", "m_autoscale"}, {"userspin", "m_userspin"},
+        {"userzoom", "m_userzoom"}};
       static const std::set<std::string_view> scene_setters{"center", "forward", "range", "fov"};
       if (const auto it = scene_members.find(attr); it != scene_members.end())
         line(std::format("scene.{} = {};", it->second, value.code));
@@ -1221,6 +1233,20 @@ private:
       return rotate_call(e, nullptr);
     if (f == "random" && e["args"].items().empty())
       return {"random()", {kind::number, {}}};
+    if (f == "attach_light")
+    {
+      const auto& args = e["args"].items();
+      if (args.size() != 1 || expression(args[0]).t.k != kind::object)
+        unsupported(e, "attach_light() of other than one object");
+      std::string code = expression(args[0]).code;
+      for (const auto& k : e["keywords"].items())
+      {
+        if (k["arg"].is_null() || (k["arg"].string() != "offset" && k["arg"].string() != "color"))
+          unsupported(e, "this argument to attach_light()");
+        code += std::format(", {} = {}", k["arg"].string(), expression(k["value"]).code);
+      }
+      return {std::format("attach_light({})", code), {kind::object, "local_light"}};
+    }
     if (f == "len")
     {
       if (e["args"].items().size() != 1 || expression(e["args"].items()[0]).t.k != kind::list)

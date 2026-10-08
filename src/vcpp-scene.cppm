@@ -78,21 +78,6 @@ struct camera
 };
 
 // ============================================================================
-// Light
-// ============================================================================
-
-struct light
-{
-  vec3 m_pos{0, 10, 10};
-  vec3 m_color{1, 1, 1};
-  double m_intensity{1.0};
-  bool m_directional{false}; // true = directional, false = point light
-
-  // For directional lights, m_pos is treated as direction
-  constexpr vec3 direction() const noexcept { return m_directional ? hat(m_pos) : vec3{0, 0, 0}; }
-};
-
-// ============================================================================
 // Object Type Enum (for type-erased storage)
 // ============================================================================
 
@@ -114,7 +99,9 @@ enum class object_type
   quad,
   compound,
   text3d,
-  extrusion
+  extrusion,
+  distant_light,
+  local_light
 };
 
 // ============================================================================
@@ -221,9 +208,14 @@ public:
   camera m_camera{};
 
   // ========== Lighting ==========
-  std::vector<light> m_lights{
-    light{{0, 10, 10}, {1, 1, 1}, 1.0, false} // default light
-  };
+  // GlowScript's: every canvas starts with two distant lights and an ambient light of gray 0.2
+  static std::vector<distant_light_object> default_lights()
+  {
+    return {distant_light_object{{0.22, 0.44, 0.88}, {0.8, 0.8, 0.8}},
+            distant_light_object{{-0.88, -0.22, -0.44}, {0.3, 0.3, 0.3}}};
+  }
+  std::vector<distant_light_object> m_distant_lights = default_lights();
+  std::vector<local_light_object> m_local_lights;
   vec3 m_ambient{0.2, 0.2, 0.2};
 
   // ========== Object Storage (type-specific for cache efficiency) ==========
@@ -341,6 +333,10 @@ public:
       return object_type::compound;
     else if constexpr (std::same_as<T, text3d_object>)
       return object_type::text3d;
+    else if constexpr (std::same_as<T, distant_light_object>)
+      return object_type::distant_light;
+    else if constexpr (std::same_as<T, local_light_object>)
+      return object_type::local_light;
     else
       return object_type::extrusion;
   }
@@ -518,6 +514,10 @@ public:
       return m_compounds;
     else if constexpr (std::same_as<T, text3d_object>)
       return m_text3ds;
+    else if constexpr (std::same_as<T, distant_light_object>)
+      return m_distant_lights;
+    else if constexpr (std::same_as<T, local_light_object>)
+      return m_local_lights;
     else
     {
       static_assert(std::same_as<T, extrusion_object>, "vcpp: not a scene object type");
@@ -572,6 +572,9 @@ public:
     m_compounds.clear();
     m_text3ds.clear();
     m_extrusions.clear();
+    m_distant_lights = default_lights();
+    m_local_lights.clear();
+    m_ambient = vec3{0.2, 0.2, 0.2};
     m_trails.clear();
     m_entries.clear();
     ++m_generation;
@@ -580,6 +583,79 @@ public:
     m_autoscale_last_zx = -1;
     m_autoscale_last_zy = -1;
     m_scene_dirty = true;
+  }
+
+  // GlowScript's scene.lights = []: no lights but the ambient one
+  void clear_lights() noexcept
+  {
+    m_distant_lights.clear();
+    m_local_lights.clear();
+    m_scene_dirty = true;
+  }
+
+  // The object a scene entry names, or null for a light
+  object_base* object_at(std::size_t entry_idx)
+  {
+    const scene_entry& entry = m_entries[entry_idx];
+    switch (entry.type)
+    {
+      case object_type::sphere:
+        return &m_spheres[entry.index];
+      case object_type::ellipsoid:
+        return &m_ellipsoids[entry.index];
+      case object_type::box:
+        return &m_boxes[entry.index];
+      case object_type::cylinder:
+        return &m_cylinders[entry.index];
+      case object_type::cone:
+        return &m_cones[entry.index];
+      case object_type::arrow:
+        return &m_arrows[entry.index];
+      case object_type::ring:
+        return &m_rings[entry.index];
+      case object_type::helix:
+        return &m_helixes[entry.index];
+      case object_type::pyramid:
+        return &m_pyramids[entry.index];
+      case object_type::curve:
+        return &m_curves[entry.index];
+      case object_type::points:
+        return &m_points[entry.index];
+      case object_type::label:
+        return &m_labels[entry.index];
+      case object_type::triangle:
+        return &m_triangles[entry.index];
+      case object_type::quad:
+        return &m_quads[entry.index];
+      case object_type::compound:
+        return &m_compounds[entry.index];
+      case object_type::text3d:
+        return &m_text3ds[entry.index];
+      case object_type::extrusion:
+        return &m_extrusions[entry.index];
+      case object_type::distant_light:
+      case object_type::local_light:
+        return nullptr;
+    }
+    return nullptr;
+  }
+
+  // Called once per render, as GlowScript does: an attached light moves to its object's pos plus its offset,
+  // turned with the object's axis and up
+  void update_lights()
+  {
+    for (local_light_object& light : m_local_lights)
+    {
+      if (!light.m_attached_to)
+        continue;
+      const object_base* obj = object_at(*light.m_attached_to);
+      if (!obj)
+        continue;
+      const vec3 x = hat(obj->m_axis);
+      const vec3 y = hat(obj->m_up);
+      const vec3 z = cross(x, y);
+      light.m_pos = obj->m_pos + x * light.m_offset.x() + y * light.m_offset.y() + z * light.m_offset.z();
+    }
   }
 
   // ========== Trail Management ==========
@@ -1178,6 +1254,29 @@ struct own_attributes<label_object>
     : text(h), height(h), font(h), xoffset(h), yoffset(h), box(h), line(h), border(h), background(h)
   {}
 };
+// Lights have none of an object's attributes, only GlowScript's own for them
+template<>
+struct common_attributes<distant_light_object>
+{
+  attribute<distant_light_object, &distant_light_object::m_direction> direction;
+  attribute<distant_light_object, &distant_light_object::m_color> color;
+  attribute<distant_light_object, &distant_light_object::m_visible> visible;
+
+  common_attributes() = default;
+  explicit common_attributes(const handle_base<distant_light_object>& h) : direction(h), color(h), visible(h) {}
+};
+
+template<>
+struct common_attributes<local_light_object>
+{
+  attribute<local_light_object, &local_light_object::m_pos> pos;
+  attribute<local_light_object, &local_light_object::m_color> color;
+  attribute<local_light_object, &local_light_object::m_visible> visible;
+  attribute<local_light_object, &local_light_object::m_offset> offset;
+
+  common_attributes() = default;
+  explicit common_attributes(const handle_base<local_light_object>& h) : pos(h), color(h), visible(h), offset(h) {}
+};
 } // namespace detail
 
 template<typename T>
@@ -1291,6 +1390,32 @@ handle<text3d_object> text3d(Binders... binders)
 template<typename... Binders>
 handle<extrusion_object> extrusion(Binders... binders)
 { return selected().add(build::extrusion(binders...)); }
+
+// GlowScript's lights: distant_light(direction = ..., color = ...) and local_light(pos = ..., color = ...)
+template<typename... Binders>
+handle<distant_light_object> distant_light(Binders... binders)
+{ return selected().add(build::distant_light(binders...)); }
+
+template<typename... Binders>
+handle<local_light_object> local_light(Binders... binders)
+{ return selected().add(build::local_light(binders...)); }
+
+// GlowScript's attach_light(obj, offset = ..., color = ...): a local light that follows obj, at offset in its
+// frame, in obj's colour unless given one
+inline constexpr auto attach_light_params = std::tuple{param_spec<&local_light_object::m_offset, decltype(offset)>{},
+                                                       param_spec<&local_light_object::m_color, decltype(color)>{}};
+
+template<typename T, typename... Binders>
+handle<local_light_object> attach_light(const handle<T>& obj, Binders... binders)
+{
+  local_light_object light = detail::make_light<local_light_object>(attach_light_params, binders...);
+  if constexpr (!detail::names<decltype(color), Binders...>)
+    light.m_color = obj->m_color;
+  light.m_attached_to = obj.entry();
+  auto h = selected().add(std::move(light));
+  selected().update_lights();
+  return h;
+}
 
 // GlowScript's compound: one object made from copies of the parts, which are hidden
 template<typename... Parts>

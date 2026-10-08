@@ -75,25 +75,24 @@ struct alignas(256) camera_uniforms
   gpu_vec3 camera_pos;
 };
 
-struct alignas(256) light_uniforms
+// GlowScript's lights: up to 32, each a world-space position (w = 1) or direction (w = 0), and the ambient light
+inline constexpr std::size_t max_lights = 32;
+
+struct light_uniforms
 {
-  gpu_vec4 positions[8];
-  gpu_vec4 colors[8];
   gpu_vec4 ambient;
-  int light_count{0};
-  float _pad[3]{};
+  std::uint32_t count{0};
+  std::uint32_t _pad[3]{};
+  gpu_vec4 positions[max_lights];
+  gpu_vec4 colors[max_lights];
 };
 
 // Instance data for GPU instancing
-// material.x = shininess
-// material.y = emissive (0 or 1)
-// material.z = texture_index
-// material.w = has_texture (0 or 1)
 struct instance_data
 {
   gpu_mat4 model;
   gpu_vec4 color;
-  gpu_vec4 material; // x=shininess, y=emissive, z=texture_index, w=has_texture
+  gpu_vec4 material; // x = shininess, y = how it's shaded (0 lit, 1 raindrop, 2 emissive), z, w = raindrop params
 };
 
 // ============================================================================

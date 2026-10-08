@@ -360,17 +360,17 @@ cylinder,width,attribute,,,accessor,primitives.js:748,box,yes,yes,declared-only,
 cylinder,x,unsupported,,,getter throws,primitives.js:283,Primitive,yes,yes,missing,x,0,0
 cylinder,y,unsupported,,,getter throws,primitives.js:287,Primitive,yes,yes,missing,y,0,0
 cylinder,z,unsupported,,,getter throws,primitives.js:291,Primitive,yes,yes,missing,z,0,0
-distant_light,axis,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,color,attribute,"<1,1,1>",,vector,primitives.js:2503,,yes,yes,no-object,,1,1
-distant_light,direction,attribute,"<0,0,1>",,vector,primitives.js:2502,,yes,yes,no-object,,4,2
-distant_light,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,make_trail,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,size,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,up,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-distant_light,visible,attribute,true,,,primitives.js:2504,,yes,yes,no-object,,0,0
+distant_light,axis,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,axis,0,0
+distant_light,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+distant_light,color,attribute,"<1,1,1>",,vector,primitives.js:2503,,yes,yes,wired,color,1,1
+distant_light,direction,attribute,"<0,0,1>",,vector,primitives.js:2502,,yes,yes,wired,direction,4,2
+distant_light,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+distant_light,make_trail,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,make_trail,0,0
+distant_light,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+distant_light,size,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,size,0,0
+distant_light,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+distant_light,up,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,up,0,0
+distant_light,visible,attribute,true,,,primitives.js:2504,,yes,yes,wired,visible,0,0
 ellipsoid,axis,attribute,"<1,0,0>",,vector,primitives.js:261,Primitive,yes,yes,wired,axis,0,0
 ellipsoid,blue,attribute,,,accessor,primitives.js:769,box,yes,yes,missing,blue,0,0
 ellipsoid,bounding_box,method,,,,primitives.js:663,Primitive,no,no,missing,bounding_box,0,0
@@ -698,17 +698,17 @@ label,visible,attribute,false,,typed,primitives.js:2594,,yes,yes,wired,visible,1
 label,width,attribute,,,accessor,primitives.js:2605,,yes,yes,declared-only,width,0,0
 label,xoffset,attribute,0,,typed,primitives.js:2599,,yes,yes,wired,xoffset,1,1
 label,yoffset,attribute,0,,typed,primitives.js:2600,,yes,yes,wired,yoffset,1,1
-local_light,axis,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,color,attribute,"<1,1,1>",,vector,primitives.js:2518,,yes,yes,no-object,,0,0
-local_light,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,make_trail,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,pos,attribute,"<0,0,0>",,vector,primitives.js:2517,,yes,yes,no-object,,0,0
-local_light,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,size,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,up,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,no-object,,0,0
-local_light,visible,attribute,true,,,primitives.js:2519,,yes,yes,no-object,,0,0
+local_light,axis,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,axis,0,0
+local_light,canvas,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,canvas,0,0
+local_light,color,attribute,"<1,1,1>",,vector,primitives.js:2518,,yes,yes,wired,color,0,0
+local_light,display,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,display,0,0
+local_light,make_trail,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,make_trail,0,0
+local_light,pos,attribute,"<0,0,0>",,vector,primitives.js:2517,,yes,yes,wired,pos,0,0
+local_light,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
+local_light,size,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,size,0,0
+local_light,size_units,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,missing,size_units,0,0
+local_light,up,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,up,0,0
+local_light,visible,attribute,true,,,primitives.js:2519,,yes,yes,wired,visible,0,0
 menu,aria_describedby,attribute,"""""",,constructor option,primitives.js:3632,,no,no,no-object,,0,0
 menu,aria_label,attribute,"""""",,constructor option,primitives.js:3632,,no,no,no-object,,0,0
 menu,aria_labelledby,attribute,"""""",,constructor option,primitives.js:3632,,no,no,no-object,,0,0

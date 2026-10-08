@@ -45,6 +45,15 @@ struct Camera {
 }
 
 @group(0) @binding(0) var<uniform> camera: Camera;
+
+// GlowScript's lights: pos.w is 0 for a distant light (pos is its direction), 1 for a local one
+struct Lights {
+  ambient: vec4<f32>,
+  count: u32,
+  pos: array<vec4<f32>, 32>,
+  color: array<vec4<f32>, 32>,
+}
+@group(0) @binding(1) var<uniform> lights: Lights;
 @group(1) @binding(0) var tex: texture_2d<f32>;
 @group(1) @binding(1) var tex_sampler: sampler;
 
@@ -76,7 +85,10 @@ struct VertexOutput {
 fn vs_main(vert: VertexInput, inst: InstanceInput) -> VertexOutput {
   let model = mat4x4<f32>(inst.model_0, inst.model_1, inst.model_2, inst.model_3);
   let world_pos = model * vec4<f32>(vert.pos, 1.0);
-  let normal_mat = mat3x3<f32>(model[0].xyz, model[1].xyz, model[2].xyz);
+  // Normals turn with the inverse transpose (here its multiple, the cofactor matrix), as GlowScript divides
+  // them by the object's scale, so a stretched object's normals stay perpendicular to its surface
+  let m = mat3x3<f32>(model[0].xyz, model[1].xyz, model[2].xyz);
+  let normal_mat = mat3x3<f32>(cross(m[1], m[2]), cross(m[2], m[0]), cross(m[0], m[1]));
   var out: VertexOutput;
   out.clip_pos = camera.view_proj * world_pos;
   out.world_normal = normalize(normal_mat * vert.normal);
@@ -94,16 +106,14 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
   let texel = textureSample(tex, tex_sampler, vec2<f32>(in.uv.x, 1.0 - in.uv.y));
   var base_color = vec4<f32>(in.color.rgb * texel.rgb, in.color.a);
 
-  // Lighting (shared by all paths)
-  let light_dir = normalize(vec3<f32>(1.0, 1.0, 1.0));
   let view_dir = normalize(camera.pos - in.world_pos);
   let N = normalize(in.world_normal);
-  let reflect_dir = reflect(-light_dir, N);
   let shininess = in.material.x;
+  let mode = in.material.y;
 
-  // === Raindrop effect mode (material.y > 0.5) ===
-  let is_raindrop = in.material.y > 0.5;
-  if (is_raindrop) {
+  // === Raindrop effect mode (material.y == 1), the web demo's ===
+  if (mode > 0.5 && mode < 1.5) {
+    let light_dir = normalize(vec3<f32>(1.0, 1.0, 1.0));
     // material.z = normalized speed (0=still, 1=terminal velocity)
     // material.w = lifecycle phase (0=falling, 1=fully splatted)
     let speed = clamp(in.material.z, 0.0, 1.0);
@@ -150,19 +160,26 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
   // === Standard path (non-raindrop objects) ===
   // Hemisphere ambient: sky-facing surfaces brighter than ground-facing
-  let sky_amount = N.y * 0.5 + 0.5; // 0 = pointing down, 1 = pointing up
-  let ambient = mix(0.15, 0.4, sky_amount);
+  // GlowScript's emissive (VPython's materials.emissive): no lights, brightest facing the viewer. GlowScript
+  // raises a negative cosine to a power, which GLSL leaves undefined; it is taken as 0 here.
+  if (mode > 1.5) {
+    let d = min(pow(max(dot(view_dir, N), 0.0) * 1.5, 0.4) * 1.1, 1.0);
+    return vec4<f32>(base_color.rgb * d, base_color.a);
+  }
 
-  let diffuse = max(dot(N, light_dir), 0.0) * 0.7;
-  let spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0) * shininess * 0.5;
-
-  // Fresnel rim lighting: brightens silhouette edges
-  let NdotV = max(dot(N, view_dir), 0.0);
-  let rim = pow(1.0 - NdotV, 3.0) * 0.25;
-
-  let lighting = ambient + diffuse + spec + rim;
-
-  return vec4<f32>(base_color.rgb * lighting, base_color.a);
+  // GlowScript's lighting: ambient, then each light's diffuse and, if shiny, specular
+  var color = lights.ambient.rgb * base_color.rgb;
+  for (var i = 0u; i < lights.count; i++) {
+    let lp = lights.pos[i];
+    let L = normalize(lp.xyz - in.world_pos * lp.w);
+    color += lights.color[i].rgb * max(dot(N, L), 0.0) * base_color.rgb;
+    if (shininess > 0.0) {
+      // GlowScript's shaders for transparent objects use the first light's colour here, for every light
+      let lc = select(lights.color[i].rgb, lights.color[0].rgb, base_color.a < 1.0);
+      color += 0.8 * lc * pow(max(dot(reflect(L, N), -view_dir), 0.0), 100.0 * shininess);
+    }
+  }
+  return vec4<f32>(color, base_color.a);
 }
 )";
 
@@ -179,6 +196,7 @@ struct renderer_state
   WGPUBindGroup bind_group{nullptr};
   WGPUBindGroupLayout bind_group_layout{nullptr};
   WGPUBuffer camera_buffer{nullptr};
+  WGPUBuffer lights_buffer{nullptr};
 
   // Textures, by the name objects give them (bind group 1)
   struct texture_entry
@@ -599,6 +617,35 @@ inline void draw_batch(WGPURenderPassEncoder pass, const renderer_state::mesh_da
 // Render Frame
 // ============================================================================
 
+// An object's shininess and how it's shaded: 0 lit, 1 the demo's raindrop effect, 2 emissive (GlowScript's)
+inline gpu_vec4 material_of(const object_base& obj)
+{
+  const float mode = obj.m_raindrop ? 1.0f : obj.m_emissive ? 2.0f : 0.0f;
+  return {static_cast<float>(obj.m_shininess), mode, static_cast<float>(obj.m_effect_param0),
+          static_cast<float>(obj.m_effect_param1)};
+}
+
+// The canvas's visible lights and ambient light, as GlowScript passes them to its shaders
+inline light_uniforms lights_of(const canvas& c)
+{
+  light_uniforms u{};
+  u.ambient = to_gpu4(c.m_ambient, 0.0f);
+  auto add = [&](const vec3& v, float w, const vec3& color) {
+    if (u.count == max_lights)
+      throw std::length_error("vcpp: the number of lights is limited to 32, as in GlowScript");
+    u.positions[u.count] = to_gpu4(v, w);
+    u.colors[u.count] = to_gpu4(color, 0.0f);
+    ++u.count;
+  };
+  for (const distant_light_object& l : c.m_distant_lights)
+    if (l.m_visible)
+      add(l.m_direction, 0.0f, l.m_color);
+  for (const local_light_object& l : c.m_local_lights)
+    if (l.m_visible)
+      add(l.m_pos, 1.0f, l.m_color);
+  return u;
+}
+
 inline void render_frame()
 {
   if (!g_renderer.initialized || !g_renderer.current_canvas)
@@ -688,6 +735,9 @@ inline void render_frame()
   cam.view_projection = matrix::multiply(cam.projection, cam.view);
   cam.camera_pos = to_gpu(c.m_camera.m_pos);
   wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.camera_buffer, 0, &cam, sizeof(cam));
+  c.update_lights();
+  const light_uniforms lights = lights_of(c);
+  wgpuQueueWriteBuffer(g_renderer.queue, g_renderer.lights_buffer, 0, &lights, sizeof(lights));
 
   WGPUCommandEncoderDescriptor enc_desc{};
   WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(g_renderer.device, &enc_desc);
@@ -737,14 +787,7 @@ inline void render_frame()
     instance_data inst{};
     inst.model = compute_model_matrix(obj.m_pos, obj.m_axis, obj.m_up, scale_factors);
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-    if (obj.m_emissive) {
-      // Emissive path: pack effect params into material.z/w for shader effects
-      inst.material = {static_cast<float>(obj.m_shininess), 1.0f,
-                       static_cast<float>(obj.m_effect_param0),
-                       static_cast<float>(obj.m_effect_param1)};
-    } else {
-      inst.material = {static_cast<float>(obj.m_shininess), 0.0f, 0.0f, 0.0f};
-    }
+    inst.material = material_of(obj);
     return inst;
   };
 
@@ -759,7 +802,7 @@ inline void render_frame()
     const double d = s.m_radius * 2;
     inst.model = compute_model_matrix(s.m_pos, s.m_axis, s.m_up, vec3{d, d, d});
     inst.color = to_gpu4(s.m_color, static_cast<float>(s.m_opacity));
-    inst.material = {static_cast<float>(s.m_shininess), 0, 0, 0};
+    inst.material = material_of(s);
     sphere_instances.add(inst, texture_for(s.m_texture));
   }
 
@@ -839,7 +882,7 @@ inline void render_frame()
     if (!b.m_visible)
       continue;
     instance_data inst = build_instance(b, vec3{b.m_length, b.m_height, b.m_width});
-    inst.material = {static_cast<float>(b.m_shininess), 0, 0, 0};
+    inst.material = material_of(b);
     box_instances.add(inst, texture_for(b.m_texture));
   }
 
@@ -862,7 +905,7 @@ inline void render_frame()
                                     static_cast<float>(obj.m_pos.z()));
     inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-    inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+    inst.material = material_of(obj);
     cylinder_instances.add(inst, texture_for(obj.m_texture));
   }
 
@@ -880,7 +923,7 @@ inline void render_frame()
                                     static_cast<float>(obj.m_pos.z()));
     inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-    inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+    inst.material = material_of(obj);
     cone_instances.add(inst, texture_for(obj.m_texture));
   }
 
@@ -913,7 +956,7 @@ inline void render_frame()
                                       static_cast<float>(obj.m_pos.z()));
       inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
       inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-      inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+      inst.material = material_of(obj);
       cylinder_instances.add(inst, texture_for(obj.m_texture));
     }
 
@@ -927,7 +970,7 @@ inline void render_frame()
                                       static_cast<float>(head_pos.z()));
       inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
       inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-      inst.material = {static_cast<float>(obj.m_shininess), 0, 0, 0};
+      inst.material = material_of(obj);
       cone_instances.add(inst, texture_for(obj.m_texture));
     }
   }
@@ -1084,7 +1127,7 @@ inline void render_frame()
     inst.model = matrix::identity();
     const vec3 tint = curve_mesh.colors_group ? vec3{1, 1, 1} : crv.m_color;
     inst.color = to_gpu4(tint, static_cast<float>(crv.m_opacity));
-    inst.material = {static_cast<float>(crv.m_shininess), 0, 0, 0};
+    inst.material = material_of(crv);
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, curve_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
@@ -1112,7 +1155,7 @@ inline void render_frame()
       gpu_mat4 tr = matrix::translate(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
       inst.model = matrix::multiply(tr, matrix::scale(point_scale, point_scale, point_scale));
       inst.color = to_gpu4(pts.m_color, static_cast<float>(pts.m_opacity));
-      inst.material = {static_cast<float>(pts.m_shininess), pts.m_emissive ? 1.0f : 0.0f, 0, 0};
+      inst.material = material_of(pts);
       points_instances.push_back(inst);
     }
   }
@@ -1329,7 +1372,7 @@ inline void render_frame()
           matrix::translate(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z())),
           matrix::scale(d, d, d));
         inst.color = to_gpu4(trail.color, 1.0f);
-        inst.material = {0.3f, 0, 0, 0};
+        inst.material = {0.6f, 0, 0, 0}; // GlowScript's default shininess
         trail_points.add(inst, g_renderer.white_texture);
       }
       continue;
@@ -1367,7 +1410,7 @@ inline void render_frame()
     instance_data inst{};
     inst.model = matrix::identity();
     inst.color = to_gpu4(trail.color, 1.0f);
-    inst.material = {0.3f, 0, 0, 0};
+    inst.material = {0.6f, 0, 0, 0}; // GlowScript's default shininess
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, trail_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetVertexBuffer(pass, 1, g_renderer.single_ib, single_instance_offset(inst),
@@ -1493,7 +1536,7 @@ inline void render_frame()
     vec3 offset_pos = txt.m_pos + txt.m_axis * x_offset;
     inst.model = compute_model_matrix(offset_pos, txt.m_axis, txt.m_up, vec3{1, 1, 1});
     inst.color = to_gpu4(txt.m_color, static_cast<float>(txt.m_opacity));
-    inst.material = {static_cast<float>(txt.m_shininess), txt.m_emissive ? 1.0f : 0.0f, 0, 0};
+    inst.material = material_of(txt);
 
 
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, txt_mesh.vertex_buffer, 0, WGPU_WHOLE_SIZE);
@@ -1716,26 +1759,36 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   g_renderer.camera_buffer = create_buffer(
     static_cast<WGPUBufferUsage>(WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst), sizeof(camera_uniforms));
 
-  WGPUBindGroupLayoutEntry bgl_entry{};
-  bgl_entry.binding = 0;
-  bgl_entry.visibility = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment;
-  bgl_entry.buffer.type = WGPUBufferBindingType_Uniform;
-  bgl_entry.buffer.minBindingSize = sizeof(camera_uniforms);
+  g_renderer.lights_buffer = create_buffer(
+    static_cast<WGPUBufferUsage>(WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst), sizeof(light_uniforms));
+
+  WGPUBindGroupLayoutEntry bgl_entries[2]{};
+  bgl_entries[0].binding = 0;
+  bgl_entries[0].visibility = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment;
+  bgl_entries[0].buffer.type = WGPUBufferBindingType_Uniform;
+  bgl_entries[0].buffer.minBindingSize = sizeof(camera_uniforms);
+  bgl_entries[1].binding = 1;
+  bgl_entries[1].visibility = WGPUShaderStage_Fragment;
+  bgl_entries[1].buffer.type = WGPUBufferBindingType_Uniform;
+  bgl_entries[1].buffer.minBindingSize = sizeof(light_uniforms);
 
   WGPUBindGroupLayoutDescriptor bgl_desc{};
-  bgl_desc.entryCount = 1;
-  bgl_desc.entries = &bgl_entry;
+  bgl_desc.entryCount = 2;
+  bgl_desc.entries = bgl_entries;
   g_renderer.bind_group_layout = wgpuDeviceCreateBindGroupLayout(g_renderer.device, &bgl_desc);
 
-  WGPUBindGroupEntry bg_entry{};
-  bg_entry.binding = 0;
-  bg_entry.buffer = g_renderer.camera_buffer;
-  bg_entry.size = sizeof(camera_uniforms);
+  WGPUBindGroupEntry bg_entries[2]{};
+  bg_entries[0].binding = 0;
+  bg_entries[0].buffer = g_renderer.camera_buffer;
+  bg_entries[0].size = sizeof(camera_uniforms);
+  bg_entries[1].binding = 1;
+  bg_entries[1].buffer = g_renderer.lights_buffer;
+  bg_entries[1].size = sizeof(light_uniforms);
 
   WGPUBindGroupDescriptor bg_desc{};
   bg_desc.layout = g_renderer.bind_group_layout;
-  bg_desc.entryCount = 1;
-  bg_desc.entries = &bg_entry;
+  bg_desc.entryCount = 2;
+  bg_desc.entries = bg_entries;
   g_renderer.bind_group = wgpuDeviceCreateBindGroup(g_renderer.device, &bg_desc);
 
   WGPUBindGroupLayoutEntry tex_entries[2]{};

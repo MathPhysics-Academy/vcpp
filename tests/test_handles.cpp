@@ -254,6 +254,29 @@ bool test_constructors_add()
          !ball.visible && !base.visible && both.visible;
 }
 
+// GlowScript's lights: two default distant lights; attach_light follows its object, turned with it
+bool test_lights()
+{
+  canvas c;
+  select(c);
+  const bool defaults = c.m_distant_lights.size() == 2 && c.m_ambient == vec3{0.2, 0.2, 0.2};
+  auto sun = distant_light(direction = vec3{0, 1, 0}, color = colors::yellow);
+  sun.direction = vec3{1, 0, 0};
+  auto lamp = box(pos = vec3{1, 2, 3}, axis = vec3{0, 1, 0}, color = colors::red);
+  auto glow = attach_light(lamp, offset = vec3{2, 0, 0});
+  lamp.pos = vec3{0, 0, 0};
+  c.update_lights();
+  const bool follows = near(glow.pos.value(), vec3{0, 2, 0}) && glow.color == colors::red;
+  const bool turned = sun.direction == vec3{1, 0, 0};
+  c.clear_lights();
+  const bool cleared = c.m_distant_lights.empty() && c.m_local_lights.empty();
+  c.m_ambient = vec3{0.5, 0.5, 0.5};
+  c.clear();
+  select(scene);
+  return defaults && turned && follows && cleared && c.m_distant_lights.size() == 2 &&
+         c.m_ambient == vec3{0.2, 0.2, 0.2};
+}
+
 } // namespace
 
 int main()
@@ -292,6 +315,7 @@ int main()
   run_test("more attributes", test_more_attributes);
   run_test("curve points", test_curve_points);
   run_test("constructors add", test_constructors_add);
+  run_test("lights", test_lights);
 
   std::println("=================");
   std::println("Passed: {}/{}", passed, passed + failed);

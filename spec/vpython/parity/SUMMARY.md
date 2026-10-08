@@ -7,10 +7,10 @@ Status: **wired** settable by name Â· **field-only** member exists, `obj(name=â€
 ## Totals (411 object/attribute pairs)
 
 - wired: 251
-- field-only: 17
+- field-only: 21
 - declared-only: 16
 - missing: 44
-- no-object: 83
+- no-object: 79
 
 The corpus uses 169 of these pairs; 118 are wired.
 
@@ -24,7 +24,7 @@ The corpus uses 169 of these pairs; 118 are wired.
 | quad | vs | missing | 3 | 3 | 0 | 0 |
 | text | billboard | declared-only | 2 | 6 | 0 | 0 |
 | vertex | color | no-object | 2 | 5 | 0 | 0 |
-| distant_light | direction | no-object | 2 | 2 | 2 | 0 |
+| distant_light | direction | field-only | 2 | 2 | 2 | 0 |
 | checkbox | bind | no-object | 2 | 2 | 0 | 0 |
 | checkbox | text | no-object | 2 | 2 | 0 | 0 |
 | menu | bind | no-object | 2 | 2 | 0 | 0 |
@@ -52,7 +52,7 @@ The corpus uses 169 of these pairs; 118 are wired.
 | canvas | title | no-object | 1 | 0 | 1 | 0 |
 | canvas | width | no-object | 1 | 1 | 0 | 0 |
 | checkbox | checked | no-object | 1 | 1 | 0 | 0 |
-| distant_light | color | no-object | 1 | 1 | 0 | 0 |
+| distant_light | color | field-only | 1 | 1 | 0 | 0 |
 | gcurve | marker_color | missing | 1 | 1 | 0 | 0 |
 | gdots | size | declared-only | 1 | 1 | 0 | 0 |
 | graph | align | declared-only | 1 | 1 | 0 | 0 |
@@ -141,11 +141,11 @@ Declared in `vcpp-props.cppm` but not a documented attribute of any object (some
 | triangle | builtin (GScompiler.js vp_primitives) | yes | 0 |
 | quad | builtin (GScompiler.js vp_primitives) | yes | 3 |
 | label | builtin (GScompiler.js vp_primitives) | yes | 3 |
-| distant_light | builtin (GScompiler.js vp_primitives) | **no** | 2 |
-| local_light | builtin (GScompiler.js vp_primitives) | **no** | 0 |
+| distant_light | builtin (GScompiler.js vp_primitives) | yes | 2 |
+| local_light | builtin (GScompiler.js vp_primitives) | yes | 0 |
 | attach_trail | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | attach_arrow | builtin (GScompiler.js vp_primitives) | **no** | 0 |
-| attach_light | builtin (GScompiler.js vp_primitives) | **no** | 1 |
+| attach_light | builtin (GScompiler.js vp_primitives) | yes | 1 |
 | sqrt | builtin (GScompiler.js vp_primitives) | **no** | 6 |
 | pi | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | sin | builtin (GScompiler.js vp_primitives) | **no** | 13 |

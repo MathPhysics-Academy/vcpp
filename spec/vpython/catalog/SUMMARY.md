@@ -14,13 +14,13 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- wired: 399
-- missing: 331
-- no-object: 215
-- declared-only: 81
+- wired: 405
+- missing: 337
+- no-object: 193
+- declared-only: 91
 - field-only: 35
 
-Corpus uses 237 members; 158 are wired.
+Corpus uses 237 members; 160 are wired.
 
 ## Gaps ranked by real usage
 
@@ -41,7 +41,6 @@ Corpus uses 237 members; 158 are wired.
 | extrusion | clone | method | missing | 2 | 6 |
 | text | billboard | attribute | declared-only | 2 | 6 |
 | vertex | color | attribute | no-object | 2 | 5 |
-| distant_light | direction | attribute | no-object | 2 | 4 |
 | color | hsv_to_rgb | function | missing | 2 | 3 |
 | cylinder | clone | method | missing | 2 | 3 |
 | checkbox | bind | attribute | no-object | 2 | 2 |
@@ -71,6 +70,7 @@ Corpus uses 237 members; 158 are wired.
 | radio | name | attribute | no-object | 1 | 2 |
 | radio | text | attribute | no-object | 1 | 2 |
 | text | start | attribute | missing | 1 | 2 |
+| wtext | pos | attribute | no-object | 1 | 2 |
 
 ## Per-owner coverage (user-facing members)
 
@@ -91,7 +91,7 @@ Corpus uses 237 members; 158 are wired.
 | cone | 35 | 18 | 10 | 10 |
 | curve | 41 | 20 | 5 | 5 |
 | cylinder | 35 | 18 | 10 | 9 |
-| distant_light | 11 | 0 | 2 | 0 |
+| distant_light | 11 | 3 | 2 | 2 |
 | ellipsoid | 35 | 19 | 3 | 3 |
 | event | 13 | 0 | 0 | 0 |
 | extrusion | 53 | 28 | 15 | 12 |
@@ -103,7 +103,7 @@ Corpus uses 237 members; 158 are wired.
 | gvbars | 19 | 5 | 4 | 3 |
 | helix | 38 | 21 | 8 | 8 |
 | label | 27 | 12 | 8 | 8 |
-| local_light | 11 | 0 | 0 | 0 |
+| local_light | 11 | 3 | 0 | 0 |
 | menu | 7 | 0 | 4 | 0 |
 | mouse | 8 | 0 | 0 | 0 |
 | paths | 14 | 13 | 3 | 3 |

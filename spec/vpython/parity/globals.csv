@@ -27,11 +27,11 @@ vertex,builtin (GScompiler.js vp_primitives),yes,6,3
 triangle,builtin (GScompiler.js vp_primitives),yes,0,0
 quad,builtin (GScompiler.js vp_primitives),yes,3,3
 label,builtin (GScompiler.js vp_primitives),yes,3,3
-distant_light,builtin (GScompiler.js vp_primitives),no,2,2
-local_light,builtin (GScompiler.js vp_primitives),no,0,0
+distant_light,builtin (GScompiler.js vp_primitives),yes,2,2
+local_light,builtin (GScompiler.js vp_primitives),yes,0,0
 attach_trail,builtin (GScompiler.js vp_primitives),no,0,0
 attach_arrow,builtin (GScompiler.js vp_primitives),no,0,0
-attach_light,builtin (GScompiler.js vp_primitives),no,2,1
+attach_light,builtin (GScompiler.js vp_primitives),yes,2,1
 sqrt,builtin (GScompiler.js vp_primitives),no,7,6
 pi,builtin (GScompiler.js vp_primitives),no,0,0
 sin,builtin (GScompiler.js vp_primitives),no,47,13

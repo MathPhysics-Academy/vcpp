@@ -1030,4 +1030,68 @@ extrusion_object extrusion(Binders... binders)
 }
 } // namespace build
 
+// ============================================================================
+// LIGHTS (GlowScript's distant_light and local_light)
+//
+// Lights aren't drawn; they light every object but emissive ones, together with the canvas's ambient light.
+// ============================================================================
+
+struct distant_light_object
+{
+  vec3 m_direction{0, 0, 1};
+  vec3 m_color{1, 1, 1};
+  bool m_visible{true};
+};
+
+struct local_light_object
+{
+  vec3 m_pos{};
+  vec3 m_color{1, 1, 1};
+  bool m_visible{true};
+  std::optional<std::size_t> m_attached_to; // attach_light: the scene entry of the object it follows
+  vec3 m_offset{};                          // and its place in that object's frame (axis, up, axis x up)
+};
+
+inline constexpr auto distant_light_params =
+  std::tuple{param_spec<&distant_light_object::m_direction, decltype(direction)>{},
+             param_spec<&distant_light_object::m_color, decltype(color)>{},
+             param_spec<&distant_light_object::m_visible, decltype(visible)>{}};
+
+inline constexpr auto local_light_params = std::tuple{param_spec<&local_light_object::m_pos, decltype(pos)>{},
+                                                      param_spec<&local_light_object::m_color, decltype(color)>{},
+                                                      param_spec<&local_light_object::m_visible, decltype(visible)>{}};
+
+namespace detail
+{
+template<typename Light, typename Specs, typename... Binders>
+Light make_light(const Specs& specs, Binders... binders)
+{
+  (check_named_param<Binders, Specs>(), ...);
+  Light light{};
+  if constexpr (sizeof...(Binders) > 0)
+    apply_params(light, substitution(binders...), specs);
+  return light;
+}
+
+template<typename Symbol, typename... Binders>
+inline constexpr bool names = (std::same_as<typename Binders::symbol_type, std::remove_cvref_t<Symbol>> || ...);
+} // namespace detail
+
+namespace build
+{
+template<typename... Binders>
+distant_light_object distant_light(Binders... binders)
+{
+  static_assert(detail::names<decltype(direction), Binders...>, "vcpp: distant_light needs a direction");
+  return detail::make_light<distant_light_object>(distant_light_params, binders...);
+}
+
+template<typename... Binders>
+local_light_object local_light(Binders... binders)
+{
+  static_assert(detail::names<decltype(pos), Binders...>, "vcpp: local_light needs a pos");
+  return detail::make_light<local_light_object>(local_light_params, binders...);
+}
+} // namespace build
+
 } // namespace vcpp

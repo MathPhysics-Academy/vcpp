@@ -441,6 +441,9 @@ def vcpp_index():
     wired = collections.defaultdict(set)
     for m in re.finditer(r"struct object_params<(\w+)>\s*\{(.*?)\n\};", allsrc, re.S):
         wired[m.group(1)] |= set(re.findall(r"decltype\((?:vcpp::)?(?:prop::)?(\w+)\)", m.group(2)))
+    # Objects outside object_params, such as the lights, name theirs in `<name>_params` for `<name>_object`
+    for m in re.finditer(r"inline constexpr auto (\w+)_params\s*=(.*?);\n", allsrc, re.S):
+        wired[m.group(1) + "_object"] |= set(re.findall(r"decltype\((?:vcpp::)?(?:prop::)?(\w+)\)", m.group(2)))
     common = set(re.findall(r"decltype\((\w+)\)",
                             re.search(r"inline constexpr auto common_params\s*=(.*?);\n", allsrc, re.S).group(1)))
     factories = {}

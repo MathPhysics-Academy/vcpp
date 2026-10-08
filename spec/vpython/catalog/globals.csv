@@ -9,7 +9,7 @@ asin,api_misc.js:777,,yes,,no,2
 atan,api_misc.js:779,,yes,,no,5
 atan2,api_misc.js:780,,yes,,no,0
 attach_arrow,primitives.js:3764,yes,yes,,no,0
-attach_light,primitives.js:3765,yes,yes,,no,2
+attach_light,primitives.js:3765,yes,yes,,yes,2
 attach_trail,primitives.js:3763,yes,yes,,no,0
 box,primitives.js:3740,yes,yes,,yes,50
 bumpmaps,primitives.js:3767,yes,,,no,0
@@ -29,7 +29,7 @@ curve,primitives.js:3749,yes,yes,,yes,15
 cylinder,primitives.js:3742,yes,yes,,yes,23
 degrees,api_misc.js:794,,yes,,no,0
 diff_angle,vectors.js:785,,,,yes,0
-distant_light,primitives.js:3761,yes,yes,,no,2
+distant_light,primitives.js:3761,yes,yes,,yes,2
 dot,vectors.js:781,,,,yes,1
 download,api_misc.js:810,,yes,,no,0
 draw,primitives.js:3759,yes,,,no,0
@@ -50,7 +50,7 @@ hat,vectors.js:780,,,,yes,3
 helix,primitives.js:3753,yes,yes,,yes,3
 keysdown,canvas.js:828,,,,no,0
 label,primitives.js:3760,yes,yes,,yes,3
-local_light,primitives.js:3762,yes,yes,,no,0
+local_light,primitives.js:3762,yes,yes,,yes,0
 log,api_misc.js:782,,yes,,no,0
 log10,vectors.js:776,,,,no,0
 mag,vectors.js:777,,,,yes,16

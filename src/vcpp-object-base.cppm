@@ -44,8 +44,9 @@ struct object_base
   double m_opacity{1.0};
   double m_shininess{0.6};
   bool m_emissive{false};
-  double m_effect_param0{0.0}; // Custom shader param (packed into material.z when emissive)
-  double m_effect_param1{0.0}; // Custom shader param (packed into material.w when emissive)
+  bool m_raindrop{false};      // the web demo's water effect, drawn instead of the lit surface
+  double m_effect_param0{0.0}; // its parameters (packed into material.z and .w)
+  double m_effect_param1{0.0};
   bool m_visible{true};
 
   // Behavior
