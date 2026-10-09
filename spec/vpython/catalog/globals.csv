@@ -48,7 +48,7 @@ group,primitives.js:3741,yes,yes,,no,1
 gvbars,graph.js:1565,yes,,,yes,2
 hat,vectors.js:780,,,,yes,3
 helix,primitives.js:3753,yes,yes,,yes,3
-keysdown,canvas.js:828,,,,no,0
+keysdown,canvas.js:828,,,,yes,0
 label,primitives.js:3760,yes,yes,,yes,3
 local_light,primitives.js:3762,yes,yes,,yes,0
 log,api_misc.js:782,,yes,,no,0

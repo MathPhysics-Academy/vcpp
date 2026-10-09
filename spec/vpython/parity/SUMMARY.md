@@ -129,7 +129,7 @@ Declared in `vcpp-props.cppm` but not a documented attribute of any object (some
 | simple_sphere | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | group | builtin (GScompiler.js vp_primitives) | yes | 1 |
 | vec | builtin (GScompiler.js vp_primitives) | yes | 27 |
-| vector | builtin (GScompiler.js vp_primitives) | yes | 21 |
+| vector | builtin (GScompiler.js vp_primitives) | **no** | 21 |
 | rate | builtin (GScompiler.js vp_primitives) | yes | 31 |
 | sleep | builtin (GScompiler.js vp_primitives) | yes | 1 |
 | update | builtin (GScompiler.js vp_primitives) | yes | 0 |
@@ -137,7 +137,7 @@ Declared in `vcpp-props.cppm` but not a documented attribute of any object (some
 | paths | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | shapes | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | canvas | builtin (GScompiler.js vp_primitives) | **no** | 1 |
-| vertex | builtin (GScompiler.js vp_primitives) | yes | 3 |
+| vertex | builtin (GScompiler.js vp_primitives) | **no** | 3 |
 | triangle | builtin (GScompiler.js vp_primitives) | yes | 0 |
 | quad | builtin (GScompiler.js vp_primitives) | yes | 3 |
 | label | builtin (GScompiler.js vp_primitives) | yes | 3 |
@@ -167,7 +167,7 @@ Declared in `vcpp-props.cppm` but not a documented attribute of any object (some
 | text | builtin (GScompiler.js vp_primitives) | yes | 5 |
 | download | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | radians | builtin (GScompiler.js vp_primitives) | **no** | 0 |
-| degrees | builtin (GScompiler.js vp_primitives) | yes | 0 |
+| degrees | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | get_library | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | read_local_file | builtin (GScompiler.js vp_primitives) | **no** | 0 |
 | rotate | vector function/method (vector.html) | yes | 0 |

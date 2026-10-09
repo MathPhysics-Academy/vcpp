@@ -15,7 +15,7 @@ sphere,builtin (GScompiler.js vp_primitives),yes,55,26
 simple_sphere,builtin (GScompiler.js vp_primitives),no,0,0
 group,builtin (GScompiler.js vp_primitives),yes,1,1
 vec,builtin (GScompiler.js vp_primitives),yes,275,27
-vector,builtin (GScompiler.js vp_primitives),yes,257,21
+vector,builtin (GScompiler.js vp_primitives),no,257,21
 rate,builtin (GScompiler.js vp_primitives),yes,34,31
 sleep,builtin (GScompiler.js vp_primitives),yes,1,1
 update,builtin (GScompiler.js vp_primitives),yes,0,0
@@ -23,7 +23,7 @@ color,builtin (GScompiler.js vp_primitives),yes,0,0
 paths,builtin (GScompiler.js vp_primitives),no,0,0
 shapes,builtin (GScompiler.js vp_primitives),no,0,0
 canvas,builtin (GScompiler.js vp_primitives),no,1,1
-vertex,builtin (GScompiler.js vp_primitives),yes,6,3
+vertex,builtin (GScompiler.js vp_primitives),no,6,3
 triangle,builtin (GScompiler.js vp_primitives),yes,0,0
 quad,builtin (GScompiler.js vp_primitives),yes,3,3
 label,builtin (GScompiler.js vp_primitives),yes,3,3
@@ -53,7 +53,7 @@ slider,builtin (GScompiler.js vp_primitives),no,2,2
 text,builtin (GScompiler.js vp_primitives),yes,11,5
 download,builtin (GScompiler.js vp_primitives),no,0,0
 radians,builtin (GScompiler.js vp_primitives),no,0,0
-degrees,builtin (GScompiler.js vp_primitives),yes,0,0
+degrees,builtin (GScompiler.js vp_primitives),no,0,0
 get_library,builtin (GScompiler.js vp_primitives),no,0,0
 read_local_file,builtin (GScompiler.js vp_primitives),no,0,0
 rotate,vector function/method (vector.html),yes,0,0

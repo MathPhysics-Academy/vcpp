@@ -16,6 +16,8 @@ export module vcpp:scene;
 import :vec;
 import :color;
 import :objects;
+import :events;
+import :coro;
 import :traits;
 
 export namespace vcpp
@@ -252,6 +254,42 @@ public:
 
   // ========== Scene Graph ==========
   std::vector<scene_entry> m_entries;
+
+  // ========== Events ==========
+  struct binding
+  {
+    event_types types;
+    std::function<void(const event&)> plain;
+    std::function<task<void>(const event&)> coro;
+    void (*fn)(); // the function bound, if a plain function: unbind finds it by this
+  };
+  std::vector<binding> m_bindings;
+  struct waiter
+  {
+    event_types types;
+    std::coroutine_handle<> handle;
+    event* out;
+  };
+  std::vector<waiter> m_waiters;
+  task_scope m_handlers; // dispatches whose handlers are still running
+
+  static task<void> dispatch(std::vector<binding> run, event ev)
+  {
+    for (binding& b : run)
+    {
+      try
+      {
+        if (b.coro)
+          co_await b.coro(ev);
+        else
+          b.plain(ev);
+      }
+      catch (const std::exception& e)
+      {
+        std::println("vcpp: an event handler ended with an exception: {}", e.what());
+      }
+    }
+  }
 
   // ========== Dirty Tracking ==========
   bool m_scene_dirty{true};
@@ -583,6 +621,88 @@ public:
     m_autoscale_last_zx = -1;
     m_autoscale_last_zy = -1;
     m_scene_dirty = true;
+  }
+
+  // ========== Events (GlowScript's scene.mouse, bind, unbind, waitfor) ==========
+
+  mouse_info mouse;
+
+  // Calls handler for each event of these types. It takes const event& or nothing, and may be a coroutine
+  // (task<void>) that waits; a coroutine handler runs alongside the program. Binding a function again adds
+  // the types, as in GlowScript.
+  template<typename F>
+  void bind(event_types types, F handler)
+  {
+    binding b{types, {}, {}, nullptr};
+    if constexpr (std::is_pointer_v<F> && std::is_function_v<std::remove_pointer_t<F>>)
+    {
+      b.fn = reinterpret_cast<void (*)()>(handler);
+      for (binding& bound : m_bindings)
+        if (bound.fn == b.fn)
+        {
+          bound.types = bound.types | types;
+          return;
+        }
+    }
+    if constexpr (std::invocable<F&, const event&>)
+    {
+      if constexpr (std::same_as<std::invoke_result_t<F&, const event&>, task<void>>)
+        b.coro = handler;
+      else
+        b.plain = [handler](const event& ev) mutable { handler(ev); };
+    }
+    else
+    {
+      static_assert(std::invocable<F&>, "vcpp: an event handler takes const event& or nothing");
+      if constexpr (std::same_as<std::invoke_result_t<F&>, task<void>>)
+        b.coro = [handler](const event&) mutable { return handler(); };
+      else
+        b.plain = [handler](const event&) mutable { handler(); };
+    }
+    m_bindings.push_back(std::move(b));
+  }
+
+  // Stops calling fn for these types, as GlowScript's unbind
+  template<typename R, typename... Args>
+  void unbind(event_types types, R (*fn)(Args...))
+  {
+    const auto id = reinterpret_cast<void (*)()>(fn);
+    for (binding& b : m_bindings)
+      if (b.fn == id)
+        b.types.bits &= ~types.bits;
+    std::erase_if(m_bindings, [](const binding& b) { return b.types.bits == 0; });
+  }
+
+  // co_await scene.waitfor(event::click): the next event of these types
+  struct [[nodiscard]] event_wait
+  {
+    canvas* c;
+    event_types types;
+    event result{};
+
+    bool await_ready() const noexcept { return false; }
+    void await_suspend(std::coroutine_handle<> h) { c->m_waiters.push_back({types, h, &result}); }
+    event await_resume() const { return result; }
+  };
+  event_wait waitfor(event_types types) { return {this, types}; }
+
+  // Runs the handlers bound to ev's type in order, awaiting each as GlowScript does, and wakes those waiting
+  // for it. Handlers run inside the call until they first wait.
+  void trigger(const event& ev)
+  {
+    std::vector<binding> run;
+    for (const binding& b : m_bindings)
+      if (b.types & ev.type)
+        run.push_back(b);
+    if (!run.empty())
+      m_handlers.spawn(&canvas::dispatch, std::move(run), ev);
+    std::erase_if(m_waiters, [&](const waiter& w) {
+      if (!(w.types & ev.type))
+        return false;
+      *w.out = ev;
+      g_scheduler.schedule(w.handle);
+      return true;
+    });
   }
 
   // GlowScript's scene.lights = []: no lights but the ambient one

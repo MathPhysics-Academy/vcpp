@@ -14,8 +14,8 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- wired: 405
-- missing: 337
+- wired: 407
+- missing: 335
 - no-object: 193
 - declared-only: 91
 - field-only: 35
@@ -84,7 +84,7 @@ Corpus uses 237 members; 160 are wired.
 | bumpmaps | 5 | 0 | 1 | 0 |
 | button | 7 | 0 | 5 | 0 |
 | camera | 4 | 0 | 0 | 0 |
-| canvas | 33 | 4 | 6 | 0 |
+| canvas | 33 | 6 | 6 | 0 |
 | checkbox | 6 | 0 | 3 | 0 |
 | color | 14 | 10 | 13 | 10 |
 | compound | 38 | 15 | 7 | 5 |

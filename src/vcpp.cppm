@@ -49,6 +49,7 @@ export import :text_glyphs;
 export import :label_bridge;
 
 // Scene management
+export import :events;
 export import :scene;
 
 // Animation

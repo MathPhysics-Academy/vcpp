@@ -248,6 +248,8 @@ def parse_globals():
         m = re.match(r"(?:\w+\s*=\s*)?(?:\w+\.)?(\w+)\s*\(", text(s))
         if m and m.group(1) not in vec_funcs: vec_funcs.append(m.group(1))
     vcpp_all = "\n".join(open(f).read() for f in glob.glob(os.path.join(VCPP_SRC, "*.cppm")))
+    # Comments mention names they don't declare ("range times exp(...)")
+    vcpp_all = re.sub(r"/\*.*?\*/|//[^\n]*", "", vcpp_all, flags=re.S)
 
     def has(n):  # heuristic: a function/object/constant/namespace of that name is declared in vcpp/src
         n2 = VCPP_FACTORY.get(n, n)

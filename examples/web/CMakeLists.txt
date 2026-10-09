@@ -166,6 +166,7 @@ set(VCPP_MODULE_FILES
   ${VCPP_SRC_DIR}/vcpp-font.cppm
   ${VCPP_SRC_DIR}/vcpp-text-glyphs.cppm
   ${VCPP_SRC_DIR}/vcpp-label-bridge.cppm
+  ${VCPP_SRC_DIR}/vcpp-events.cppm
   ${VCPP_SRC_DIR}/vcpp-scene.cppm
   ${VCPP_SRC_DIR}/vcpp-loop.cppm
   ${VCPP_SRC_DIR}/vcpp-coro.cppm

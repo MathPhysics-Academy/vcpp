@@ -166,6 +166,7 @@ func (c *Compiler) buildLinkArgs(userObj, outputJS string) []string {
 		filepath.Join(objDir, "vcpp-shapes.cppm.o"),
 		filepath.Join(objDir, "vcpp-text-glyphs.cppm.o"),
 		filepath.Join(objDir, "vcpp-label-bridge.cppm.o"),
+		filepath.Join(objDir, "vcpp-events.cppm.o"),
 		filepath.Join(objDir, "vcpp-scene.cppm.o"),
 		filepath.Join(objDir, "vcpp-loop.cppm.o"),
 		filepath.Join(objDir, "vcpp-coro.cppm.o"),

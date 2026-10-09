@@ -47,3 +47,8 @@ add_executable(test_shapes test_shapes.cpp)
 target_link_libraries(test_shapes PRIVATE vcpp)
 target_compile_features(test_shapes PRIVATE cxx_std_23)
 add_test(NAME test_shapes COMMAND test_shapes)
+
+add_executable(test_events test_events.cpp)
+target_link_libraries(test_events PRIVATE vcpp)
+target_compile_features(test_events PRIVATE cxx_std_23)
+add_test(NAME test_events COMMAND test_events)

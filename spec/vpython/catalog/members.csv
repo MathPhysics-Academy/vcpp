@@ -134,7 +134,7 @@ canvas,aria_label,attribute,,,constructor option,canvas.js:87,,no,no,missing,ari
 canvas,autoscale,attribute,,,accessor,canvas.js:696,,yes,yes,wired,autoscale,0,0
 canvas,axis,attribute,"<0,0,-1>",,vector,canvas.js:620,,yes,yes,missing,axis,0,0
 canvas,background,attribute,"new vec(0,0,0)",,,canvas.js:609,,yes,yes,wired,background,0,0
-canvas,bind,method,,,,canvas.js:517,,yes,yes,missing,bind,0,0
+canvas,bind,method,,,,canvas.js:517,,yes,yes,wired,bind,0,0
 canvas,caption,attribute,,,accessor,canvas.js:491,,yes,yes,field-only,caption,1,1
 canvas,caption_anchor,attribute,,,accessor,canvas.js:473,,yes,yes,missing,caption_anchor,0,0
 canvas,caption_aria_live,attribute,,,constructor option,canvas.js:87,,no,no,missing,caption_aria_live,0,0
@@ -158,13 +158,13 @@ canvas,selected,attribute,,,accessor static,canvas.js:756,,yes,yes,missing,selec
 canvas,title,attribute,,,accessor,canvas.js:483,,yes,yes,field-only,title,1,1
 canvas,title_anchor,attribute,,,accessor,canvas.js:463,,yes,yes,missing,title_anchor,0,0
 canvas,title_aria_live,attribute,,,constructor option,canvas.js:87,,no,no,missing,title_aria_live,0,0
-canvas,trigger,method,,,,canvas.js:555,,no,no,missing,trigger,0,0
+canvas,trigger,method,,,,canvas.js:555,,no,no,wired,trigger,0,0
 canvas,unbind,method,,,,canvas.js:530,,no,no,missing,unbind,0,0
 canvas,up,attribute,"<0,1,0>",,vector,canvas.js:621,,yes,yes,missing,up,0,0
 canvas,userpan,attribute,true,,,canvas.js:646,,yes,yes,missing,userpan,0,0
 canvas,userspin,attribute,true,,,canvas.js:645,,yes,yes,field-only,userspin,0,0
 canvas,userzoom,attribute,true,,,canvas.js:644,,yes,yes,field-only,userzoom,0,0
-canvas,waitfor,method,,,,canvas.js:370,,yes,yes,missing,waitfor,0,0
+canvas,waitfor,method,,,,canvas.js:370,,yes,yes,wired,waitfor,0,0
 canvas,width,attribute,640,,typed,canvas.js:649,,yes,yes,field-only,width,1,1
 checkbox,aria_describedby,attribute,"""""",,constructor option,primitives.js:3126,,no,no,no-object,,0,0
 checkbox,aria_label,attribute,"""""",,constructor option,primitives.js:3126,,no,no,no-object,,0,0

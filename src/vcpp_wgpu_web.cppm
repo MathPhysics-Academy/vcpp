@@ -1567,69 +1567,69 @@ inline void render_frame()
 // Input Callbacks (Emscripten HTML5 API)
 // ============================================================================
 
-inline EM_BOOL on_mouse_move(int eventType, const EmscriptenMouseEvent* e, void* userData)
+// The browser's mouse goes through GlowScript's handling (vcpp:input), on the canvas being shown
+inline vcpp::canvas* input_canvas()
 {
-  (void)eventType;
-  (void)userData;
-  vcpp::g_input.mouse.x = e->targetX;
-  vcpp::g_input.mouse.y = e->targetY;
-  vcpp::g_input.ctrl_held = e->ctrlKey;
-  vcpp::g_input.shift_held = e->shiftKey;
-  vcpp::g_input.alt_held = e->altKey;
+  vcpp::g_viewport = {static_cast<double>(g_renderer.css_width), static_cast<double>(g_renderer.css_height)};
+  return g_renderer.current_canvas;
+}
+
+inline void note_modifiers(const EmscriptenMouseEvent* e)
+{
+  if (auto* c = input_canvas())
+  {
+    c->mouse.shift = e->shiftKey;
+    c->mouse.ctrl = e->ctrlKey;
+    c->mouse.alt = e->altKey;
+  }
+}
+
+inline EM_BOOL on_mouse_move(int, const EmscriptenMouseEvent* e, void*)
+{
+  if (auto* c = input_canvas())
+    vcpp::mouse_move(*c, e->targetX, e->targetY);
   return EM_TRUE;
 }
 
-inline EM_BOOL on_mouse_down(int eventType, const EmscriptenMouseEvent* e, void* userData)
+inline EM_BOOL on_mouse_down(int, const EmscriptenMouseEvent* e, void*)
 {
-  (void)eventType;
-  (void)userData;
-  vcpp::g_input.mouse.x = e->targetX;
-  vcpp::g_input.mouse.y = e->targetY;
-  vcpp::g_input.mouse.last_x = e->targetX;
-  vcpp::g_input.mouse.last_y = e->targetY;
-  vcpp::g_input.ctrl_held = e->ctrlKey;
-  vcpp::g_input.shift_held = e->shiftKey;
-  vcpp::g_input.alt_held = e->altKey;
-  switch (e->button)
+  note_modifiers(e);
+  if (auto* c = input_canvas())
+    vcpp::mouse_down(*c, e->targetX, e->targetY, e->button + 1);
+  return EM_TRUE;
+}
+
+inline EM_BOOL on_mouse_up(int, const EmscriptenMouseEvent* e, void*)
+{
+  note_modifiers(e);
+  if (auto* c = input_canvas())
+    vcpp::mouse_up(*c, e->targetX, e->targetY, e->button + 1);
+  return EM_TRUE;
+}
+
+inline EM_BOOL on_mouse_enter_leave(int type, const EmscriptenMouseEvent* e, void*)
+{
+  if (auto* c = input_canvas())
+    vcpp::mouse_enter(*c, e->targetX, e->targetY, type == EMSCRIPTEN_EVENT_MOUSEENTER);
+  return EM_TRUE;
+}
+
+// About one per wheel notch (100 pixels), as jQuery's mousewheel delta that GlowScript uses
+inline EM_BOOL on_wheel(int, const EmscriptenWheelEvent* e, void*)
+{
+  if (auto* c = input_canvas())
   {
-    case 0:
-      vcpp::g_input.mouse.left_down = true;
-      break;
-    case 1:
-      vcpp::g_input.mouse.middle_down = true;
-      break;
-    case 2:
-      vcpp::g_input.mouse.right_down = true;
-      break;
+    const double pixels = e->deltaMode == DOM_DELTA_LINE ? 33.0 * e->deltaY : e->deltaY;
+    vcpp::mouse_wheel(*c, -pixels / 100.0);
   }
   return EM_TRUE;
 }
 
-inline EM_BOOL on_mouse_up(int eventType, const EmscriptenMouseEvent* e, void* userData)
+inline EM_BOOL on_key_up(int, const EmscriptenKeyboardEvent* e, void*)
 {
-  (void)eventType;
-  (void)userData;
-  switch (e->button)
-  {
-    case 0:
-      vcpp::g_input.mouse.left_down = false;
-      break;
-    case 1:
-      vcpp::g_input.mouse.middle_down = false;
-      break;
-    case 2:
-      vcpp::g_input.mouse.right_down = false;
-      break;
-  }
-  return EM_TRUE;
-}
-
-inline EM_BOOL on_wheel(int eventType, const EmscriptenWheelEvent* e, void* userData)
-{
-  (void)eventType;
-  (void)userData;
-  vcpp::g_input.mouse.scroll_delta += e->deltaY * 0.01;
-  return EM_TRUE;
+  if (auto* c = input_canvas())
+    vcpp::key_event(*c, false, static_cast<int>(e->keyCode));
+  return EM_FALSE;
 }
 
 inline EM_BOOL on_key_down(int eventType, const EmscriptenKeyboardEvent* e, void* userData)
@@ -1637,6 +1637,8 @@ inline EM_BOOL on_key_down(int eventType, const EmscriptenKeyboardEvent* e, void
   (void)eventType;
   (void)userData;
   vcpp::g_input.key_down_events.push_back(e->code);
+  if (auto* c = input_canvas())
+    vcpp::key_event(*c, true, static_cast<int>(e->keyCode));
   if (e->metaKey || e->ctrlKey)
   {
     return EM_FALSE;
@@ -1657,8 +1659,8 @@ inline double get_current_time()
 
 inline void main_loop_callback()
 {
-  if (g_renderer.current_canvas)
-    vcpp::process_camera_input(*g_renderer.current_canvas);
+  if (auto* c = input_canvas())
+    vcpp::deliver_mouse_move(*c);
   if (user_update_fn)
     user_update_fn();
   if (g_renderer.current_canvas)
@@ -1912,6 +1914,17 @@ export inline bool init(canvas& c, const char* canvas_selector = "#canvas")
   emscripten_set_mouseup_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_up);
   emscripten_set_wheel_callback(canvas_selector, nullptr, EM_TRUE, on_wheel);
   emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, on_key_down);
+  emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, EM_FALSE, on_key_up);
+  emscripten_set_mouseenter_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_enter_leave);
+  emscripten_set_mouseleave_callback(canvas_selector, nullptr, EM_TRUE, on_mouse_enter_leave);
+  // The right button rotates the camera, as in GlowScript, so the browser's menu stays closed
+  // clang-format off
+  EM_ASM({
+    const canvas = document.querySelector(UTF8ToString($0));
+    if (canvas)
+      canvas.addEventListener("contextmenu", function(e) { e.preventDefault(); });
+  }, canvas_selector);
+  // clang-format on
   emscripten_set_click_callback(canvas_selector, nullptr, EM_TRUE,
                                 [](int, const EmscriptenMouseEvent*, void*) -> EM_BOOL { return EM_TRUE; });
 
