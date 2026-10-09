@@ -231,6 +231,7 @@ inline void zoom(canvas& c, double delta)
   cam.m_pos = cam.m_center + (cam.m_pos - cam.m_center) * std::exp(-delta * 0.05);
   c.m_autoscale = false;
   c.mark_dirty();
+  c.refresh_mouse();
 }
 
 // GlowScript's spin: 0.01 radian per pixel about up, and about axis x up unless that would pass over the top
@@ -244,6 +245,7 @@ inline void spin(canvas& c, double dx, double dy)
     axis = rotate(axis, -vertical, cross(axis, cam.m_up));
   cam.m_pos = cam.m_center - axis;
   c.mark_dirty();
+  c.refresh_mouse();
 }
 
 // GlowScript's pan: the point grabbed stays under the mouse
@@ -434,6 +436,8 @@ inline void key_event(canvas& c, bool down, int which)
     held.push_back(ev.key);
   else if (!down && it != held.end())
     held.erase(it);
+  if (!c.expects_keys())
+    return;
   if (which == 20 && down)
     detail::g_shiftlock = !detail::g_shiftlock;
   c.trigger(ev);

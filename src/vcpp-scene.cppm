@@ -311,6 +311,7 @@ public:
     m_camera.m_pos = center + (m_camera.m_pos - m_camera.m_center);
     m_camera.m_center = center;
     m_scene_dirty = true;
+    refresh_mouse();
   }
 
   // GlowScript's scene.forward: the camera looks along `forward`, at the same distance from center
@@ -318,6 +319,7 @@ public:
   {
     m_camera.m_pos = m_camera.m_center - hat(forward) * mag(m_camera.m_pos - m_camera.m_center);
     m_scene_dirty = true;
+    refresh_mouse();
   }
 
   // GlowScript's scene.range: how far from center the view reaches, along the canvas's shorter side.
@@ -334,6 +336,7 @@ public:
   {
     m_camera.m_fov = fov * 180 / std::numbers::pi;
     m_scene_dirty = true;
+    refresh_mouse();
   }
 
   template<typename T>
@@ -613,6 +616,7 @@ public:
     m_distant_lights = default_lights();
     m_local_lights.clear();
     m_ambient = vec3{0.2, 0.2, 0.2};
+    m_bindings.clear(); // a cleared scene's handlers go with it; coroutines waiting in waitfor still wait
     m_trails.clear();
     m_entries.clear();
     ++m_generation;
@@ -626,6 +630,21 @@ public:
   // ========== Events (GlowScript's scene.mouse, bind, unbind, waitfor) ==========
 
   mouse_info mouse;
+
+  // After the camera moves: scene.mouse as it would be with the mouse where it last was
+  void refresh_mouse()
+  {
+    mouse.refresh(m_camera.m_pos, m_camera.m_center, m_camera.m_up,
+                  std::tan(m_camera.m_fov * std::numbers::pi / 360.0));
+  }
+
+  // Whether the program listens for keys: GlowScript's caps lock only counts then
+  bool expects_keys() const
+  {
+    const event_types keys = event::keydown | event::keyup;
+    return std::ranges::any_of(m_bindings, [&](const binding& b) { return b.types & keys; }) ||
+           std::ranges::any_of(m_waiters, [&](const waiter& w) { return w.types & keys; });
+  }
 
   // Calls handler for each event of these types. It takes const event& or nothing, and may be a coroutine
   // (task<void>) that waits; a coroutine handler runs alongside the program. Binding a function again adds
@@ -679,6 +698,15 @@ public:
     canvas* c;
     event_types types;
     event result{};
+
+    event_wait(canvas* cv, event_types t) : c(cv), types(t) {}
+    event_wait(const event_wait&) = delete;
+    event_wait& operator=(const event_wait&) = delete;
+    // A coroutine destroyed while waiting destroys this too: it stops waiting
+    ~event_wait()
+    {
+      std::erase_if(c->m_waiters, [this](const waiter& w) { return w.out == &result; });
+    }
 
     bool await_ready() const noexcept { return false; }
     void await_suspend(std::coroutine_handle<> h) { c->m_waiters.push_back({types, h, &result}); }
@@ -890,6 +918,7 @@ public:
     if (mag2(dir) == 0)
       dir = vec3{0, 0, 1};
     m_camera.m_pos = m_camera.m_center + hat(dir) * distance;
+    refresh_mouse();
   }
 
   // Adds obj's position to the trail of scene entry `entry`, keeping the newest m_retain points

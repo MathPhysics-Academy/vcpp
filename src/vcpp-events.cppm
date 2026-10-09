@@ -94,6 +94,7 @@ struct mouse_info
   void update(double x, double y, double width, double height, const vec3& camera_pos, const vec3& center,
               const vec3& up, double tan_hfov)
   {
+    m_last = {x, y, width, height};
     const double factor = 2 * mag(center - camera_pos) * tan_hfov / height; // world units per pixel
     const double mx = (x - width / 2) * factor;
     const double my = (height - y - height / 2) * factor;
@@ -105,7 +106,23 @@ struct mouse_info
     m_center = center;
   }
 
+  // Recomputes pos and ray for a camera that moved, as GlowScript does when range, axis, center or up change;
+  // nothing until the mouse has been over the canvas
+  void refresh(const vec3& camera_pos, const vec3& center, const vec3& up, double tan_hfov)
+  {
+    if (m_last)
+      update(m_last->x, m_last->y, m_last->width, m_last->height, camera_pos, center, up, tan_hfov);
+  }
+
 private:
+  struct place
+  {
+    double x;
+    double y;
+    double width;
+    double height;
+  };
+  std::optional<place> m_last; // where the mouse was last seen, and on what size of canvas
   vec3 m_camera_pos{0, 0, 10};
   vec3 m_center{0, 0, 0};
 };

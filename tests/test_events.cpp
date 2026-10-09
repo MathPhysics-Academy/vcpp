@@ -159,6 +159,58 @@ bool test_keys()
          keysdown().empty();
 }
 
+// scene.mouse follows a camera that moves without the mouse moving, as GlowScript's does
+bool test_mouse_follows_camera()
+{
+  canvas c;
+  setup(c);
+  mouse_move(c, 800, 400);
+  const vec3 before = c.mouse.pos;
+  c.set_center(vec3{1.5, 0.2, 0});
+  return near(c.mouse.pos, before + vec3{1, 0, 0}, 1e-12);
+}
+
+// A coroutine destroyed while waiting stops waiting; clear() drops the scene's handlers
+bool test_waiting_and_clear()
+{
+  canvas c;
+  bool resumed = false;
+  {
+    auto waiter = [&]() -> task<void> {
+      co_await c.waitfor(event::click);
+      resumed = true;
+    };
+    task<void> t = waiter();
+  } // destroyed while waiting
+  const bool forgotten = c.m_waiters.empty();
+  c.trigger(event{.type = event::click});
+  tick_coroutines();
+  g_calls = 0;
+  c.bind(event::click, count);
+  c.clear();
+  c.trigger(event{.type = event::click});
+  return forgotten && !resumed && g_calls == 0;
+}
+
+// Caps lock counts only while the program listens for keys, as in GlowScript
+bool test_caps_lock()
+{
+  canvas c;
+  key_event(c, true, 20); // not listening: ignored
+  key_event(c, false, 20);
+  std::vector<std::string> keys;
+  c.bind(event::keydown, [&](const event& ev) { keys.push_back(ev.key); });
+  key_event(c, true, 66);
+  key_event(c, false, 66);
+  key_event(c, true, 20); // caps lock on
+  key_event(c, false, 20);
+  key_event(c, true, 66);
+  key_event(c, false, 66);
+  key_event(c, true, 20); // and off again
+  key_event(c, false, 20);
+  return keys == std::vector<std::string>{"b", "caps lock", "B", "caps lock"};
+}
+
 } // namespace
 
 int main()
@@ -183,6 +235,9 @@ int main()
   run_test("bind and unbind", test_bind_unbind);
   run_test("waitfor and coroutine handlers", test_waitfor_and_coroutine_handlers);
   run_test("keys", test_keys);
+  run_test("mouse follows the camera", test_mouse_follows_camera);
+  run_test("waiting and clear", test_waiting_and_clear);
+  run_test("caps lock", test_caps_lock);
   std::println("=================\nPassed: {}/{}", passed, passed + failed);
   return failed == 0 ? 0 : 1;
 }
