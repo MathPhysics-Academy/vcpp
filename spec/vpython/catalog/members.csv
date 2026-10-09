@@ -20,7 +20,7 @@ arrow,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,le
 arrow,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 arrow,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 arrow,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
-arrow,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+arrow,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 arrow,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,12,5
 arrow,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 arrow,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,1,1
@@ -83,7 +83,7 @@ box,length,attribute,,,accessor,primitives.js:718,,yes,yes,wired,length,2,1
 box,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 box,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 box,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,4,2
-box,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+box,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 box,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,68,14
 box,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 box,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
@@ -212,7 +212,7 @@ compound,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,ligh
 compound,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 compound,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
 compound,origin,attribute,,,accessor,primitives.js:1806,,yes,yes,missing,origin,0,0
-compound,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+compound,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 compound,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,8,2
 compound,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 compound,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
@@ -253,7 +253,7 @@ cone,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,1,1
 cone,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 cone,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 cone,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,1,1
-cone,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+cone,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 cone,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,6,4
 cone,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 cone,radius,attribute,,,accessor,primitives.js:866,cylinder,yes,yes,wired,radius,2,2
@@ -294,7 +294,7 @@ curve,modify,method,,,,primitives.js:2200,,yes,yes,wired,modify,0,0
 curve,npoints,attribute,,,accessor,primitives.js:1943,,yes,yes,missing,npoints,0,0
 curve,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
 curve,origin,attribute,"<0,0,0>",,vector,primitives.js:1924,,yes,yes,missing,origin,0,0
-curve,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+curve,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 curve,point,method,,,,primitives.js:2162,,yes,yes,wired,point,0,0
 curve,pop,method,,,,primitives.js:2136,,yes,yes,missing,pop,0,0
 curve,pos,unsupported,,,getter throws,primitives.js:1925,,yes,yes,wired,pos,3,1
@@ -339,7 +339,7 @@ cylinder,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,
 cylinder,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 cylinder,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 cylinder,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
-cylinder,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+cylinder,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 cylinder,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,58,9
 cylinder,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 cylinder,radius,attribute,,,accessor,primitives.js:866,,yes,yes,wired,radius,16,8
@@ -389,7 +389,7 @@ ellipsoid,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length
 ellipsoid,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 ellipsoid,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 ellipsoid,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
-ellipsoid,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+ellipsoid,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 ellipsoid,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,1,1
 ellipsoid,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 ellipsoid,radius,unsupported,,,getter throws,primitives.js:904,,yes,yes,declared-only,radius,0,0
@@ -447,7 +447,7 @@ extrusion,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wi
 extrusion,opacity,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,opacity,0,0
 extrusion,origin,attribute,,,accessor,primitives.js:1806,compound,yes,yes,missing,origin,0,0
 extrusion,path,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,path,30,5
-extrusion,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+extrusion,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 extrusion,pos,attribute,,,constructor option,extrude.js:523,,yes,yes,wired,pos,13,4
 extrusion,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 extrusion,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
@@ -648,7 +648,7 @@ helix,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,3,2
 helix,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 helix,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 helix,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
-helix,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+helix,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 helix,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,6,3
 helix,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 helix,radius,attribute,,,accessor,primitives.js:866,cylinder,yes,yes,wired,radius,2,2
@@ -763,7 +763,7 @@ points,modify,method,,,,primitives.js:2200,curve,yes,yes,missing,modify,0,0
 points,npoints,attribute,,,accessor,primitives.js:1943,curve,yes,yes,missing,npoints,0,0
 points,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
 points,origin,unsupported,,,getter throws,primitives.js:2334,,yes,yes,missing,origin,0,0
-points,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+points,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 points,point,method,,,,primitives.js:2162,curve,yes,yes,missing,point,0,0
 points,pop,method,,,,primitives.js:2136,curve,yes,yes,missing,pop,0,0
 points,pos,unsupported,,,getter throws,primitives.js:1925,curve,yes,yes,wired,pos,1,1
@@ -809,7 +809,7 @@ pyramid,length,attribute,,,accessor,primitives.js:718,box,yes,yes,wired,length,0
 pyramid,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 pyramid,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 pyramid,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
-pyramid,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+pyramid,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 pyramid,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,3,3
 pyramid,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 pyramid,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
@@ -848,7 +848,7 @@ quad,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,len
 quad,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 quad,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 quad,opacity,attribute,,,accessor,primitives.js:1592,,yes,yes,wired,opacity,0,0
-quad,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+quad,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 quad,pos,attribute,,,accessor,primitives.js:1572,,yes,yes,wired,pos,0,0
 quad,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 quad,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
@@ -903,7 +903,7 @@ ring,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only,len
 ring,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 ring,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 ring,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,0,0
-ring,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+ring,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 ring,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,5,4
 ring,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 ring,radius,attribute,,,accessor,primitives.js:2484,,yes,yes,wired,radius,4,4
@@ -1025,7 +1025,7 @@ sphere,interval,attribute,,,accessor,primitives.js:322,Primitive,yes,yes,wired,i
 sphere,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 sphere,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,31,16
 sphere,opacity,attribute,,,accessor,primitives.js:272,Primitive,yes,yes,wired,opacity,3,2
-sphere,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+sphere,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 sphere,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,197,26
 sphere,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 sphere,radius,attribute,,,accessor,primitives.js:885,,yes,yes,wired,radius,49,22
@@ -1071,7 +1071,7 @@ text,lower_right,attribute,,,accessor,primitives.js:1294,,no,no,missing,lower_ri
 text,make_trail,attribute,,,constructor option,primitives.js:1067,,yes,yes,wired,make_trail,0,0
 text,newargs,attribute,,,constructor option,primitives.js:1067,,no,no,missing,newargs,0,0
 text,opacity,attribute,,,accessor,primitives.js:1208,,yes,yes,wired,opacity,0,0
-text,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+text,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 text,pos,attribute,"<0,0,0>",,vector,primitives.js:259,Primitive,yes,yes,wired,pos,11,5
 text,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 text,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0
@@ -1134,7 +1134,7 @@ triangle,length,attribute,,,accessor,primitives.js:718,box,yes,yes,declared-only
 triangle,light_in_world,method,,,,primitives.js:702,Primitive,no,no,missing,light_in_world,0,0
 triangle,make_trail,attribute,,,accessor,primitives.js:303,Primitive,yes,yes,wired,make_trail,0,0
 triangle,opacity,attribute,,,accessor,primitives.js:1480,,yes,yes,wired,opacity,0,0
-triangle,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,missing,pickable,0,0
+triangle,pickable,attribute,true,,typed,primitives.js:299,Primitive,yes,yes,wired,pickable,0,0
 triangle,pos,attribute,,,accessor,primitives.js:1460,,yes,yes,wired,pos,0,0
 triangle,pps,attribute,,,accessor,primitives.js:351,Primitive,yes,yes,missing,pps,0,0
 triangle,radius,attribute,,,constructor option (shared init),primitives.js:init(),,yes,yes,declared-only,radius,0,0

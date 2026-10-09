@@ -18,6 +18,7 @@ import :color;
 import :objects;
 import :events;
 import :coro;
+import :pick;
 import :traits;
 
 export namespace vcpp
@@ -126,6 +127,7 @@ struct scene_entry
 // ============================================================================
 
 class canvas;
+class object_ref;
 
 template<typename T>
 class handle;
@@ -177,6 +179,7 @@ public:
 
 private:
   friend class canvas;
+  friend class object_ref;
   handle_base(canvas* c, std::size_t index, std::size_t entry, std::uint64_t generation) noexcept
     : m_canvas(c), m_index(index), m_entry(entry), m_generation(generation)
   {}
@@ -193,6 +196,19 @@ private:
 // Manages objects, camera, lights, and rendering state.
 // Equivalent to VPython's 'scene' object.
 // ============================================================================
+
+// GlowScript's scene.mouse, with pick()
+struct scene_mouse : mouse_info
+{
+  explicit scene_mouse(canvas* c) : m_canvas(c) {}
+
+  // The nearest visible, pickable object under the mouse; an empty object_ref (false) if none. It searches when
+  // called, so `auto hit = scene.mouse.pick();` keeps what was under the mouse then.
+  object_ref pick() const;
+
+private:
+  canvas* m_canvas;
+};
 
 class canvas
 {
@@ -461,8 +477,8 @@ private:
     each(m_pyramids,
          [](extent& e, const pyramid_object& p) { e.add_box_from_base(p, p.m_length, p.m_height, p.m_width); });
     each(m_arrows, [](extent& e, const arrow_object& a) {
-      const double w = std::max(a.m_shaftwidth, a.m_headwidth);
-      e.add_box_from_base(a, mag(a.m_axis), w, w);
+      if (const auto parts = arrow_parts(a)) // GlowScript's arrow size: (length, headwidth, headwidth)
+        e.add_box_from_base(a, mag(a.m_axis), parts->head.width, parts->head.width);
     });
     each(m_rings, [](extent& e, const ring_object& r) {
       const double d = 2 * (r.m_radius + r.m_thickness);
@@ -629,7 +645,14 @@ public:
 
   // ========== Events (GlowScript's scene.mouse, bind, unbind, waitfor) ==========
 
-  mouse_info mouse;
+  scene_mouse mouse{this};
+
+  // The nearest visible, pickable object the ray meets (curves of radius 0 counted thin_radius thick)
+  object_ref pick(const picking::ray& r, double thin_radius);
+
+  // Calls f with a handle to the object at scene entry entry_idx (not a light), as of `generation`
+  template<typename F>
+  decltype(auto) visit(std::size_t entry_idx, std::uint64_t generation, F&& f);
 
   // After the camera moves: scene.mouse as it would be with the mouse where it last was
   void refresh_mouse()
@@ -1251,6 +1274,7 @@ struct common_attributes
   attribute<T, &object_base::m_shininess> shininess;
   attribute<T, &object_base::m_emissive> emissive;
   attribute<T, &object_base::m_visible> visible;
+  attribute<T, &object_base::m_pickable> pickable;
   attribute<T, &object_base::m_texture> texture;
   attribute<T, &object_base::m_make_trail> make_trail;
   attribute<T, &object_base::m_trail_color> trail_color;
@@ -1261,8 +1285,8 @@ struct common_attributes
 
   common_attributes() = default;
   explicit common_attributes(const handle_base<T>& h)
-    : pos(h), axis(h), up(h), color(h), opacity(h), shininess(h), emissive(h), visible(h), texture(h), make_trail(h),
-      trail_color(h), trail_type(h), trail_radius(h), retain(h), interval(h)
+    : pos(h), axis(h), up(h), color(h), opacity(h), shininess(h), emissive(h), visible(h), pickable(h), texture(h),
+      make_trail(h), trail_color(h), trail_type(h), trail_radius(h), retain(h), interval(h)
   {}
 };
 
@@ -1451,6 +1475,262 @@ private:
     : handle_base<T>(h), detail::common_attributes<T>(h), detail::own_attributes<T>(h)
   {}
 };
+
+// ============================================================================
+// object_ref - Any object in a canvas, as scene.mouse.pick() returns it
+//
+//   auto hit = scene.mouse.pick();
+//   if (hit) hit.color = colors::red;
+//   if (hit == ball) ...
+//
+// It has the attributes every object has, applied by the same rules as a handle's; a curve's hit also has
+// segment. Using the attributes of an empty object_ref (nothing picked) throws.
+// ============================================================================
+
+template<typename F>
+decltype(auto) canvas::visit(std::size_t entry_idx, std::uint64_t generation, F&& f)
+{
+  if (generation != m_generation || entry_idx >= m_entries.size())
+    throw std::logic_error("vcpp: object used after its scene was cleared");
+  const scene_entry& e = m_entries[entry_idx];
+  auto as = [&]<typename T>(std::type_identity<T>) -> decltype(auto) {
+    return f(handle<T>(handle_base<T>(this, e.index, entry_idx, m_generation)));
+  };
+  switch (e.type)
+  {
+    case object_type::sphere:
+      return as(std::type_identity<sphere_object>{});
+    case object_type::ellipsoid:
+      return as(std::type_identity<ellipsoid_object>{});
+    case object_type::box:
+      return as(std::type_identity<box_object>{});
+    case object_type::cylinder:
+      return as(std::type_identity<cylinder_object>{});
+    case object_type::cone:
+      return as(std::type_identity<cone_object>{});
+    case object_type::arrow:
+      return as(std::type_identity<arrow_object>{});
+    case object_type::ring:
+      return as(std::type_identity<ring_object>{});
+    case object_type::helix:
+      return as(std::type_identity<helix_object>{});
+    case object_type::pyramid:
+      return as(std::type_identity<pyramid_object>{});
+    case object_type::curve:
+      return as(std::type_identity<curve_object>{});
+    case object_type::points:
+      return as(std::type_identity<points_object>{});
+    case object_type::label:
+      return as(std::type_identity<label_object>{});
+    case object_type::triangle:
+      return as(std::type_identity<triangle_object>{});
+    case object_type::quad:
+      return as(std::type_identity<quad_object>{});
+    case object_type::compound:
+      return as(std::type_identity<compound_object>{});
+    case object_type::text3d:
+      return as(std::type_identity<text3d_object>{});
+    case object_type::extrusion:
+      return as(std::type_identity<extrusion_object>{});
+    case object_type::distant_light:
+    case object_type::local_light:
+      break;
+  }
+  throw std::logic_error("vcpp: a light has none of an object's attributes");
+}
+
+namespace detail
+{
+// One of the attributes every object has, on an object_ref: Select names it on a handle
+template<typename Select>
+class ref_attribute
+{
+public:
+  using value_type = typename Select::type;
+
+  ref_attribute() = default;
+  ref_attribute(canvas* c, std::size_t entry, std::uint64_t generation)
+    : m_canvas(c), m_entry(entry), m_generation(generation)
+  {}
+  ref_attribute(const ref_attribute&) = default;
+
+  value_type value() const
+  {
+    return named().visit(m_entry, m_generation, [](auto h) { return value_type(Select::of(h)); });
+  }
+  operator value_type() const { return value(); }
+
+  ref_attribute& operator=(const value_type& v)
+  {
+    named().visit(m_entry, m_generation, [&](auto h) { Select::of(h) = v; });
+    return *this;
+  }
+  ref_attribute& operator=(const ref_attribute& other) { return *this = other.value(); }
+
+  double x() const
+    requires std::same_as<value_type, vec3>
+  { return value().x(); }
+  double y() const
+    requires std::same_as<value_type, vec3>
+  { return value().y(); }
+  double z() const
+    requires std::same_as<value_type, vec3>
+  { return value().z(); }
+
+private:
+  canvas& named() const
+  {
+    if (!m_canvas)
+      throw std::logic_error("vcpp: nothing was picked (an empty object_ref)");
+    return *m_canvas;
+  }
+
+  canvas* m_canvas = nullptr;
+  std::size_t m_entry = 0;
+  std::uint64_t m_generation = 0;
+};
+
+// clang-format off
+struct pos_of { using type = vec3; static auto& of(auto& h) { return h.pos; } };
+struct axis_of { using type = vec3; static auto& of(auto& h) { return h.axis; } };
+struct up_of { using type = vec3; static auto& of(auto& h) { return h.up; } };
+struct color_of { using type = vec3; static auto& of(auto& h) { return h.color; } };
+struct opacity_of { using type = double; static auto& of(auto& h) { return h.opacity; } };
+struct shininess_of { using type = double; static auto& of(auto& h) { return h.shininess; } };
+struct emissive_of { using type = bool; static auto& of(auto& h) { return h.emissive; } };
+struct visible_of { using type = bool; static auto& of(auto& h) { return h.visible; } };
+struct pickable_of { using type = bool; static auto& of(auto& h) { return h.pickable; } };
+// clang-format on
+} // namespace detail
+
+class object_ref
+{
+public:
+  object_ref() = default;
+  object_ref(const object_ref&) = default;
+  template<typename T>
+  object_ref(const handle_base<T>& h) : object_ref(h.m_canvas, h.m_entry, h.m_generation)
+  {}
+
+  // Names the other's object, as Python's hit = other does (the attributes' own assignment copies values)
+  object_ref& operator=(const object_ref& other)
+  {
+    std::destroy_at(this);
+    std::construct_at(this, other);
+    return *this;
+  }
+
+  explicit operator bool() const noexcept { return m_canvas != nullptr; }
+
+  friend bool operator==(const object_ref& a, const object_ref& b) noexcept
+  { return a.m_canvas == b.m_canvas && a.m_entry == b.m_entry && a.m_generation == b.m_generation; }
+
+  // A picked curve: the index of the point that ends the segment under the mouse, as GlowScript's hit.segment
+  std::optional<std::size_t> segment;
+
+  detail::ref_attribute<detail::pos_of> pos;
+  detail::ref_attribute<detail::axis_of> axis;
+  detail::ref_attribute<detail::up_of> up;
+  detail::ref_attribute<detail::color_of> color;
+  detail::ref_attribute<detail::opacity_of> opacity;
+  detail::ref_attribute<detail::shininess_of> shininess;
+  detail::ref_attribute<detail::emissive_of> emissive;
+  detail::ref_attribute<detail::visible_of> visible;
+  detail::ref_attribute<detail::pickable_of> pickable;
+
+private:
+  friend class canvas;
+  object_ref(canvas* c, std::size_t entry, std::uint64_t generation)
+    : pos(c, entry, generation), axis(c, entry, generation), up(c, entry, generation), color(c, entry, generation),
+      opacity(c, entry, generation), shininess(c, entry, generation), emissive(c, entry, generation),
+      visible(c, entry, generation), pickable(c, entry, generation), m_canvas(c), m_entry(entry),
+      m_generation(generation)
+  {}
+
+  canvas* m_canvas = nullptr;
+  std::size_t m_entry = 0;
+  std::uint64_t m_generation = 0;
+};
+
+inline object_ref canvas::pick(const picking::ray& r, double thin_radius)
+{
+  object_ref found;
+  double best = std::numeric_limits<double>::infinity();
+  for (std::size_t i = 0; i < m_entries.size(); ++i)
+  {
+    const scene_entry& e = m_entries[i];
+    std::optional<double> t;
+    std::optional<std::size_t> segment;
+    auto test = [&](const auto& obj) {
+      if (obj.m_visible && obj.m_pickable)
+        t = picking::hit(obj, r);
+    };
+    switch (e.type)
+    {
+      case object_type::sphere:
+        test(m_spheres[e.index]);
+        break;
+      case object_type::ellipsoid:
+        test(m_ellipsoids[e.index]);
+        break;
+      case object_type::box:
+        test(m_boxes[e.index]);
+        break;
+      case object_type::cylinder:
+        test(m_cylinders[e.index]);
+        break;
+      case object_type::cone:
+        test(m_cones[e.index]);
+        break;
+      case object_type::arrow:
+        test(m_arrows[e.index]);
+        break;
+      case object_type::pyramid:
+        test(m_pyramids[e.index]);
+        break;
+      case object_type::triangle:
+        test(m_triangles[e.index]);
+        break;
+      case object_type::quad:
+        test(m_quads[e.index]);
+        break;
+      case object_type::points:
+        test(m_points[e.index]);
+        break;
+      case object_type::curve:
+      {
+        const curve_object& c = m_curves[e.index];
+        if (c.m_visible && c.m_pickable)
+          if (const auto h = picking::hit(c, r, thin_radius))
+          {
+            t = h->t;
+            segment = h->segment;
+          }
+        break;
+      }
+      default: // rings, helixes, compounds, 3D text and extrusions are not picked yet; labels and lights never
+        break;
+    }
+    if (t && *t < best)
+    {
+      best = *t;
+      found = object_ref(this, i, m_generation);
+      found.segment = segment;
+    }
+  }
+  return found;
+}
+
+inline object_ref scene_mouse::pick() const
+{
+  const auto size = canvas_size();
+  if (!size)
+    return {}; // the mouse hasn't been over the canvas
+  const camera& cam = m_canvas->m_camera;
+  const double tan_hfov = std::tan(cam.m_fov * std::numbers::pi / 360.0);
+  const double thin_radius = 4 * mag(cam.m_center - cam.m_pos) * tan_hfov / std::max(size->first, size->second);
+  return m_canvas->pick({cam.m_pos, ray}, thin_radius);
+}
 
 // ============================================================================
 // Global Default Scene (like VPython's 'scene')

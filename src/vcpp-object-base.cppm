@@ -48,6 +48,7 @@ struct object_base
   double m_effect_param0{0.0}; // its parameters (packed into material.z and .w)
   double m_effect_param1{0.0};
   bool m_visible{true};
+  bool m_pickable{true}; // whether scene.mouse.pick() can return it
 
   // Behavior
   bool m_make_trail{false};
@@ -118,6 +119,7 @@ inline constexpr auto common_params = std::tuple{param_spec<&object_base::m_pos,
                                                  param_spec<&object_base::m_shininess, decltype(shininess)>{},
                                                  param_spec<&object_base::m_emissive, decltype(emissive)>{},
                                                  param_spec<&object_base::m_visible, decltype(visible)>{},
+                                                 param_spec<&object_base::m_pickable, decltype(pickable)>{},
                                                  param_spec<&object_base::m_make_trail, decltype(make_trail)>{},
                                                  param_spec<&object_base::m_retain, decltype(retain)>{},
                                                  param_spec<&object_base::m_interval, decltype(interval)>{},

@@ -35,6 +35,7 @@ inline constexpr symbol<> opacity{};   // transparency 0-1 (double)
 inline constexpr symbol<> shininess{}; // reflectivity 0-1 (double)
 inline constexpr symbol<> emissive{};  // self-illumination (bool)
 inline constexpr symbol<> visible{};   // display toggle (bool)
+inline constexpr symbol<> pickable{};  // whether scene.mouse.pick() can return it (bool)
 inline constexpr symbol<> texture{};   // texture reference
 
 // Behavior

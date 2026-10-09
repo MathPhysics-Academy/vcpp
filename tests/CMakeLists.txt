@@ -52,3 +52,8 @@ add_executable(test_events test_events.cpp)
 target_link_libraries(test_events PRIVATE vcpp)
 target_compile_features(test_events PRIVATE cxx_std_23)
 add_test(NAME test_events COMMAND test_events)
+
+add_executable(test_pick test_pick.cpp)
+target_link_libraries(test_pick PRIVATE vcpp)
+target_compile_features(test_pick PRIVATE cxx_std_23)
+add_test(NAME test_pick COMMAND test_pick)

@@ -14,8 +14,8 @@ All counts below cover the user-facing members only.
 
 ## vcpp coverage
 
-- wired: 407
-- missing: 335
+- wired: 423
+- missing: 319
 - no-object: 193
 - declared-only: 91
 - field-only: 35
@@ -76,50 +76,50 @@ Corpus uses 237 members; 160 are wired.
 
 | owner | members | wired | used | used & wired |
 |---|---|---|---|---|
-| arrow | 43 | 19 | 7 | 6 |
+| arrow | 43 | 20 | 7 | 6 |
 | attach_arrow | 5 | 0 | 0 | 0 |
 | attach_light | 5 | 0 | 0 | 0 |
 | attach_trail | 9 | 0 | 0 | 0 |
-| box | 35 | 19 | 14 | 13 |
+| box | 35 | 20 | 14 | 13 |
 | bumpmaps | 5 | 0 | 1 | 0 |
 | button | 7 | 0 | 5 | 0 |
 | camera | 4 | 0 | 0 | 0 |
 | canvas | 33 | 6 | 6 | 0 |
 | checkbox | 6 | 0 | 3 | 0 |
 | color | 14 | 10 | 13 | 10 |
-| compound | 38 | 15 | 7 | 5 |
-| cone | 35 | 18 | 10 | 10 |
-| curve | 41 | 20 | 5 | 5 |
-| cylinder | 35 | 18 | 10 | 9 |
+| compound | 38 | 16 | 7 | 5 |
+| cone | 35 | 19 | 10 | 10 |
+| curve | 41 | 21 | 5 | 5 |
+| cylinder | 35 | 19 | 10 | 9 |
 | distant_light | 11 | 3 | 2 | 2 |
-| ellipsoid | 35 | 19 | 3 | 3 |
+| ellipsoid | 35 | 20 | 3 | 3 |
 | event | 13 | 0 | 0 | 0 |
-| extrusion | 53 | 28 | 15 | 12 |
+| extrusion | 53 | 29 | 15 | 12 |
 | gcurve | 19 | 10 | 7 | 5 |
 | gdots | 19 | 5 | 3 | 2 |
 | ghbars | 19 | 0 | 0 | 0 |
 | graph | 21 | 12 | 11 | 9 |
 | group | 38 | 0 | 1 | 0 |
 | gvbars | 19 | 5 | 4 | 3 |
-| helix | 38 | 21 | 8 | 8 |
+| helix | 38 | 22 | 8 | 8 |
 | label | 27 | 12 | 8 | 8 |
 | local_light | 11 | 3 | 0 | 0 |
 | menu | 7 | 0 | 4 | 0 |
 | mouse | 8 | 0 | 0 | 0 |
 | paths | 14 | 13 | 3 | 3 |
-| points | 42 | 17 | 2 | 1 |
-| pyramid | 35 | 19 | 7 | 7 |
-| quad | 40 | 15 | 2 | 1 |
+| points | 42 | 18 | 2 | 1 |
+| pyramid | 35 | 20 | 7 | 7 |
+| quad | 40 | 16 | 2 | 1 |
 | radio | 7 | 0 | 4 | 0 |
-| ring | 36 | 17 | 6 | 5 |
+| ring | 36 | 18 | 6 | 5 |
 | shapes | 16 | 15 | 7 | 7 |
 | simple_sphere | 29 | 0 | 0 | 0 |
 | slider | 17 | 0 | 7 | 0 |
-| sphere | 30 | 18 | 17 | 15 |
-| text | 45 | 20 | 14 | 9 |
+| sphere | 30 | 19 | 17 | 15 |
+| text | 45 | 21 | 14 | 9 |
 | texture | 6 | 0 | 0 | 0 |
 | textures | 12 | 0 | 12 | 0 |
-| triangle | 39 | 15 | 0 | 0 |
+| triangle | 39 | 16 | 0 | 0 |
 | vec | 15 | 15 | 2 | 2 |
 | vertex | 11 | 0 | 5 | 0 |
 | winput | 10 | 0 | 0 | 0 |

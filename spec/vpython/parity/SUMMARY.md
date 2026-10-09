@@ -103,7 +103,7 @@ The corpus uses 169 of these pairs; 118 are wired.
 
 Declared in `vcpp-props.cppm` but not a documented attribute of any object (some exist in the runtime but are undocumented, e.g. `trail_color`; others are vcpp's own):
 
-`acceleration`, `ambient`, `center`, `charge`, `closed`, `dt`, `forward`, `fov`, `lights`, `marker_radius`, `mass`, `momentum`, `points`, `range`, `target_canvas`, `trail_color`, `velocity`
+`acceleration`, `ambient`, `center`, `charge`, `closed`, `dt`, `forward`, `fov`, `lights`, `marker_radius`, `mass`, `momentum`, `pickable`, `points`, `range`, `target_canvas`, `trail_color`, `velocity`
 
 ## User-defined attributes (not in the spec) — the attribute-bag case
 

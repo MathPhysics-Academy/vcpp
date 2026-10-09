@@ -41,6 +41,7 @@ target_sources(vcpp PUBLIC
     src/vcpp-text-glyphs.cppm
     src/vcpp-label-bridge.cppm
     src/vcpp-events.cppm
+    src/vcpp-pick.cppm
     src/vcpp-scene.cppm
     src/vcpp-loop.cppm
     src/vcpp-coro.cppm

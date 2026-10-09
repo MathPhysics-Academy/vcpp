@@ -210,7 +210,7 @@ private:
       "center", "charge", "closed", "coils", "color", "delta", "depth", "direction", "dot_color", "dot_radius", "dt", "emissive",
       "end_normal", "fast", "font", "foreground", "forward", "fov", "graph_ref", "group", "headlength", "headwidth",
       "height", "interval", "label", "legend", "length", "lights", "line", "make_trail", "marker_radius", "markers",
-      "mass", "momentum", "normal", "offset", "opacity", "path", "points", "pos", "radius", "range", "retain", "round", "scale",
+      "mass", "momentum", "normal", "offset", "opacity", "path", "pickable", "points", "pos", "radius", "range", "retain", "round", "scale",
       "shaftwidth", "shape", "sharp_joints", "shininess", "show_dot", "show_end_face", "show_start_face", "size",
       "smooth", "smooth_joints", "start_normal", "target_canvas", "texpos", "text", "texture", "thickness", "title",
       "trail_color", "trail_radius", "trail_type", "twist", "up", "v0", "v1", "v2", "v3", "velocity", "visible",
@@ -286,10 +286,10 @@ private:
       {"interval", kind::number},   {"trail_radius", kind::number}, {"shaftwidth", kind::number},
       {"headwidth", kind::number},  {"headlength", kind::number},   {"coils", kind::number},
       {"xoffset", kind::number},    {"yoffset", kind::number},      {"border", kind::number},
-      {"visible", kind::boolean},   {"make_trail", kind::boolean},  {"emissive", kind::boolean},
-      {"ccw", kind::boolean},       {"texture", kind::string},      {"trail_type", kind::string},
-      {"text", kind::string},       {"font", kind::string},         {"npoints", kind::number},
-      {"direction", kind::vector},  {"offset", kind::vector},
+      {"visible", kind::boolean},   {"make_trail", kind::boolean},  {"pickable", kind::boolean},
+      {"emissive", kind::boolean},  {"ccw", kind::boolean},         {"texture", kind::string},
+      {"trail_type", kind::string}, {"text", kind::string},         {"font", kind::string},
+      {"npoints", kind::number},    {"direction", kind::vector},    {"offset", kind::vector},
     };
     const auto it = attrs.find(name);
     return it == attrs.end() ? std::nullopt : std::optional{it->second};

@@ -263,9 +263,9 @@ constexpr cone_object cone(Binders... binders)
 
 struct arrow_object : object_base
 {
-  double m_shaftwidth{0.1};
-  double m_headwidth{0.2};
-  double m_headlength{0.3};
+  double m_shaftwidth{0}; // 0: automatic, as in GlowScript (see arrow_parts)
+  double m_headwidth{0};
+  double m_headlength{0};
   bool m_round{false};
 
   // Accessors
@@ -299,6 +299,49 @@ constexpr arrow_object arrow(Binders... binders)
   return make<arrow_object>(binders...);
 }
 } // namespace build
+
+// The two pieces an arrow is drawn as: GlowScript's arrow_update (primitives.js). A box shaft centred on its pos
+// and a pyramid head with its base at its pos, or with round, a cylinder and a cone, both from their pos. Both
+// point along the arrow's axis, turned by its up. A width or length of 0 is automatic: shaft 0.1 of the length,
+// head twice as wide and three times as long as the shaft, scaled so the shaft is at least 0.02 of the length
+// and the head at most half of it (only the automatic ones scale).
+struct arrow_piece
+{
+  vec3 pos;
+  double length;
+  double width;
+};
+
+struct arrow_shape
+{
+  arrow_piece shaft;
+  arrow_piece head;
+};
+
+inline std::optional<arrow_shape> arrow_parts(const arrow_object& a)
+{
+  const double L = mag(a.m_axis);
+  if (L == 0)
+    return std::nullopt;
+  const vec3 A = hat(a.m_axis);
+  double sw = a.m_shaftwidth > 0 ? a.m_shaftwidth : L * 0.1;
+  double hw = a.m_headwidth > 0 ? a.m_headwidth : sw * 2;
+  double hl = a.m_headlength > 0 ? a.m_headlength : sw * 3;
+  auto scale_automatic = [&](double k) {
+    if (a.m_shaftwidth <= 0)
+      sw *= k;
+    if (a.m_headwidth <= 0)
+      hw *= k;
+    if (a.m_headlength <= 0)
+      hl *= k;
+  };
+  if (sw < L * 0.02)
+    scale_automatic(L * 0.02 / sw);
+  if (hl > L * 0.5)
+    scale_automatic(L * 0.5 / hl);
+  const vec3 shaft_pos = a.m_round ? a.m_pos : a.m_pos + A * (0.5 * (L - hl));
+  return arrow_shape{{shaft_pos, L - hl, sw}, {a.m_pos + A * (L - hl), hl, hw}};
+}
 
 // ============================================================================
 // RING

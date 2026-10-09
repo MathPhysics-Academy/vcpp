@@ -114,6 +114,14 @@ struct mouse_info
       update(m_last->x, m_last->y, m_last->width, m_last->height, camera_pos, center, up, tan_hfov);
   }
 
+  // The size of the canvas the mouse was last seen on, in pixels; empty until then
+  std::optional<std::pair<double, double>> canvas_size() const
+  {
+    if (!m_last)
+      return std::nullopt;
+    return std::pair{m_last->width, m_last->height};
+  }
+
 private:
   struct place
   {

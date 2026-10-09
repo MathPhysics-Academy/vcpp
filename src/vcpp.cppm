@@ -50,6 +50,7 @@ export import :label_bridge;
 
 // Scene management
 export import :events;
+export import :pick;
 export import :scene;
 
 // Animation

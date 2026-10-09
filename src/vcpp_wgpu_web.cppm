@@ -864,8 +864,38 @@ inline void render_frame()
     wgpuRenderPassEncoderSetBindGroup(pass, 1, g_renderer.white_texture, 0, nullptr);
   }
 
-  // Draw pyramids: pos is the centre of the base, the apex is at pos + axis
   instance_batch pyramid_instances;
+  instance_batch box_instances;
+  instance_batch cylinder_instances;
+  instance_batch cone_instances;
+
+  // Arrows, as GlowScript draws them (arrow_parts): a box and a pyramid, or with round a cylinder and a cone
+  for (const auto& obj : c.m_arrows)
+  {
+    const auto parts = arrow_parts(obj);
+    if (!obj.m_visible || !parts)
+      continue;
+    const auto& [shaft, head] = *parts;
+    auto piece = [&](const arrow_piece& p, const vec3& scale) {
+      instance_data inst = build_instance(obj, scale);
+      inst.model = compute_model_matrix(p.pos, obj.m_axis, obj.m_up, scale);
+      return inst;
+    };
+    if (obj.m_round)
+    {
+      if (shaft.length > 0)
+        cylinder_instances.add(piece(shaft, vec3{shaft.length, shaft.width, shaft.width}), texture_for(obj.m_texture));
+      cone_instances.add(piece(head, vec3{head.length, head.width, head.width}), texture_for(obj.m_texture));
+    }
+    else
+    {
+      if (shaft.length > 0)
+        box_instances.add(piece(shaft, vec3{shaft.length, shaft.width, shaft.width}), texture_for(obj.m_texture));
+      pyramid_instances.add(piece(head, vec3{head.length, head.width, head.width}), texture_for(obj.m_texture));
+    }
+  }
+
+  // Draw pyramids: pos is the centre of the base, the apex is at pos + axis
   for (const auto& p : c.m_pyramids)
   {
     if (!p.m_visible)
@@ -876,7 +906,6 @@ inline void render_frame()
   draw_batch(pass, g_renderer.meshes[5], g_renderer.pyramid_ib, g_renderer.pyramid_ib_cap, pyramid_instances);
 
   // Draw boxes
-  instance_batch box_instances;
   for (const auto& b : c.m_boxes)
   {
     if (!b.m_visible)
@@ -888,8 +917,6 @@ inline void render_frame()
 
   draw_batch(pass, g_renderer.meshes[1], g_renderer.box_ib, g_renderer.box_ib_cap, box_instances);
 
-  instance_batch cylinder_instances;
-  instance_batch cone_instances;
 
   // Process m_cylinders
   for (const auto& obj : c.m_cylinders)
@@ -925,54 +952,6 @@ inline void render_frame()
     inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
     inst.material = material_of(obj);
     cone_instances.add(inst, texture_for(obj.m_texture));
-  }
-
-  // Process m_arrows (Composite)
-  for (const auto& obj : c.m_arrows)
-  {
-    if (!obj.m_visible)
-      continue;
-
-    double len = mag(obj.m_axis);
-    if (len < 1e-6)
-      continue;
-
-    double shaft_dia = (obj.m_shaftwidth > 0) ? obj.m_shaftwidth : (0.1 * len);
-    double head_len = obj.m_headlength;
-    double head_dia = obj.m_headwidth;
-    if (head_len > len)
-      head_len = len;
-    double shaft_len = len - head_len;
-
-    gpu_mat4 rot = matrix::align_x_to_axis(obj.m_axis);
-
-    // Shaft (Cylinder)
-    if (shaft_len > 0)
-    {
-      instance_data inst{};
-      gpu_mat4 scale = matrix::scale(static_cast<float>(shaft_len), static_cast<float>(shaft_dia),
-                                     static_cast<float>(shaft_dia));
-      gpu_mat4 tr = matrix::translate(static_cast<float>(obj.m_pos.x()), static_cast<float>(obj.m_pos.y()),
-                                      static_cast<float>(obj.m_pos.z()));
-      inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
-      inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-      inst.material = material_of(obj);
-      cylinder_instances.add(inst, texture_for(obj.m_texture));
-    }
-
-    // Head (Cone)
-    {
-      instance_data inst{};
-      vec3 head_pos = obj.m_pos + hat(obj.m_axis) * shaft_len;
-      gpu_mat4 scale = matrix::scale(static_cast<float>(head_len), static_cast<float>(head_dia),
-                                     static_cast<float>(head_dia));
-      gpu_mat4 tr = matrix::translate(static_cast<float>(head_pos.x()), static_cast<float>(head_pos.y()),
-                                      static_cast<float>(head_pos.z()));
-      inst.model = matrix::multiply(tr, matrix::multiply(rot, scale));
-      inst.color = to_gpu4(obj.m_color, static_cast<float>(obj.m_opacity));
-      inst.material = material_of(obj);
-      cone_instances.add(inst, texture_for(obj.m_texture));
-    }
   }
 
   // Draw Cylinders
